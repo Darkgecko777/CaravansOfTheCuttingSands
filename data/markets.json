@@ -1,0 +1,93 @@
+{
+  "formula": "price = base * appetite * lerp(empty_multiplier, full_multiplier, stock / cap)",
+  "empty_multiplier": 1.6,
+  "full_multiplier": 0.7,
+  "make_appetite": 0.8,
+  "want_appetite": 1.4,
+  "towns": {
+    "kharun": {
+      "name": "Kharûn",
+      "makes": ["shimmersteel_jars", "tiger_cactus_flesh", "khor_crafted_tools", "scrubcast_resin"],
+      "wants": {
+        "shimmersteel_jars": 0.8,
+        "tiger_cactus_flesh": 0.8,
+        "khor_crafted_tools": 0.8,
+        "scrubcast_resin": 0.8,
+        "sarns_bane_liver": 1.4
+      },
+      "needs": {
+        "shimmersteel_jars": ["shimmersteel"]
+      }
+    },
+    "thalor": {
+      "name": "Thalor",
+      "makes": ["shimmersteel", "shimmersteel_cookware", "giant_duzhu_hide", "ishka_crafted_music_makers"],
+      "wants": {
+        "shimmersteel": 0.8,
+        "shimmersteel_cookware": 0.8,
+        "giant_duzhu_hide": 0.8,
+        "ishka_crafted_music_makers": 0.8
+      },
+      "needs": {
+        "shimmersteel_cookware": ["shimmersteel"]
+      }
+    },
+    "veythar": {
+      "name": "Veythar",
+      "makes": ["moon_soaked_zethi_bulb", "titans_heart_rock", "shimmersteel_fineware", "vek_kilned_pottery"],
+      "wants": {
+        "moon_soaked_zethi_bulb": 0.8,
+        "titans_heart_rock": 0.8,
+        "shimmersteel_fineware": 0.8,
+        "vek_kilned_pottery": 0.8
+      },
+      "needs": {
+        "shimmersteel_fineware": ["shimmersteel"]
+      }
+    },
+    "zamath": {
+      "name": "Zamath",
+      "makes": ["living_lumber", "water_witching_rods", "sweet_bliss_pomegranates", "brine_scrub"],
+      "wants": {
+        "living_lumber": 0.8,
+        "water_witching_rods": 0.8,
+        "sweet_bliss_pomegranates": 0.8,
+        "brine_scrub": 0.8
+      }
+    },
+    "ghorath": {
+      "name": "Ghorath",
+      "makes": ["crimson_eyed_melon_juice", "numbspindle", "mor_root"],
+      "wants": {
+        "crimson_eyed_melon_juice": 0.8,
+        "numbspindle": 0.8,
+        "mor_root": 0.8
+      }
+    },
+    "draven": {
+      "name": "Draven",
+      "makes": ["frost_iron", "finger_fungus"],
+      "wants": {
+        "frost_iron": 0.8,
+        "finger_fungus": 0.8,
+        "shimmersteel_jars": 1.4,
+        "water_witching_rods": 1.4
+      }
+    },
+    "rukh": {
+      "name": "Rukh",
+      "makes": ["sarns_bane_liver", "kel_eel_flesh"],
+      "wants": {
+        "sarns_bane_liver": 0.8,
+        "kel_eel_flesh": 0.8
+      }
+    },
+    "highmark": {
+      "name": "Highmark",
+      "makes": [],
+      "wants": {
+        "finger_fungus": 1.4
+      }
+    }
+  }
+}
