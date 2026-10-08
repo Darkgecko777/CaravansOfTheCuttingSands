@@ -2,14 +2,13 @@ using UnityEngine;
 
 namespace Caravans.JarsRun
 {
-    // Throwaway figures for the jars run. The vision leaves price, weight,
-    // pace, weather loss, and the daily eat rate unlocked. Do not treat these
-    // as the economy. Cargo loss stays at zero until a rate is asked for.
+    // Weather, vision, and the lesson clock. Shelf prices live in EconomyCatalog.
+    // Cargo loss from weather stays at zero until a rate is asked for.
     public static class ThrowawayEconomy
     {
         public const int StartingCoin = 400;
         public const int CardCoin = 8;
-        public const float BaseLegHours = 8f;
+        public const float BaseLegHours = EconomyRates.DayHours;
         public const float RealSeconds = 36f;
 
         public const float VisionDay = 0.34f;

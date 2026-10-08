@@ -26,6 +26,8 @@ namespace Caravans.JarsRun
         readonly List<Button> buttons = new List<Button>();
         readonly List<GameObject> raised = new List<GameObject>();
         readonly Dictionary<GoodId, Button> tradeButtons = new Dictionary<GoodId, Button>();
+        readonly List<Button> neighborRoads = new List<Button>();
+        readonly List<Image> npcTokens = new List<Image>();
 
         CaravanSession session;
         TMP_FontAsset font;
@@ -73,8 +75,13 @@ namespace Caravans.JarsRun
         TextMeshProUGUI listenText;
         TextMeshProUGUI legText;
         TextMeshProUGUI housePageText;
+        RectTransform pinnedHost;
         RectTransform rowHost;
+        RectTransform scrollRoot;
+        RectTransform plazaColumn;
         TextMeshProUGUI emptySell;
+        PlaceId roadsDock;
+        bool roadsReady;
         Button marketTab;
         Button plazaTab;
         Button houseTab;
@@ -225,11 +232,46 @@ namespace Caravans.JarsRun
             buyTab.GetComponent<LayoutElement>().preferredWidth = 160f;
             sellTab.GetComponent<LayoutElement>().preferredWidth = 160f;
 
-            rowHost = Child(page, "Rows");
-            rowHost.anchorMin = Vector2.zero;
-            rowHost.anchorMax = new Vector2(0.66f, 1f);
-            rowHost.offsetMin = new Vector2(12f, 8f);
-            rowHost.offsetMax = new Vector2(0f, -64f);
+            pinnedHost = Child(page, "Pinned");
+            pinnedHost.anchorMin = new Vector2(0f, 1f);
+            pinnedHost.anchorMax = new Vector2(0.66f, 1f);
+            pinnedHost.pivot = new Vector2(0.5f, 1f);
+            pinnedHost.anchoredPosition = new Vector2(0f, -64f);
+            pinnedHost.sizeDelta = new Vector2(0f, 0f);
+            var pinnedRows = pinnedHost.gameObject.AddComponent<VerticalLayoutGroup>();
+            pinnedRows.spacing = 8f;
+            pinnedRows.padding = new RectOffset(12, 12, 8, 8);
+            pinnedRows.childControlWidth = true;
+            pinnedRows.childControlHeight = true;
+            pinnedRows.childForceExpandWidth = true;
+            pinnedRows.childForceExpandHeight = false;
+
+            scrollRoot = Child(page, "Scroll");
+            scrollRoot.anchorMin = Vector2.zero;
+            scrollRoot.anchorMax = new Vector2(0.66f, 1f);
+            scrollRoot.offsetMin = new Vector2(12f, 8f);
+            scrollRoot.offsetMax = new Vector2(0f, -64f);
+            var scroll = scrollRoot.gameObject.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 28f;
+
+            var viewport = Child(scrollRoot, "Viewport");
+            Stretch(viewport);
+            var viewportImage = viewport.gameObject.AddComponent<Image>();
+            viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
+            viewportImage.raycastTarget = true;
+            var mask = viewport.gameObject.AddComponent<Mask>();
+            mask.showMaskGraphic = false;
+            scroll.viewport = viewport;
+
+            rowHost = Child(viewport, "Rows");
+            rowHost.anchorMin = new Vector2(0f, 1f);
+            rowHost.anchorMax = new Vector2(1f, 1f);
+            rowHost.pivot = new Vector2(0.5f, 1f);
+            rowHost.anchoredPosition = Vector2.zero;
+            rowHost.sizeDelta = new Vector2(0f, 0f);
             var rows = rowHost.gameObject.AddComponent<VerticalLayoutGroup>();
             rows.spacing = 8f;
             rows.padding = new RectOffset(12, 12, 8, 8);
@@ -237,6 +279,10 @@ namespace Caravans.JarsRun
             rows.childControlHeight = true;
             rows.childForceExpandWidth = true;
             rows.childForceExpandHeight = false;
+            var fitter = rowHost.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            scroll.content = rowHost;
             emptySell = Body(page, 22, TextAlignmentOptions.Center);
             var emptyRt = emptySell.rectTransform;
             emptyRt.anchorMin = Vector2.zero;
@@ -252,6 +298,7 @@ namespace Caravans.JarsRun
             var page = Child(body, "Plaza");
             Stretch(page);
             var column = Child(page, "Column");
+            plazaColumn = column;
             column.anchorMin = new Vector2(0.5f, 0f);
             column.anchorMax = new Vector2(0.5f, 1f);
             column.pivot = new Vector2(0.5f, 0.5f);
@@ -347,6 +394,14 @@ namespace Caravans.JarsRun
             tokenImage.sprite = disc;
             token = tokenImage.rectTransform;
             token.sizeDelta = new Vector2(22f, 22f);
+
+            for (int i = 0; i < 9; i++)
+            {
+                var npcImage = ImageOn(Child(mapRoot, "Npc" + i), Color.white, false);
+                npcImage.sprite = disc;
+                npcImage.rectTransform.sizeDelta = new Vector2(14f, 14f);
+                npcTokens.Add(npcImage);
+            }
 
             var legBar = ImageOn(Child(travel, "Leg"), new Color(0.1f, 0.07f, 0.05f, 0.82f), false);
             TopStrip(legBar.rectTransform, 40f);
@@ -524,7 +579,7 @@ namespace Caravans.JarsRun
             marketPage.SetActive(page == Page.Market);
             plazaPage.SetActive(page == Page.Plaza);
             housePage.SetActive(page == Page.House);
-            houseTab.gameObject.SetActive(session.Dock == PlaceId.Kharun);
+            houseTab.gameObject.SetActive(EconomyCatalog.IsCity(session.Dock));
             paceBar.SetActive(session.Traveling);
             backButton.gameObject.SetActive(lookingAtMap && !session.Traveling);
             cardRoot.gameObject.SetActive(session.CardPending || session.ResultPending);
@@ -533,6 +588,7 @@ namespace Caravans.JarsRun
             skipButton.gameObject.SetActive(session.Step != TutorialStep.HouseChoice && session.Step != TutorialStep.Free);
 
             bannerName.text = CaravanSession.PlaceName(session.Dock);
+            bannerTag.text = session.PatronLine();
             roadButton.GetComponentInChildren<TextMeshProUGUI>().text = session.Dock == PlaceId.Kharun
                 ? "Take the road to Draven"
                 : "Take the road to Kharûn";
@@ -556,6 +612,7 @@ namespace Caravans.JarsRun
             }
 
             RebuildRows();
+            SyncRoads();
             ApplyLesson();
             UpdateLive();
         }
@@ -563,35 +620,101 @@ namespace Caravans.JarsRun
         void RebuildRows()
         {
             tradeButtons.Clear();
-            for (int i = rowHost.childCount - 1; i >= 0; i--)
-                DestroyImmediate(rowHost.GetChild(i).gameObject);
+            ClearChildren(pinnedHost);
+            ClearChildren(rowHost);
             buttons.RemoveAll(button => button == null);
 
             bool any = false;
-            var goods = new[]
+            int pinned = 0;
+            for (int i = 0; i < WorldIds.GoodCount; i++)
             {
-                GoodId.ShimmersteelJars,
-                GoodId.FingerFungus,
-                GoodId.Water,
-                GoodId.Rations
-            };
-            for (int i = 0; i < goods.Length; i++)
-            {
-                GoodId good = goods[i];
+                GoodId good = (GoodId)i;
                 int count = selling ? session.CargoOf(good) : session.StockOf(session.Dock, good);
-                if (selling && count <= 0)
+                if (count <= 0)
                     continue;
                 any = true;
-                tradeButtons[good] = MakeRow(good, count);
+                bool lessonGood = good == GoodId.ShimmersteelJars
+                    || good == GoodId.FingerFungus
+                    || good == GoodId.Water
+                    || good == GoodId.Rations;
+                tradeButtons[good] = MakeRow(lessonGood ? pinnedHost : rowHost, good, count);
+                if (lessonGood)
+                    pinned += 1;
             }
 
+            float height = pinned * 72f;
+            if (pinnedHost != null)
+            {
+                Vector2 size = pinnedHost.sizeDelta;
+                size.y = height;
+                pinnedHost.sizeDelta = size;
+            }
+
+            if (scrollRoot != null)
+                scrollRoot.offsetMax = new Vector2(0f, -(64f + height));
+
             emptySell.gameObject.SetActive(page == Page.Market && selling && !any);
-            rowHost.gameObject.SetActive(!(page == Page.Market && selling && !any));
+            bool showRows = !(page == Page.Market && selling && !any);
+            pinnedHost.gameObject.SetActive(showRows);
+            scrollRoot.gameObject.SetActive(showRows);
         }
 
-        Button MakeRow(GoodId good, int count)
+        static void ClearChildren(RectTransform host)
         {
-            var row = Child(rowHost, good.ToString());
+            if (host == null)
+                return;
+            for (int i = host.childCount - 1; i >= 0; i--)
+                DestroyImmediate(host.GetChild(i).gameObject);
+        }
+
+        void SyncRoads()
+        {
+            bool free = session.Step == TutorialStep.Free;
+            if (!free)
+            {
+                roadButton.gameObject.SetActive(true);
+                if (neighborRoads.Count > 0)
+                    ClearNeighborRoads();
+                return;
+            }
+
+            roadButton.gameObject.SetActive(false);
+            if (roadsReady && roadsDock == session.Dock)
+                return;
+
+            ClearNeighborRoads();
+            IReadOnlyList<PlaceId> roads = session.RoadsOut();
+            for (int i = 0; i < roads.Count; i++)
+            {
+                PlaceId dest = roads[i];
+                string label = "Take the road to " + CaravanSession.PlaceName(dest);
+                Button button = StackButton(plazaColumn, label, () => session.DepartTo(dest));
+                button.transform.SetSiblingIndex(i);
+                neighborRoads.Add(button);
+            }
+
+            roadsDock = session.Dock;
+            roadsReady = true;
+        }
+
+        void ClearNeighborRoads()
+        {
+            for (int i = 0; i < neighborRoads.Count; i++)
+            {
+                Button button = neighborRoads[i];
+                if (button == null)
+                    continue;
+                buttons.Remove(button);
+                DestroyImmediate(button.gameObject);
+            }
+
+            neighborRoads.Clear();
+            roadsReady = false;
+        }
+
+        Button MakeRow(RectTransform host, GoodId good, int count)
+        {
+            var row = Child(host, good.ToString());
             var background = row.gameObject.AddComponent<Image>();
             background.sprite = quad;
             background.color = Field;
@@ -610,14 +733,20 @@ namespace Caravans.JarsRun
             var swatch = ImageOn(Child(row, "Swatch"), Swatch(good), false);
             swatch.gameObject.AddComponent<LayoutElement>().preferredWidth = 28f;
             var name = Body(row, 20, TextAlignmentOptions.MidlineLeft);
-            name.text = CaravanSession.GoodName(good);
+            string label = CaravanSession.GoodName(good);
+            if (EconomyCatalog.IsContraband(session.Dock, good))
+                label += " · contraband";
+            name.text = label;
+            name.textWrappingMode = TextWrappingModes.NoWrap;
+            name.overflowMode = TextOverflowModes.Ellipsis;
             name.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
             var countText = Body(row, 18, TextAlignmentOptions.MidlineRight);
             countText.text = selling ? "Wagon " + count : "Shelf " + count;
-            countText.gameObject.AddComponent<LayoutElement>().preferredWidth = 140f;
+            countText.gameObject.AddComponent<LayoutElement>().preferredWidth = 120f;
             var price = Body(row, 18, TextAlignmentOptions.MidlineRight);
-            price.text = session.PriceOf(session.Dock, good) + " coin";
-            price.gameObject.AddComponent<LayoutElement>().preferredWidth = 110f;
+            int shown = selling ? session.SellValue(session.Dock, good) : session.BuyCost(session.Dock, good);
+            price.text = shown + " coin";
+            price.gameObject.AddComponent<LayoutElement>().preferredWidth = 120f;
 
             GoodId captured = good;
             Button button = Tab(row, selling ? "Sell" : "Buy", () =>
@@ -842,7 +971,12 @@ namespace Caravans.JarsRun
             gearButton.interactable = true;
             marketTab.interactable = true;
             plazaTab.interactable = true;
-            houseTab.interactable = session.Dock == PlaceId.Kharun;
+            houseTab.interactable = EconomyCatalog.IsCity(session.Dock);
+            for (int i = 0; i < neighborRoads.Count; i++)
+            {
+                if (neighborRoads[i] != null)
+                    neighborRoads[i].interactable = !session.Traveling;
+            }
             buyTab.interactable = true;
             sellTab.interactable = true;
             roadButton.interactable = !session.Traveling;
@@ -891,7 +1025,7 @@ namespace Caravans.JarsRun
                 return session.CargoOf(good) > 0;
             if (session.StockOf(session.Dock, good) <= 0)
                 return false;
-            return session.Coin - session.PriceOf(session.Dock, good) >= session.CoinReserve;
+            return session.Coin - session.BuyCost(session.Dock, good) >= session.CoinReserve;
         }
 
         void Aim(Button button, string line)
@@ -959,9 +1093,7 @@ namespace Caravans.JarsRun
         {
             if (placeText == null)
                 return;
-            placeText.text = session.Traveling
-                ? (session.TowardDraven ? "Road to Draven" : "Road to Kharûn")
-                : CaravanSession.PlaceName(session.Dock);
+            placeText.text = session.BoundLabel();
             clockText.text = "Day " + session.Day + ", hour " + Mathf.FloorToInt(session.Hour);
             coinText.text = "Coin " + session.Coin;
             cargoText.text = CargoLine();
@@ -985,6 +1117,21 @@ namespace Caravans.JarsRun
 
             Vector2 point = session.CaravanPoint;
             PlaceOnMap(token, point, 22f);
+            int npcCount = session.NpcCount;
+            for (int i = 0; i < npcTokens.Count; i++)
+            {
+                bool show = i < npcCount;
+                npcTokens[i].gameObject.SetActive(show);
+                if (!show)
+                    continue;
+                NpcMark mark = session.NpcMarkAt(i);
+                float angle = i * 0.9f;
+                Vector2 shifted = mark.Point;
+                shifted.x += Mathf.Cos(angle) * 0.008f;
+                shifted.y += Mathf.Sin(angle) * 0.008f;
+                PlaceOnMap(npcTokens[i].rectTransform, shifted, 14f);
+                npcTokens[i].color = HouseColor(mark.House);
+            }
             float height = mapRoot.rect.height;
             var masses = session.Masses;
             for (int i = 0; i < weatherDiscs.Length && i < masses.Count; i++)
@@ -1063,26 +1210,38 @@ namespace Caravans.JarsRun
         {
             if (session.StockOf(session.Dock, good) <= 0)
                 return verb + " · none on the shelf";
-            return verb + " · " + session.PriceOf(session.Dock, good) + " coin";
+            return verb + " · " + session.BuyCost(session.Dock, good) + " coin";
         }
 
         string CargoLine()
         {
             var parts = new List<string>();
-            AddCargo(parts, GoodId.ShimmersteelJars);
-            AddCargo(parts, GoodId.FingerFungus);
-            AddCargo(parts, GoodId.Water);
-            AddCargo(parts, GoodId.Rations);
-            if (parts.Count == 0)
-                return "Cargo empty";
-            return string.Join("  ", parts);
-        }
+            parts.Add(session.CargoSpace() + "/" + EconomyRates.WagonSpace);
+            parts.Add(session.CargoWeight() + "/" + EconomyRates.WagonWeight);
+            int named = 0;
+            int extra = 0;
+            for (int i = 0; i < WorldIds.GoodCount; i++)
+            {
+                GoodId good = (GoodId)i;
+                int count = session.CargoOf(good);
+                if (count <= 0)
+                    continue;
+                if (named < 3)
+                {
+                    parts.Add(CaravanSession.GoodName(good) + " " + count);
+                    named += 1;
+                }
+                else
+                {
+                    extra += 1;
+                }
+            }
 
-        void AddCargo(List<string> parts, GoodId good)
-        {
-            int count = session.CargoOf(good);
-            if (count > 0)
-                parts.Add(CaravanSession.GoodName(good) + " " + count);
+            if (named == 0)
+                return parts[0] + "  " + parts[1];
+            if (extra > 0)
+                parts.Add("+" + extra);
+            return string.Join("  ", parts);
         }
 
         void TintPace(Button button, bool selected)
@@ -1092,6 +1251,23 @@ namespace Caravans.JarsRun
             var colors = button.colors;
             colors.normalColor = selected ? ButtonHot : ButtonFace;
             button.colors = colors;
+        }
+
+        static Color HouseColor(HouseId house)
+        {
+            switch (house)
+            {
+                case HouseId.Kharun:
+                    return new Color(0.55f, 0.72f, 0.84f, 1f);
+                case HouseId.Zamath:
+                    return new Color(0.45f, 0.62f, 0.38f, 1f);
+                case HouseId.Thalor:
+                    return new Color(0.72f, 0.28f, 0.22f, 1f);
+                case HouseId.Veythar:
+                    return new Color(0.55f, 0.38f, 0.68f, 1f);
+                default:
+                    return new Color(0.78f, 0.52f, 0.22f, 1f);
+            }
         }
 
         static Color WeatherColor(WeatherKind kind)

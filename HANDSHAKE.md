@@ -8,7 +8,7 @@ If this file and another document disagree, the other document wins for anything
 
 Press Play on SampleScene. The lesson starts at Kharûn. Buy Shimmersteel Jars, take the one open road to Draven, choose a pace, resolve the goat-lizard card, sell the jars, buy Finger Fungus, ride home, sell the fungus, then confirm Kharûn. Gear skips the lesson and leaves the starting caravan at house choice.
 
-Prices, the eight-hour leg, and the weather on that road are throwaways in `Assets/Scripts/JarsRun/ThrowawayEconomy.cs`. The traced road is `Assets/Scripts/JarsRun/RoadPath.cs`. The screen is `Assets/Scripts/JarsRun/JarsRunPresenter.cs`. Rules are `Assets/Scripts/JarsRun/CaravanSession.cs`. No other road can be travelled. Cargo loss stays at zero.
+The Kharûn–Draven leg is one day on the clock and about 36 real seconds. Weather still stretches that leg. Prices, stock, and decay come from the eat and weight sheets through `EconomyCatalog` and `EconomyRates`. The lesson road is `RoadPath.cs`. The other painted roads are `RoadGraph.cs` and can be travelled after the lesson. The screen is `JarsRunPresenter.cs`. Rules are `CaravanSession.cs`. Weather does not yet remove cargo. Perishable integrity does.
 
 ## Decided since the vision
 
@@ -18,7 +18,7 @@ Prices, the eight-hour leg, and the weather on that road are throwaways in `Asse
 - Tariff in a village or post, when another house holds it: 12% at standing 0, one point lower each step, 4% at standing 8. Your own house charges nothing when it holds the place. Standing with another house stops at 8.
 - Water and food are kit, separate from cargo. Cargo water and edible goods can be poured into that kit at a bad rate. Numbers are stand-ins until tested.
 - Each of the four checks will start from 1 to 3. The package for each house is not written.
-- Prices will be read from `data/markets.json`. The game does not read that file yet. The log book remains three feeds: seen, reported, and heard.
+- This build reads `Docs/Economy_Eat_Per_Day.csv` and `Docs/Economy_Weight_Price.csv`. `data/markets.json` is not the price source. The log book remains three feeds: seen, reported, and heard.
 - Player sentences will be read from `data/lines.json`. The game does not read that file yet.
 
 ## Who edits what

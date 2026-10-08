@@ -52,3 +52,15 @@ Start the jars run. Buy jars in Kharûn under the base bend. Wait or travel acro
 Dock a village under a rival patron and see a tenth cut. Home city takes none. After sales and a few dawns the patron can change, because the pie lost a quarter at dawn.
 
 An edible older than four dawns is gone the next morning. Sweet Bliss is gone after two. An NPC caravan is on a road, docks, and the shelf changes without the player trading. Its sale in a post moves a slice. It does not smuggle.
+
+## Resolved for this build
+
+The paragraphs above stay as the brief. This section is the lock where they disagree with the code.
+
+- The road graph is the painted map. Solid and dotted roads are in `RoadGraph`. Dotted gaps are straight chords and add no time. Zamath–Neth and Westmark–Rukh are sea openings: one hop, no clock time. NPC profit divides by at least one hour. The Kharûn–Draven samples stay the lesson road, and that road is 24 clock hours. The leg is still about 36 real seconds.
+- One price. Cover is stock divided by the local daily eat, or by 1 when the eat is 0. Empty is ×2, three days is ×1, six days is ×1/2, and fuller than six stays at half. The same anchors are the floor and the ceiling. Water is 6 coin. Rations are 5 coin, weight 1, space 1, and every place eats one. Levers are `EconomyRates`.
+- Producers start with six local days. Each hop away drops one day. Night makes about one world-day of consumption (`ProductionScale`), split across producers when a good has several. A recipe spends inputs on that same dock after the goods that need no input have refilled. Morning eats. Unmet eat is dropped. A blocked recipe does not bank more than one night of make.
+- Integrity multiplies the sale. Ordinary food loses 0.10 each morning. Sweet Bliss loses 0.25 and is gone after four mornings. Other goods, including water, do not decay on their own. Shelf stock and NPC loads do not age. The old "gone after four dawns / two dawns" rule and the toxic Sweet Bliss object are not in this build.
+- Contraband is a tag on the row. Nectar everywhere, melon juice in Veythar and Thalor, Sweet Bliss in the five cities, Eyes of Arkhul in Kharûn. Every good stays visible and sells at the open price.
+- Tariff is 12% minus one point of standing with the patron, and it stops at 4%. No house, no patron, or your own patron, including your city, is 0. A city keeps its house. Any other place takes the highest presence slice. A tie keeps the current patron. Each morning a slice keeps 75%. A village or post sale adds the pre-tariff coin to the seller's house.
+- The wagon is 16 space and 256 weight for the player and for every NPC. Nine NPC caravans start from a fixed shuffle. Until the lesson ends they do not trade at Kharûn or Draven. They take the best profit within two hops that fits the wagon, and they ignore their own coin.

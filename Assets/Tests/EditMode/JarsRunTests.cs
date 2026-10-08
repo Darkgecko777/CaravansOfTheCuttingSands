@@ -124,7 +124,7 @@ namespace Caravans.JarsRun.Tests
             Assert.AreEqual(TutorialStep.HouseChoice, session.Step);
             Assert.AreEqual(ThrowawayEconomy.StartingCoin, session.Coin);
             Assert.AreEqual(0, session.CargoOf(GoodId.ShimmersteelJars));
-            Assert.AreEqual(8, session.StockOf(PlaceId.Kharun, GoodId.ShimmersteelJars));
+            Assert.AreEqual(EconomyCatalog.StartingStock(PlaceId.Kharun, GoodId.ShimmersteelJars), session.StockOf(PlaceId.Kharun, GoodId.ShimmersteelJars));
             Assert.IsFalse(session.Traveling);
             Assert.IsTrue(session.Skipped);
             Assert.IsFalse(session.ChooseHouse(HouseId.Zamath));
@@ -152,6 +152,160 @@ namespace Caravans.JarsRun.Tests
                 session.ResolveCard(true);
 
             Assert.GreaterOrEqual(session.Coin, 0);
+        }
+
+        [Test]
+        public void PriceAnchorsSitAtEmptyOrdinaryAndFull()
+        {
+            Assert.AreEqual(2f, EconomyCatalog.CoverMultiplier(0f), 0.001f);
+            Assert.AreEqual(1f, EconomyCatalog.CoverMultiplier(3f), 0.001f);
+            Assert.AreEqual(0.5f, EconomyCatalog.CoverMultiplier(6f), 0.001f);
+            Assert.AreEqual(0.5f, EconomyCatalog.CoverMultiplier(9f), 0.001f);
+            Assert.AreEqual(100, EconomyCatalog.ShelfPrice(50, 0, 1f));
+            Assert.AreEqual(50, EconomyCatalog.ShelfPrice(50, 3, 1f));
+            Assert.AreEqual(25, EconomyCatalog.ShelfPrice(50, 6, 1f));
+            Assert.AreEqual(25, EconomyCatalog.ShelfPrice(50, 12, 1f));
+            Assert.AreEqual(1, EconomyCatalog.ShelfPrice(1, 6, 1f));
+        }
+
+        [Test]
+        public void PaintedKharunDravenMatchesTheLessonRoad()
+        {
+            float length = RoadGraph.Length(PlaceId.Kharun, PlaceId.Draven);
+            Assert.AreEqual(RoadPath.Length, length, 0.0001f);
+            Assert.AreEqual(24f, RoadGraph.Hours(PlaceId.Kharun, PlaceId.Draven), 0.01f);
+            Vector2 mid = RoadGraph.PointAlong(PlaceId.Kharun, PlaceId.Draven, length * 0.5f);
+            Vector2 lesson = RoadPath.PointAtDistance(RoadPath.Length * 0.5f);
+            Assert.Less(Vector2.Distance(mid, lesson), 0.0001f);
+            Assert.AreEqual(0f, RoadGraph.Hours(PlaceId.Zamath, PlaceId.Neth), 0.001f);
+            Assert.AreEqual(1, RoadGraph.Hops(PlaceId.Zamath, PlaceId.Neth));
+            Assert.AreEqual(1, RoadGraph.Hops(PlaceId.Westmark, PlaceId.Rukh));
+        }
+
+        [Test]
+        public void ShelvesStartOnTheHopGradient()
+        {
+            EconomyCatalog.EnsureLoaded();
+            var session = new CaravanSession();
+            Assert.AreEqual(21f, EconomyCatalog.WorldEat(GoodId.ShimmersteelJars), 0.01f);
+            Assert.AreEqual(21f, EconomyCatalog.WorldEat(GoodId.Water), 0.01f);
+            Assert.AreEqual(6, session.StockOf(PlaceId.Kharun, GoodId.ShimmersteelJars));
+            Assert.AreEqual(10, session.StockOf(PlaceId.Draven, GoodId.ShimmersteelJars));
+            Assert.AreEqual(6, session.StockOf(PlaceId.Draven, GoodId.FingerFungus));
+            Assert.AreEqual(5, session.StockOf(PlaceId.Kharun, GoodId.FingerFungus));
+            Assert.AreEqual(0f, EconomyCatalog.Eat(PlaceId.Zamath, GoodId.WaterWitchingRods), 0.001f);
+            Assert.Greater(session.StockOf(PlaceId.Zamath, GoodId.WaterWitchingRods), 0);
+        }
+
+        [Test]
+        public void MorningEatsAndNightJarsWaitOnBars()
+        {
+            var session = new CaravanSession();
+            int rods = session.StockOf(PlaceId.Zamath, GoodId.WaterWitchingRods);
+            int jars = session.StockOf(PlaceId.Draven, GoodId.ShimmersteelJars);
+            session.TickMorning();
+            Assert.AreEqual(jars - 2, session.StockOf(PlaceId.Draven, GoodId.ShimmersteelJars));
+            Assert.AreEqual(rods, session.StockOf(PlaceId.Zamath, GoodId.WaterWitchingRods));
+
+            session.SetShelf(PlaceId.Kharun, GoodId.ShimmersteelJars, 0);
+            session.SetShelf(PlaceId.Kharun, GoodId.Shimmersteel, 0);
+            session.TickNight();
+            Assert.AreEqual(0, session.StockOf(PlaceId.Kharun, GoodId.ShimmersteelJars));
+
+            session.SetShelf(PlaceId.Kharun, GoodId.Shimmersteel, 5);
+            session.TickNight();
+            Assert.AreEqual(2, session.StockOf(PlaceId.Kharun, GoodId.ShimmersteelJars));
+            Assert.AreEqual(1, session.StockOf(PlaceId.Kharun, GoodId.Shimmersteel));
+        }
+
+        [Test]
+        public void RivalCutFallsFromTwelveToFour()
+        {
+            var session = new CaravanSession();
+            session.SkipTutorial();
+            session.ChooseHouse(HouseId.Kharun);
+            session.AddPresence(PlaceId.Draven, HouseId.Zamath, 80);
+            session.AddPresence(PlaceId.Draven, HouseId.Thalor, 80);
+            Assert.AreEqual(HouseId.Zamath, session.PatronOf(PlaceId.Draven));
+            Assert.AreEqual(EconomyCatalog.CityHouse(PlaceId.Kharun), session.PatronOf(PlaceId.Kharun));
+
+            int shelf = session.PriceOf(PlaceId.Draven, GoodId.ShimmersteelJars);
+            session.SetStanding(HouseId.Zamath, 0);
+            Assert.AreEqual(12, session.TariffPercent(PlaceId.Draven));
+            Assert.AreEqual(shelf + Cut(shelf, 12), session.BuyCost(PlaceId.Draven, GoodId.ShimmersteelJars));
+            session.SetStanding(HouseId.Zamath, 8);
+            Assert.AreEqual(4, session.TariffPercent(PlaceId.Draven));
+            Assert.AreEqual(shelf + Cut(shelf, 4), session.BuyCost(PlaceId.Draven, GoodId.ShimmersteelJars));
+            Assert.AreEqual(0, session.TariffPercent(PlaceId.Kharun));
+            Assert.AreEqual(session.PriceOf(PlaceId.Kharun, GoodId.ShimmersteelJars), session.BuyCost(PlaceId.Kharun, GoodId.ShimmersteelJars));
+
+            float before = session.InfluenceOf(PlaceId.Draven, HouseId.Zamath);
+            session.TickMorning();
+            Assert.AreEqual(before * 0.75f, session.InfluenceOf(PlaceId.Draven, HouseId.Zamath), 0.01f);
+        }
+
+        [Test]
+        public void FoodDecaysAndSweetBlissIsGoneAfterFourMornings()
+        {
+            var session = new CaravanSession();
+            session.SkipTutorial();
+            session.ChooseHouse(HouseId.Kharun);
+            session.SetShelf(PlaceId.Kharun, GoodId.SweetBliss, 4);
+            session.SetShelf(PlaceId.Kharun, GoodId.FingerFungus, 4);
+            Assert.IsTrue(session.TryBuy(GoodId.SweetBliss));
+            Assert.IsTrue(session.TryBuy(GoodId.FingerFungus));
+            Assert.IsTrue(session.TryBuy(GoodId.Water));
+
+            session.AdvanceHours(24f);
+            Assert.AreEqual(0.75f, session.IntegrityOf(GoodId.SweetBliss), 0.001f);
+            Assert.AreEqual(0.90f, session.IntegrityOf(GoodId.FingerFungus), 0.001f);
+            session.AdvanceHours(72f);
+            Assert.AreEqual(0, session.CargoOf(GoodId.SweetBliss));
+            Assert.AreEqual(1, session.CargoOf(GoodId.FingerFungus));
+
+            session.AdvanceHours(24f * 6f);
+            Assert.AreEqual(0, session.CargoOf(GoodId.FingerFungus));
+            Assert.AreEqual(1, session.CargoOf(GoodId.Water));
+            Assert.AreEqual(1f, session.IntegrityOf(GoodId.Water), 0.001f);
+        }
+
+        [Test]
+        public void NpcLoadsFitInsideTwoHops()
+        {
+            var session = new CaravanSession();
+            AssertNpcLoads(session);
+            session.AdvanceHours(48f);
+            AssertNpcLoads(session);
+        }
+
+        [Test]
+        public void ContrabandStaysOnTheShelf()
+        {
+            var session = new CaravanSession();
+            Assert.IsTrue(EconomyCatalog.IsContraband(PlaceId.Kharun, GoodId.DreamLotusNectar));
+            Assert.IsTrue(EconomyCatalog.IsContraband(PlaceId.Kharun, GoodId.EyesOfArkhul));
+            Assert.IsFalse(EconomyCatalog.IsContraband(PlaceId.Draven, GoodId.EyesOfArkhul));
+            Assert.IsTrue(EconomyCatalog.IsContraband(PlaceId.Kharun, GoodId.SweetBliss));
+            Assert.IsFalse(EconomyCatalog.IsContraband(PlaceId.Draven, GoodId.SweetBliss));
+            Assert.Greater(session.PriceOf(PlaceId.Ghorath, GoodId.DreamLotusNectar), 0);
+            Assert.Greater(session.StockOf(PlaceId.Ghorath, GoodId.DreamLotusNectar), 0);
+        }
+
+        static void AssertNpcLoads(CaravanSession session)
+        {
+            Assert.AreEqual(9, session.NpcCount);
+            for (int i = 0; i < session.NpcCount; i++)
+            {
+                Assert.LessOrEqual(session.NpcSpace(i), EconomyRates.WagonSpace);
+                Assert.LessOrEqual(session.NpcWeight(i), EconomyRates.WagonWeight);
+                if (session.NpcTraveling(i))
+                    Assert.LessOrEqual(session.NpcHopsRemaining(i), EconomyRates.NpcHopLimit);
+            }
+        }
+
+        static int Cut(int price, int percent)
+        {
+            return (price * percent + 50) / 100;
         }
 
         static CaravanSession RideToDraven()
