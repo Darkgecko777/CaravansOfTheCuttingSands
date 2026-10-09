@@ -2,6 +2,7 @@
   "name": "JarsRun.EditModeTests",
   "references": [
     "JarsRun",
+    "Caravans.FrontDoor",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],

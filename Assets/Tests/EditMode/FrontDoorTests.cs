@@ -1,0 +1,112 @@
+using Caravans.FrontDoor;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace Caravans.JarsRun.Tests
+{
+    public class FrontDoorTests
+    {
+        [Test]
+        public void ARunningFadeIsNotRestarted()
+        {
+            var fade = new StormFade();
+            fade.Begin(0.5f, 2.2f);
+            fade.Tick(0.4f);
+            float visual = fade.Visual;
+            float audio = fade.AudioAmplitude;
+
+            fade.Begin(1f, 9f);
+            fade.Tick(0.01f);
+
+            Assert.Less(fade.Visual, visual);
+            Assert.Less(fade.AudioAmplitude, audio);
+            Assert.Greater(fade.Visual, 0.5f);
+            Assert.IsTrue(fade.Active);
+        }
+
+        [Test]
+        public void FadeReachesSilenceWithoutAnotherBegin()
+        {
+            var fade = new StormFade();
+            fade.Begin(0.8f, 2.2f);
+            fade.Tick(0.05f);
+
+            for (int i = 0; i < 30; i++)
+                fade.Tick(0.1f);
+
+            Assert.IsTrue(fade.Finished);
+            Assert.AreEqual(0f, fade.Visual, 0.0001f);
+            Assert.AreEqual(0f, fade.AudioAmplitude, 0.0001f);
+            fade.Tick(1f);
+            Assert.AreEqual(0f, fade.Visual, 0.0001f);
+        }
+
+        [Test]
+        public void SmoothstepIsHalfwayAtMidpoint()
+        {
+            var fade = new StormFade();
+            fade.Begin(1f, 2.2f);
+            fade.Tick(1.1f);
+            Assert.AreEqual(0.5f, fade.Visual, 0.001f);
+            Assert.AreEqual(0.5f, fade.AudioAmplitude, 0.001f);
+        }
+
+        [Test]
+        public void ResumeAllowsANewFade()
+        {
+            var fade = new StormFade();
+            fade.Begin(1f, 2.2f);
+            fade.Tick(2.2f);
+            Assert.IsTrue(fade.Finished);
+
+            fade.Resume();
+            Assert.IsFalse(fade.Finished);
+            Assert.AreEqual(1f, fade.Visual, 0.0001f);
+
+            fade.Begin(0.25f, 2.2f);
+            Assert.IsTrue(fade.Active);
+            Assert.AreEqual(0.25f, fade.AudioAmplitude, 0.0001f);
+            Assert.AreEqual(1f, fade.Visual, 0.0001f);
+        }
+
+        [Test]
+        public void SandStaysFiniteWhileTheGustBreathes()
+        {
+            var sim = new SandBedSim(1);
+            var vertices = new Vector3[sim.GrainCount * 4];
+            var colors = new Color32[sim.GrainCount * 4];
+            for (int i = 0; i < 180; i++)
+            {
+                float gust = sim.Tick(1f / 60f);
+                Assert.GreaterOrEqual(gust, 0f);
+                Assert.LessOrEqual(gust, 1f);
+            }
+
+            sim.Write(vertices, colors, new Vector3(50000f, 50000f, 0f), 960f, 540f, 1f);
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                Assert.IsFalse(float.IsNaN(vertices[i].x));
+                Assert.IsFalse(float.IsNaN(vertices[i].y));
+                Assert.Greater(vertices[i].x, 40000f);
+                Assert.Less(vertices[i].x, 60000f);
+            }
+        }
+
+        [Test]
+        public void OnlyKharunIsOpen()
+        {
+            int open = 0;
+            for (int i = 0; i < Houses.All.Length; i++)
+            {
+                if (Houses.All[i].Available)
+                {
+                    open += 1;
+                    Assert.AreEqual("house_kharun", Houses.All[i].Id);
+                }
+            }
+
+            Assert.AreEqual(1, open);
+            Assert.AreEqual(5, Houses.All.Length);
+        }
+    }
+}

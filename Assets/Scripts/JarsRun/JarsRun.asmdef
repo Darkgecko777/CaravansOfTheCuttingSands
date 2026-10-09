@@ -4,7 +4,8 @@
   "references": [
     "UnityEngine.UI",
     "Unity.TextMeshPro",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "Caravans.FrontDoor"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
