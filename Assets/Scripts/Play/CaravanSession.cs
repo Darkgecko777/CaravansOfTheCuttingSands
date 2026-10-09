@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Caravans.JarsRun
+namespace Caravans.Play
 {
     public enum WeatherKind
     {
@@ -38,6 +38,13 @@ namespace Caravans.JarsRun
         public Vector2 Velocity;
     }
 
+    public struct Shelf
+    {
+        public int Stock;
+        public int Cap;
+        public int BasePrice;
+    }
+
     public struct NpcMark
     {
         public Vector2 Point;
@@ -66,6 +73,13 @@ namespace Caravans.JarsRun
             public int DecayedOnDay;
         }
 
+        struct LoggedPrice
+        {
+            public bool Seen;
+            public int Coin;
+            public PlaceId Place;
+        }
+
         readonly Shelf[,] shelves = new Shelf[WorldIds.PlaceCount, WorldIds.GoodCount];
         readonly float[,] eatAcc = new float[WorldIds.PlaceCount, WorldIds.GoodCount];
         readonly float[,] makeAcc = new float[WorldIds.PlaceCount, WorldIds.GoodCount];
@@ -73,6 +87,8 @@ namespace Caravans.JarsRun
         readonly int[] standingOf = new int[WorldIds.HouseCount];
         readonly HouseId?[] patron = new HouseId?[WorldIds.PlaceCount];
         readonly List<CargoUnit> stacks = new List<CargoUnit>();
+        readonly LoggedPrice[] loggedBuy = new LoggedPrice[WorldIds.GoodCount];
+        readonly LoggedPrice[] loggedSale = new LoggedPrice[WorldIds.GoodCount];
         readonly List<NpcCaravan> npcs = new List<NpcCaravan>();
         readonly List<WeatherMass> masses = new List<WeatherMass>();
 
@@ -101,6 +117,8 @@ namespace Caravans.JarsRun
         public bool CardPending { get; private set; }
         public bool ResultPending { get; private set; }
 
+        public const int CardCoin = 8;
+
         bool cardResolvedThisLeg;
 
         public IReadOnlyList<WeatherMass> Masses
@@ -110,7 +128,7 @@ namespace Caravans.JarsRun
 
         public int CoinReserve
         {
-            get { return NeedsCardReserve() ? ThrowawayEconomy.CardCoin : 0; }
+            get { return NeedsCardReserve() ? CardCoin : 0; }
         }
 
         public int NpcCount
@@ -131,7 +149,38 @@ namespace Caravans.JarsRun
         public CaravanSession()
         {
             ResetCaravan();
-            Step = TutorialStep.OpenMarket;
+            SitAt(HouseId.Kharun);
+        }
+
+        public static CaravanSession Lesson()
+        {
+            var session = new CaravanSession();
+            session.ResetCaravan();
+            return session;
+        }
+
+        public static PlaceId HomeOf(HouseId house)
+        {
+            switch (house)
+            {
+                case HouseId.Zamath:
+                    return PlaceId.Zamath;
+                case HouseId.Thalor:
+                    return PlaceId.Thalor;
+                case HouseId.Veythar:
+                    return PlaceId.Veythar;
+                case HouseId.Ghorath:
+                    return PlaceId.Ghorath;
+                default:
+                    return PlaceId.Kharun;
+            }
+        }
+
+        public static CaravanSession AtHouse(HouseId house)
+        {
+            var session = new CaravanSession();
+            session.BeginAt(house);
+            return session;
         }
 
         public int CargoOf(GoodId good)
@@ -196,6 +245,73 @@ namespace Caravans.JarsRun
         {
             int gross = Gross(place, good, IntegrityOf(good));
             return Mathf.Max(0, gross - CutCoin(gross, TariffPercent(place)));
+        }
+
+        public bool HasLoggedBuy(GoodId good)
+        {
+            return loggedBuy[(int)good].Seen;
+        }
+
+        public int LoggedBuy(GoodId good)
+        {
+            return loggedBuy[(int)good].Coin;
+        }
+
+        public PlaceId LoggedBuyPlace(GoodId good)
+        {
+            return loggedBuy[(int)good].Place;
+        }
+
+        public bool HasLoggedSale(GoodId good)
+        {
+            return loggedSale[(int)good].Seen;
+        }
+
+        public int LoggedSale(GoodId good)
+        {
+            return loggedSale[(int)good].Coin;
+        }
+
+        public PlaceId LoggedSalePlace(GoodId good)
+        {
+            return loggedSale[(int)good].Place;
+        }
+
+        public void NoteMarketShown(bool selling)
+        {
+            if (Traveling || CardPending || ResultPending || Step == TutorialStep.HouseChoice)
+                return;
+
+            for (int i = 0; i < WorldIds.GoodCount; i++)
+            {
+                GoodId good = (GoodId)i;
+                if (selling)
+                {
+                    if (CargoOf(good) <= 0)
+                        continue;
+                    int price = SellValue(Dock, good);
+                    LoggedPrice mark = loggedSale[i];
+                    if (mark.Seen && price <= mark.Coin)
+                        continue;
+                    mark.Seen = true;
+                    mark.Coin = price;
+                    mark.Place = Dock;
+                    loggedSale[i] = mark;
+                }
+                else
+                {
+                    if (StockOf(Dock, good) <= 0)
+                        continue;
+                    int price = BuyCost(Dock, good);
+                    LoggedPrice mark = loggedBuy[i];
+                    if (mark.Seen && price >= mark.Coin)
+                        continue;
+                    mark.Seen = true;
+                    mark.Coin = price;
+                    mark.Place = Dock;
+                    loggedBuy[i] = mark;
+                }
+            }
         }
 
         public int TariffPercent(PlaceId place)
@@ -428,19 +544,18 @@ namespace Caravans.JarsRun
                 return;
             }
 
-            float duration = ThrowawayEconomy.RealSeconds * (edgeLength / RoadPath.Length) * Mathf.Max(0.01f, LegScale);
+            float duration = TravelScale.RealSeconds * (edgeLength / RoadPath.Length) * Mathf.Max(0.01f, LegScale);
             float step = edgeLength / duration * Pace * realSeconds;
             float next = TravelDistance + step;
             float half = edgeLength * 0.5f;
 
-            if (TowardDraven && !cardResolvedThisLeg && TravelDistance < half && next >= half)
+            if (Step == TutorialStep.RidingOut && TowardDraven && !cardResolvedThisLeg && TravelDistance < half && next >= half)
             {
                 CommitMove(half - TravelDistance);
                 TravelDistance = half;
                 HoldTravel = true;
                 CardPending = true;
-                if (Step == TutorialStep.RidingOut)
-                    Step = TutorialStep.RoadCard;
+                Step = TutorialStep.RoadCard;
                 ResampleWeather();
                 Touch();
                 return;
@@ -464,7 +579,7 @@ namespace Caravans.JarsRun
                 return;
 
             ResampleWeather();
-            int cost = Mathf.Min(ThrowawayEconomy.CardCoin, Coin);
+            int cost = Mathf.Min(CardCoin, Coin);
             Coin -= cost;
             CardWasSteel = steel;
             CardsResolved += 1;
@@ -556,16 +671,8 @@ namespace Caravans.JarsRun
         {
             if (Step != TutorialStep.HouseChoice)
                 return false;
-            if (house != HouseId.Kharun)
-            {
-                HouseNote = "That package is not written. This slice stays at Khar\u00fbn.";
-                Touch();
-                return false;
-            }
 
-            House = HouseId.Kharun;
-            HouseNote = string.Empty;
-            Step = TutorialStep.Free;
+            SitAt(house);
             ReplanDocked();
             Touch();
             return true;
@@ -581,8 +688,8 @@ namespace Caravans.JarsRun
                 float dist = RoadPath.MapDistance(topLeft, mass.Center);
                 if (dist > mass.Radius)
                     continue;
-                int severity = ThrowawayEconomy.Severity(mass.Kind);
-                int bestSeverity = ThrowawayEconomy.Severity(best);
+                int severity = TravelScale.Severity(mass.Kind);
+                int bestSeverity = TravelScale.Severity(best);
                 if (severity > bestSeverity || (severity == bestSeverity && dist < bestDist))
                 {
                     best = mass.Kind;
@@ -612,7 +719,7 @@ namespace Caravans.JarsRun
 
         public float VisionRadius()
         {
-            return ThrowawayEconomy.VisionRadius(Hour, WeatherAt(CaravanPoint));
+            return TravelScale.VisionRadius(Hour, WeatherAt(CaravanPoint));
         }
 
         public static string PlaceName(PlaceId place)
@@ -658,7 +765,7 @@ namespace Caravans.JarsRun
             Traveling = true;
             cardResolvedThisLeg = false;
             LegWeather = WeatherOn(travelFrom, travelTo);
-            LegScale = ThrowawayEconomy.TimeScale(LegWeather);
+            LegScale = TravelScale.TimeScale(LegWeather);
             Pace = 1;
 
             if (Step == TutorialStep.LeaveForDraven)
@@ -701,7 +808,7 @@ namespace Caravans.JarsRun
         {
             if (distanceMoved <= 0f)
                 return;
-            float hours = distanceMoved / RoadPath.Length * ThrowawayEconomy.BaseLegHours * LegScale;
+            float hours = distanceMoved / RoadPath.Length * TravelScale.BaseLegHours * LegScale;
             AdvanceClock(hours);
         }
 
@@ -1361,10 +1468,10 @@ namespace Caravans.JarsRun
         void ResampleWeather()
         {
             WeatherKind again = WeatherAlongRoad();
-            if (ThrowawayEconomy.Severity(again) > ThrowawayEconomy.Severity(LegWeather))
+            if (TravelScale.Severity(again) > TravelScale.Severity(LegWeather))
             {
                 LegWeather = again;
-                LegScale = ThrowawayEconomy.TimeScale(again);
+                LegScale = TravelScale.TimeScale(again);
             }
         }
 
@@ -1375,7 +1482,7 @@ namespace Caravans.JarsRun
             for (int i = 0; i < samples.Count; i++)
             {
                 WeatherKind kind = WeatherAt(samples[i]);
-                if (ThrowawayEconomy.Severity(kind) > ThrowawayEconomy.Severity(worst))
+                if (TravelScale.Severity(kind) > TravelScale.Severity(worst))
                     worst = kind;
             }
 
@@ -1427,7 +1534,7 @@ namespace Caravans.JarsRun
             for (int i = 0; i < standingOf.Length; i++)
                 standingOf[i] = 0;
 
-            Coin = ThrowawayEconomy.StartingCoin;
+            Coin = TravelScale.StartingCoin;
             Day = 1;
             Hour = 6f;
             Dock = PlaceId.Kharun;
@@ -1470,6 +1577,26 @@ namespace Caravans.JarsRun
                 Velocity = new Vector2(-0.004f, 0.003f)
             });
             SpawnNpcs();
+        }
+
+        void BeginAt(HouseId house)
+        {
+            SitAt(house);
+            Touch();
+        }
+
+        void SitAt(HouseId house)
+        {
+            House = house;
+            Dock = HomeOf(house);
+            Step = TutorialStep.Free;
+            Traveling = false;
+            HoldTravel = false;
+            TravelDistance = 0f;
+            travelFrom = Dock;
+            TowardDraven = false;
+            Pace = 1;
+            HouseNote = string.Empty;
         }
 
         void Advance(TutorialStep step)

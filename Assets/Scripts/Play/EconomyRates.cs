@@ -1,4 +1,4 @@
-namespace Caravans.JarsRun
+namespace Caravans.Play
 {
     // Balancing levers for this build. Change the numbers here.
     // FullCoverDays is the shelf that sells at FullMultiplier. OrdinaryCoverDays sells at the base.

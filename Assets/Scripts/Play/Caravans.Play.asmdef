@@ -1,6 +1,6 @@
 {
-  "name": "JarsRun",
-  "rootNamespace": "Caravans.JarsRun",
+  "name": "Caravans.Play",
+  "rootNamespace": "Caravans.Play",
   "references": [
     "UnityEngine.UI",
     "Unity.TextMeshPro",

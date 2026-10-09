@@ -2,12 +2,10 @@ using Caravans.FrontDoor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Caravans.JarsRun
+namespace Caravans.Play
 {
-    public static class JarsRunBootstrap
+    public static class PlayBootstrap
     {
-        // AfterSceneLoad runs for the first scene only. Play starts on the title,
-        // so the city has to arm itself when Confirm loads SampleScene later.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset()
         {
@@ -39,10 +37,10 @@ namespace Caravans.JarsRun
                 return;
             if (SceneManager.GetActiveScene().name != Gate.PlayScene)
                 return;
-            if (Object.FindAnyObjectByType<JarsRunPresenter>() != null)
+            if (Object.FindAnyObjectByType<PlayPresenter>() != null)
                 return;
-            var go = new GameObject("JarsRun");
-            go.AddComponent<JarsRunPresenter>();
+            var go = new GameObject("Play");
+            go.AddComponent<PlayPresenter>();
         }
     }
 }

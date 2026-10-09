@@ -1,4 +1,4 @@
-namespace Caravans.JarsRun
+namespace Caravans.Play
 {
     public static class WorldIds
     {

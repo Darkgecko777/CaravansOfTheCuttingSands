@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Caravans.JarsRun
+namespace Caravans.Play
 {
     // Painted roads on upscale_map.png. y is from the top. Length is the same
     // uncorrected normalized space as RoadPath. The Kharûn–Draven points are

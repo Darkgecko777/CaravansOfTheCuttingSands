@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Caravans.FrontDoor;
-using Caravans.JarsRun;
+using Caravans.Play;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -28,7 +28,7 @@ static class FrontDoorSceneSetup
     {
         // Drop the play-mode scene hook before the editor restores the open scene.
         if (state == PlayModeStateChange.ExitingPlayMode)
-            JarsRunBootstrap.StopListening();
+            PlayBootstrap.StopListening();
     }
 
     static void Tick()

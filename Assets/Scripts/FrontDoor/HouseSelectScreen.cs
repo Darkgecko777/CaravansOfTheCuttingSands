@@ -19,10 +19,10 @@ namespace Caravans.FrontDoor
         public static readonly HouseChoice[] All =
         {
             new HouseChoice { Id = "house_kharun", Name = "House Kharûn", Mark = "K", Flavour = "Scrubstone, contracts, quiet leverage.", Available = true },
-            new HouseChoice { Id = "house_zamath", Name = "House Zamath", Mark = "Z", Flavour = "Forest, witching rods, pragmatic deals.", Available = false },
-            new HouseChoice { Id = "house_thalor", Name = "House Thalor", Mark = "T", Flavour = "Proud, formal, dependent on the west.", Available = false },
-            new HouseChoice { Id = "house_veythar", Name = "House Veythar", Mark = "V", Flavour = "Isolationist, militant, agrarian.", Available = false },
-            new HouseChoice { Id = "house_ghorath", Name = "House Ghorath", Mark = "G", Flavour = "Debts, secrets, second chances.", Available = false },
+            new HouseChoice { Id = "house_zamath", Name = "House Zamath", Mark = "Z", Flavour = "Forest, witching rods, pragmatic deals.", Available = true },
+            new HouseChoice { Id = "house_thalor", Name = "House Thalor", Mark = "T", Flavour = "Proud, formal, dependent on the west.", Available = true },
+            new HouseChoice { Id = "house_veythar", Name = "House Veythar", Mark = "V", Flavour = "Isolationist, militant, agrarian.", Available = true },
+            new HouseChoice { Id = "house_ghorath", Name = "House Ghorath", Mark = "G", Flavour = "Debts, secrets, second chances.", Available = true },
         };
     }
 

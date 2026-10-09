@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Caravans.JarsRun
+namespace Caravans.Play
 {
     // Centers of the painted Kharûn–Draven road on upscale_map.png (3840×2160).
     // y is from the top of the image. The first point is the Kharûn dock,

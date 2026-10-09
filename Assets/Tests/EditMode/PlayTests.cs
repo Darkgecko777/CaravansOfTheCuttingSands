@@ -1,9 +1,9 @@
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Caravans.JarsRun.Tests
+namespace Caravans.Play.Tests
 {
-    public class JarsRunTests
+    public class PlayTests
     {
         [Test]
         public void FullShelfIsCheaperThanAScarceOne()
@@ -21,14 +21,14 @@ namespace Caravans.JarsRun.Tests
         [Test]
         public void BuyingJarsKeepsTheCardCoin()
         {
-            var session = new CaravanSession();
+            var session = CaravanSession.Lesson();
             session.NoteMarketOpened();
             int bought = 0;
             while (session.TryBuy(GoodId.ShimmersteelJars))
                 bought += 1;
 
             Assert.Greater(bought, 0);
-            Assert.GreaterOrEqual(session.Coin, ThrowawayEconomy.CardCoin);
+            Assert.GreaterOrEqual(session.Coin, CaravanSession.CardCoin);
         }
 
         [Test]
@@ -47,12 +47,12 @@ namespace Caravans.JarsRun.Tests
         }
 
         [Test]
-        public void JarsRunChangesCoinAndEndsAtHouseChoice()
+        public void LessonChangesCoinAndEndsAtHouseChoice()
         {
-            var session = new CaravanSession();
+            var session = CaravanSession.Lesson();
             session.NoteMarketOpened();
             Assert.IsTrue(session.TryBuy(GoodId.ShimmersteelJars));
-            int paid = ThrowawayEconomy.StartingCoin - session.Coin;
+            int paid = TravelScale.StartingCoin - session.Coin;
 
             session.NotePlazaOpened();
             Assert.AreEqual(TutorialStep.LeaveForDraven, session.Step);
@@ -63,7 +63,7 @@ namespace Caravans.JarsRun.Tests
             Assert.AreEqual(TutorialStep.RoadCard, session.Step);
             int beforeCard = session.Coin;
             session.ResolveCard(false);
-            Assert.AreEqual(beforeCard - ThrowawayEconomy.CardCoin, session.Coin);
+            Assert.AreEqual(beforeCard - CaravanSession.CardCoin, session.Coin);
             Assert.AreEqual(1, session.CardsResolved);
             session.ContinueFromCard();
 
@@ -89,7 +89,7 @@ namespace Caravans.JarsRun.Tests
             Assert.IsTrue(session.TrySell(GoodId.FingerFungus));
             Assert.Greater(session.Coin, beforeSale);
             Assert.Greater(session.Coin - beforeSale, fungusPaid);
-            Assert.Greater(session.Coin, ThrowawayEconomy.StartingCoin);
+            Assert.Greater(session.Coin, TravelScale.StartingCoin);
             Assert.AreEqual(TutorialStep.HouseChoice, session.Step);
         }
 
@@ -122,36 +122,36 @@ namespace Caravans.JarsRun.Tests
             session.SkipTutorial();
 
             Assert.AreEqual(TutorialStep.HouseChoice, session.Step);
-            Assert.AreEqual(ThrowawayEconomy.StartingCoin, session.Coin);
+            Assert.AreEqual(TravelScale.StartingCoin, session.Coin);
             Assert.AreEqual(0, session.CargoOf(GoodId.ShimmersteelJars));
             Assert.AreEqual(EconomyCatalog.StartingStock(PlaceId.Kharun, GoodId.ShimmersteelJars), session.StockOf(PlaceId.Kharun, GoodId.ShimmersteelJars));
             Assert.IsFalse(session.Traveling);
             Assert.IsTrue(session.Skipped);
-            Assert.IsFalse(session.ChooseHouse(HouseId.Zamath));
-            Assert.IsTrue(session.ChooseHouse(HouseId.Kharun));
+            Assert.IsTrue(session.ChooseHouse(HouseId.Zamath));
             Assert.AreEqual(TutorialStep.Free, session.Step);
-            Assert.AreEqual(ThrowawayEconomy.StartingCoin, session.Coin);
+            Assert.AreEqual(HouseId.Zamath, session.House.Value);
+            Assert.AreEqual(PlaceId.Zamath, session.Dock);
+            Assert.AreEqual(TravelScale.StartingCoin, session.Coin);
+            Assert.IsFalse(session.Traveling);
         }
 
         [Test]
-        public void CardCannotDriveCoinBelowZero()
+        public void FreeTravelOnTheKharunDravenRoadDoesNotOpenTheCard()
         {
-            var session = new CaravanSession();
-            session.SkipTutorial();
-            session.ChooseHouse(HouseId.Kharun);
-            while (session.TryBuy(GoodId.Water)) { }
-            while (session.TryBuy(GoodId.Rations)) { }
-            while (session.TryBuy(GoodId.ShimmersteelJars)) { }
-            while (session.TryBuy(GoodId.FingerFungus)) { }
-
-            Assert.IsTrue(session.Depart());
-            for (int i = 0; i < 400 && !session.CardPending && session.Traveling; i++)
+            var session = CaravanSession.AtHouse(HouseId.Kharun);
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            for (int i = 0; i < 800 && session.Traveling; i++)
+            {
+                Assert.IsFalse(session.CardPending);
+                Assert.IsFalse(session.ResultPending);
                 session.Tick(0.25f);
+            }
 
-            if (session.CardPending)
-                session.ResolveCard(true);
-
-            Assert.GreaterOrEqual(session.Coin, 0);
+            Assert.IsFalse(session.Traveling);
+            Assert.IsFalse(session.CardPending);
+            Assert.AreEqual(0, session.CardsResolved);
+            Assert.AreEqual(PlaceId.Draven, session.Dock);
+            Assert.AreEqual(TutorialStep.Free, session.Step);
         }
 
         [Test]
@@ -291,6 +291,51 @@ namespace Caravans.JarsRun.Tests
             Assert.Greater(session.StockOf(PlaceId.Ghorath, GoodId.DreamLotusNectar), 0);
         }
 
+        [Test]
+        public void LessonStillOpensAtKharun()
+        {
+            var session = CaravanSession.Lesson();
+            Assert.AreEqual(TutorialStep.OpenMarket, session.Step);
+            Assert.AreEqual(PlaceId.Kharun, session.Dock);
+            Assert.IsFalse(session.House.HasValue);
+        }
+
+        [Test]
+        public void APlainSessionStartsFreeAtKharun()
+        {
+            var session = new CaravanSession();
+            Assert.AreEqual(TutorialStep.Free, session.Step);
+            Assert.AreEqual(HouseId.Kharun, session.House.Value);
+            Assert.AreEqual(PlaceId.Kharun, session.Dock);
+            Assert.IsFalse(session.Traveling);
+        }
+
+        [Test]
+        public void AHouseStartIsFreeAtThatCityWithTheSharedPurse()
+        {
+            var session = CaravanSession.AtHouse(HouseId.Kharun);
+            Assert.AreEqual(TutorialStep.Free, session.Step);
+            Assert.IsTrue(session.House.HasValue);
+            Assert.AreEqual(HouseId.Kharun, session.House.Value);
+            Assert.AreEqual(PlaceId.Kharun, session.Dock);
+            Assert.AreEqual(TravelScale.StartingCoin, session.Coin);
+            Assert.AreEqual(0, session.CargoOf(GoodId.Water));
+            Assert.AreEqual(0, session.CargoOf(GoodId.Rations));
+            Assert.IsFalse(session.Traveling);
+            Assert.IsFalse(session.Skipped);
+        }
+
+        [Test]
+        public void EachHouseStartsInItsOwnCity()
+        {
+            Assert.AreEqual(PlaceId.Kharun, CaravanSession.AtHouse(HouseId.Kharun).Dock);
+            Assert.AreEqual(PlaceId.Zamath, CaravanSession.AtHouse(HouseId.Zamath).Dock);
+            Assert.AreEqual(PlaceId.Thalor, CaravanSession.AtHouse(HouseId.Thalor).Dock);
+            Assert.AreEqual(PlaceId.Veythar, CaravanSession.AtHouse(HouseId.Veythar).Dock);
+            Assert.AreEqual(PlaceId.Ghorath, CaravanSession.AtHouse(HouseId.Ghorath).Dock);
+            Assert.AreEqual(HouseId.Zamath, CaravanSession.AtHouse(HouseId.Zamath).House.Value);
+        }
+
         static void AssertNpcLoads(CaravanSession session)
         {
             Assert.AreEqual(9, session.NpcCount);
@@ -303,6 +348,95 @@ namespace Caravans.JarsRun.Tests
             }
         }
 
+        [Test]
+        public void LogbookKeepsTheCheapestBuyAndTheDearestSale()
+        {
+            var session = new CaravanSession();
+            session.SkipTutorial();
+            Assert.IsTrue(session.ChooseHouse(HouseId.Kharun));
+            Assert.IsFalse(session.HasLoggedBuy(GoodId.ShimmersteelJars));
+            Assert.IsFalse(session.HasLoggedSale(GoodId.ShimmersteelJars));
+
+            session.SetShelf(PlaceId.Kharun, GoodId.FrostIron, 0);
+            session.NoteMarketShown(false);
+            Assert.IsFalse(session.HasLoggedBuy(GoodId.FrostIron));
+
+            session.SetShelf(PlaceId.Kharun, GoodId.ShimmersteelJars, 1);
+            int dear = session.BuyCost(PlaceId.Kharun, GoodId.ShimmersteelJars);
+            session.NoteMarketShown(false);
+            Assert.AreEqual(dear, session.LoggedBuy(GoodId.ShimmersteelJars));
+            Assert.AreEqual(PlaceId.Kharun, session.LoggedBuyPlace(GoodId.ShimmersteelJars));
+
+            session.SetShelf(PlaceId.Kharun, GoodId.ShimmersteelJars, 40);
+            int cheap = session.BuyCost(PlaceId.Kharun, GoodId.ShimmersteelJars);
+            Assert.Less(cheap, dear);
+            session.NoteMarketShown(false);
+            Assert.AreEqual(cheap, session.LoggedBuy(GoodId.ShimmersteelJars));
+            Assert.AreEqual(PlaceId.Kharun, session.LoggedBuyPlace(GoodId.ShimmersteelJars));
+
+            session.SetShelf(PlaceId.Kharun, GoodId.ShimmersteelJars, 1);
+            session.NoteMarketShown(false);
+            Assert.AreEqual(cheap, session.LoggedBuy(GoodId.ShimmersteelJars));
+
+            session.SetShelf(PlaceId.Kharun, GoodId.FrostIron, 1);
+            int ironAtHome = session.BuyCost(PlaceId.Kharun, GoodId.FrostIron);
+            session.NoteMarketShown(false);
+            Assert.AreEqual(ironAtHome, session.LoggedBuy(GoodId.FrostIron));
+            Assert.AreEqual(PlaceId.Kharun, session.LoggedBuyPlace(GoodId.FrostIron));
+
+            Assert.IsTrue(session.TryBuy(GoodId.ShimmersteelJars));
+            session.SetShelf(PlaceId.Kharun, GoodId.ShimmersteelJars, 40);
+            int homeSale = session.SellValue(PlaceId.Kharun, GoodId.ShimmersteelJars);
+            session.NoteMarketShown(true);
+            Assert.AreEqual(homeSale, session.LoggedSale(GoodId.ShimmersteelJars));
+            Assert.AreEqual(PlaceId.Kharun, session.LoggedSalePlace(GoodId.ShimmersteelJars));
+            Assert.IsFalse(session.HasLoggedSale(GoodId.Water));
+
+            session.SetShelf(PlaceId.Kharun, GoodId.ShimmersteelJars, 1);
+            int dearerHomeSale = session.SellValue(PlaceId.Kharun, GoodId.ShimmersteelJars);
+            Assert.Greater(dearerHomeSale, homeSale);
+            session.NoteMarketShown(true);
+            Assert.AreEqual(homeSale, session.LoggedSale(GoodId.ShimmersteelJars));
+
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            session.NoteMarketShown(false);
+            Assert.AreEqual(PlaceId.Kharun, session.LoggedBuyPlace(GoodId.FrostIron));
+            Ride(session);
+            Assert.AreEqual(PlaceId.Draven, session.Dock);
+
+            session.SetShelf(PlaceId.Draven, GoodId.ShimmersteelJars, 1);
+            int awaySale = session.SellValue(PlaceId.Draven, GoodId.ShimmersteelJars);
+            Assert.Greater(awaySale, homeSale);
+            session.NoteMarketShown(true);
+            Assert.AreEqual(awaySale, session.LoggedSale(GoodId.ShimmersteelJars));
+            Assert.AreEqual(PlaceId.Draven, session.LoggedSalePlace(GoodId.ShimmersteelJars));
+
+            session.SetShelf(PlaceId.Draven, GoodId.FrostIron, 80);
+            int ironAway = session.BuyCost(PlaceId.Draven, GoodId.FrostIron);
+            Assert.Less(ironAway, ironAtHome);
+            session.NoteMarketShown(false);
+            Assert.AreEqual(ironAway, session.LoggedBuy(GoodId.FrostIron));
+            Assert.AreEqual(PlaceId.Draven, session.LoggedBuyPlace(GoodId.FrostIron));
+            Assert.AreEqual(cheap, session.LoggedBuy(GoodId.ShimmersteelJars));
+        }
+
+        static void Ride(CaravanSession session)
+        {
+            for (int i = 0; i < 800 && session.Traveling; i++)
+            {
+                if (session.CardPending)
+                {
+                    session.ResolveCard(true);
+                    session.ContinueFromCard();
+                }
+
+                session.Tick(0.25f);
+            }
+
+            Assert.IsFalse(session.Traveling);
+            Assert.IsFalse(session.CardPending);
+        }
+
         static int Cut(int price, int percent)
         {
             return (price * percent + 50) / 100;
@@ -310,7 +444,7 @@ namespace Caravans.JarsRun.Tests
 
         static CaravanSession RideToDraven()
         {
-            var session = new CaravanSession();
+            var session = CaravanSession.Lesson();
             session.NoteMarketOpened();
             session.TryBuy(GoodId.ShimmersteelJars);
             session.NotePlazaOpened();

@@ -1,7 +1,7 @@
 {
-  "name": "JarsRun.EditModeTests",
+  "name": "Caravans.Play.EditModeTests",
   "references": [
-    "JarsRun",
+    "Caravans.Play",
     "Caravans.FrontDoor",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"

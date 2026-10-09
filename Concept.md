@@ -1,10 +1,5 @@
-# Concept
+# Features
 
-One idea is one item. The id stays when the sentence changes. A withdrawn item stays, marked withdrawn, and that id is not used again. The next id is C01.
-
-```
-C01  Short name
-One sentence.
-```
+Features to add. Each item can be moved onto the build list and built as written. The id stays with the feature. The next new id is C56. Ids only move forward. A feature leaves this list when it moves to `Implementation.md`, or when it is dropped. Dropped and finished ids are not reused.
 
 No items yet.

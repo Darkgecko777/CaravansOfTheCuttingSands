@@ -1,15 +1,17 @@
 using System.Collections.Generic;
+using Caravans.FrontDoor;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
-namespace Caravans.JarsRun
+namespace Caravans.Play
 {
-    public sealed class JarsRunPresenter : MonoBehaviour
+    public sealed class PlayPresenter : MonoBehaviour
     {
         const float TopBarHeight = 72f;
+        const float ViewBarHeight = 64f;
         const float BannerHeight = 84f;
         const float TabHeight = 76f;
 
@@ -30,6 +32,7 @@ namespace Caravans.JarsRun
         readonly List<Image> npcTokens = new List<Image>();
 
         CaravanSession session;
+        bool lesson;
         TMP_FontAsset font;
         Sprite quad;
         Sprite disc;
@@ -41,6 +44,7 @@ namespace Caravans.JarsRun
         bool selling;
         bool optionsOpen;
         bool lookingAtMap;
+        bool logbookOpen;
         string listenLine = string.Empty;
 
         RectTransform dock;
@@ -95,6 +99,9 @@ namespace Caravans.JarsRun
         Button lookButton;
         Button backButton;
         Button gearButton;
+        Button logbookButton;
+        RectTransform logbookRoot;
+        RectTransform logbookRows;
         Button pauseButton;
         Button pace1;
         Button pace2;
@@ -106,7 +113,10 @@ namespace Caravans.JarsRun
 
         void Awake()
         {
-            session = new CaravanSession();
+            HouseId house = HouseFromGate();
+            // A new game does not enter the jars lesson.
+            lesson = false;
+            session = CaravanSession.AtHouse(house);
             EnsureEventSystem();
             quad = MakeSprite(false);
             disc = MakeSprite(true);
@@ -137,7 +147,7 @@ namespace Caravans.JarsRun
 
         void Build()
         {
-            var canvasGo = new GameObject("JarsRunCanvas", typeof(RectTransform));
+            var canvasGo = new GameObject("PlayCanvas", typeof(RectTransform));
             canvasGo.transform.SetParent(transform, false);
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -159,6 +169,8 @@ namespace Caravans.JarsRun
             BuildDock();
             BuildTravel();
             BuildTopBar(root);
+            BuildViewBar(root);
+            BuildLogbook(root);
             dimmer = ImageOn(Child(root, "Dimmer"), new Color(0.05f, 0.04f, 0.03f, 0.72f), true);
             Stretch(dimmer.rectTransform);
             RaiseCanvas(dimmer.gameObject, 12);
@@ -464,6 +476,91 @@ namespace Caravans.JarsRun
             gearButton.GetComponent<LayoutElement>().preferredWidth = 120f;
         }
 
+        void BuildViewBar(RectTransform root)
+        {
+            var bar = ImageOn(Child(root, "ViewBar"), Bar, false);
+            bar.rectTransform.anchorMin = new Vector2(0f, 1f);
+            bar.rectTransform.anchorMax = Vector2.one;
+            bar.rectTransform.pivot = new Vector2(0.5f, 1f);
+            bar.rectTransform.sizeDelta = new Vector2(0f, ViewBarHeight);
+            bar.rectTransform.anchoredPosition = new Vector2(0f, -TopBarHeight);
+            RaiseCanvas(bar.gameObject, 24);
+            var layout = bar.gameObject.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = 12f;
+            layout.padding = new RectOffset(24, 16, 6, 6);
+            layout.childAlignment = TextAnchor.MiddleLeft;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = true;
+            logbookButton = Tab(bar.rectTransform, "Logbook", ToggleLogbook);
+            logbookButton.GetComponent<LayoutElement>().preferredWidth = 220f;
+        }
+
+        void BuildLogbook(RectTransform root)
+        {
+            logbookRoot = Child(root, "Logbook");
+            logbookRoot.anchorMin = Vector2.zero;
+            logbookRoot.anchorMax = Vector2.one;
+            logbookRoot.offsetMin = new Vector2(36f, 28f);
+            logbookRoot.offsetMax = new Vector2(-36f, -(TopBarHeight + ViewBarHeight + 16f));
+            ImageOn(logbookRoot, Panel, true);
+            RaiseCanvas(logbookRoot.gameObject, 18);
+
+            var header = Child(logbookRoot, "Header");
+            TopStrip(header, 48f);
+            var headerRow = header.gameObject.AddComponent<HorizontalLayoutGroup>();
+            headerRow.padding = new RectOffset(16, 16, 8, 8);
+            headerRow.spacing = 12f;
+            headerRow.childAlignment = TextAnchor.MiddleLeft;
+            headerRow.childControlWidth = true;
+            headerRow.childControlHeight = true;
+            headerRow.childForceExpandWidth = false;
+            headerRow.childForceExpandHeight = true;
+            ChartLabel(header, "Good", 1f, 0f);
+            ChartLabel(header, "Lowest buy", 0f, 420f);
+            ChartLabel(header, "Highest sale", 0f, 420f);
+
+            var scrollRt = Child(logbookRoot, "Scroll");
+            scrollRt.anchorMin = Vector2.zero;
+            scrollRt.anchorMax = Vector2.one;
+            scrollRt.offsetMin = new Vector2(8f, 8f);
+            scrollRt.offsetMax = new Vector2(-8f, -48f);
+            var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 28f;
+
+            var viewport = Child(scrollRt, "Viewport");
+            Stretch(viewport);
+            var viewportImage = viewport.gameObject.AddComponent<Image>();
+            viewportImage.sprite = quad;
+            viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
+            viewportImage.raycastTarget = true;
+            viewport.gameObject.AddComponent<Mask>().showMaskGraphic = false;
+            scroll.viewport = viewport;
+
+            logbookRows = Child(viewport, "Rows");
+            logbookRows.anchorMin = new Vector2(0f, 1f);
+            logbookRows.anchorMax = new Vector2(1f, 1f);
+            logbookRows.pivot = new Vector2(0.5f, 1f);
+            logbookRows.anchoredPosition = Vector2.zero;
+            logbookRows.sizeDelta = new Vector2(0f, 0f);
+            var rows = logbookRows.gameObject.AddComponent<VerticalLayoutGroup>();
+            rows.spacing = 4f;
+            rows.padding = new RectOffset(8, 8, 4, 8);
+            rows.childControlWidth = true;
+            rows.childControlHeight = true;
+            rows.childForceExpandWidth = true;
+            rows.childForceExpandHeight = false;
+            var fitter = logbookRows.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            scroll.content = logbookRows;
+            logbookRoot.gameObject.SetActive(false);
+        }
+
         void BuildCard(RectTransform root)
         {
             cardRoot = Child(root, "Card");
@@ -517,8 +614,8 @@ namespace Caravans.JarsRun
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
             var title = Body(column, 24, TextAlignmentOptions.Center);
-            title.text = "Confirm Kharûn. The other houses have no package in this slice, so the wagon stays here.";
-            title.gameObject.AddComponent<LayoutElement>().preferredHeight = 96f;
+            title.text = "Choose the house. The wagon keeps this kit.";
+            title.gameObject.AddComponent<LayoutElement>().preferredHeight = 64f;
             houseNote = Body(column, 18, TextAlignmentOptions.Center);
             houseNote.color = Quiet;
             houseNote.gameObject.AddComponent<LayoutElement>().preferredHeight = 36f;
@@ -529,12 +626,31 @@ namespace Caravans.JarsRun
             AddHouseButton(column, HouseId.Ghorath);
         }
 
+        static HouseId HouseFromGate()
+        {
+            switch (Gate.ChosenHouse)
+            {
+                case "house_zamath":
+                    return HouseId.Zamath;
+                case "house_thalor":
+                    return HouseId.Thalor;
+                case "house_veythar":
+                    return HouseId.Veythar;
+                case "house_ghorath":
+                    return HouseId.Ghorath;
+                default:
+                    return HouseId.Kharun;
+            }
+        }
+
         void AddHouseButton(RectTransform column, HouseId house)
         {
             var button = Tab(column, CaravanSession.HouseName(house), () =>
             {
                 if (session.ChooseHouse(house))
                 {
+                    if (lesson && !session.Skipped)
+                        TutorialOption.Set(false);
                     page = Page.Plaza;
                     lookingAtMap = false;
                 }
@@ -585,6 +701,7 @@ namespace Caravans.JarsRun
             cardRoot.gameObject.SetActive(session.CardPending || session.ResultPending);
             houseRoot.gameObject.SetActive(session.Step == TutorialStep.HouseChoice);
             optionsRoot.gameObject.SetActive(optionsOpen);
+            logbookRoot.gameObject.SetActive(logbookOpen);
             skipButton.gameObject.SetActive(session.Step != TutorialStep.HouseChoice && session.Step != TutorialStep.Free);
 
             bannerName.text = CaravanSession.PlaceName(session.Dock);
@@ -612,6 +729,9 @@ namespace Caravans.JarsRun
             }
 
             RebuildRows();
+            if (MarketInFront())
+                session.NoteMarketShown(selling);
+            RebuildLogbook();
             SyncRoads();
             ApplyLesson();
             UpdateLive();
@@ -633,10 +753,10 @@ namespace Caravans.JarsRun
                 if (count <= 0)
                     continue;
                 any = true;
-                bool lessonGood = good == GoodId.ShimmersteelJars
+                bool lessonGood = lesson && (good == GoodId.ShimmersteelJars
                     || good == GoodId.FingerFungus
                     || good == GoodId.Water
-                    || good == GoodId.Rations;
+                    || good == GoodId.Rations);
                 tradeButtons[good] = MakeRow(lessonGood ? pinnedHost : rowHost, good, count);
                 if (lessonGood)
                     pinned += 1;
@@ -778,6 +898,7 @@ namespace Caravans.JarsRun
 
             LockButtons();
             gearButton.interactable = true;
+            logbookButton.interactable = true;
             steelButton.interactable = session.CardPending;
             kenButton.interactable = session.CardPending;
             continueButton.interactable = session.ResultPending;
@@ -969,6 +1090,7 @@ namespace Caravans.JarsRun
         void ApplyFreeButtons()
         {
             gearButton.interactable = true;
+            logbookButton.interactable = true;
             marketTab.interactable = true;
             plazaTab.interactable = true;
             houseTab.interactable = EconomyCatalog.IsCity(session.Dock);
@@ -1103,6 +1225,7 @@ namespace Caravans.JarsRun
             TintPace(pace1, session.Pace == 1);
             TintPace(pace2, session.Pace == 2);
             TintPace(pace4, session.Pace == 4);
+            TintPace(logbookButton, logbookOpen);
             UpdateMap();
         }
 
@@ -1111,7 +1234,7 @@ namespace Caravans.JarsRun
             if (mapRoot == null || !mapRoot.gameObject.activeInHierarchy)
                 return;
             EnsureMap();
-            float sun = ThrowawayEconomy.Sunlight(session.Hour);
+            float sun = TravelScale.Sunlight(session.Hour);
             if (mapImage.texture != null)
                 mapImage.color = Color.Lerp(new Color(0.55f, 0.62f, 0.8f), Color.white, sun);
 
@@ -1204,6 +1327,78 @@ namespace Caravans.JarsRun
         {
             optionsOpen = !optionsOpen;
             Redraw();
+        }
+
+        void ToggleLogbook()
+        {
+            logbookOpen = !logbookOpen;
+            Redraw();
+        }
+
+        bool MarketInFront()
+        {
+            return page == Page.Market
+                && !logbookOpen
+                && !optionsOpen
+                && !lookingAtMap
+                && !session.Traveling;
+        }
+
+        void RebuildLogbook()
+        {
+            if (!logbookOpen || logbookRows == null)
+                return;
+
+            ClearChildren(logbookRows);
+            for (int i = 0; i < WorldIds.GoodCount; i++)
+            {
+                GoodId good = (GoodId)i;
+                var row = Child(logbookRows, good.ToString());
+                var background = row.gameObject.AddComponent<Image>();
+                background.sprite = quad;
+                background.color = Field;
+                background.raycastTarget = false;
+                row.gameObject.AddComponent<LayoutElement>().preferredHeight = 44f;
+                var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+                layout.spacing = 12f;
+                layout.padding = new RectOffset(8, 8, 4, 4);
+                layout.childAlignment = TextAnchor.MiddleLeft;
+                layout.childControlWidth = true;
+                layout.childControlHeight = true;
+                layout.childForceExpandWidth = false;
+                layout.childForceExpandHeight = true;
+                ChartLabel(row, CaravanSession.GoodName(good), 1f, 0f);
+                ChartLabel(row, LoggedBuyText(good), 0f, 420f);
+                ChartLabel(row, LoggedSaleText(good), 0f, 420f);
+            }
+        }
+
+        string LoggedBuyText(GoodId good)
+        {
+            if (!session.HasLoggedBuy(good))
+                return string.Empty;
+            return session.LoggedBuy(good) + " coin, " + CaravanSession.PlaceName(session.LoggedBuyPlace(good));
+        }
+
+        string LoggedSaleText(GoodId good)
+        {
+            if (!session.HasLoggedSale(good))
+                return string.Empty;
+            return session.LoggedSale(good) + " coin, " + CaravanSession.PlaceName(session.LoggedSalePlace(good));
+        }
+
+        TextMeshProUGUI ChartLabel(RectTransform parent, string label, float flex, float width)
+        {
+            var text = Body(parent, 20, TextAlignmentOptions.MidlineLeft);
+            text.text = label;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.overflowMode = TextOverflowModes.Ellipsis;
+            var element = text.gameObject.AddComponent<LayoutElement>();
+            if (flex > 0f)
+                element.flexibleWidth = flex;
+            else
+                element.preferredWidth = width;
+            return text;
         }
 
         string FillLabel(string verb, GoodId good)
@@ -1422,7 +1617,7 @@ namespace Caravans.JarsRun
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
-            rect.offsetMax = new Vector2(0f, -TopBarHeight);
+            rect.offsetMax = new Vector2(0f, -(TopBarHeight + ViewBarHeight));
         }
 
         static void TopStrip(RectTransform rect, float height)

@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -6,6 +7,9 @@ namespace Caravans.FrontDoor
 {
     public sealed class TitleScreen : MonoBehaviour
     {
+        GameObject optionsRoot;
+        Button newGame;
+        Button tutorialButton;
         public static void Spawn()
         {
             var house = FindAnyObjectByType<HouseSelectScreen>();
@@ -70,14 +74,94 @@ namespace Caravans.FrontDoor
             buttonLayout.childForceExpandWidth = false;
             buttonLayout.childForceExpandHeight = false;
 
-            var newGame = FrontUi.MenuButton(buttons, "NEW GAME", true, Gate.ShowHouse);
+            newGame = FrontUi.MenuButton(buttons, "NEW GAME", true, Gate.ShowHouse);
             FrontUi.MenuButton(buttons, "CONTINUE", false, null);
-            FrontUi.MenuButton(buttons, "OPTIONS", false, null);
+            FrontUi.MenuButton(buttons, "OPTIONS", true, OpenOptions);
             FrontUi.MenuButton(buttons, "EXIT", true, Quit);
+            BuildOptions(canvas);
             if (EventSystem.current != null)
                 EventSystem.current.SetSelectedGameObject(newGame.gameObject);
 
             StormDirector.Ensure().Resume();
+        }
+
+        void BuildOptions(RectTransform canvas)
+        {
+            var root = FrontUi.Box(canvas, "Options", new Vector2(1920f, 1080f));
+            root.anchorMin = Vector2.zero;
+            root.anchorMax = Vector2.one;
+            root.offsetMin = Vector2.zero;
+            root.offsetMax = Vector2.zero;
+            var backdrop = root.gameObject.AddComponent<Image>();
+            backdrop.color = new Color(0.04f, 0.03f, 0.02f, 0.55f);
+            var backdropButton = root.gameObject.AddComponent<Button>();
+            backdropButton.targetGraphic = backdrop;
+            backdropButton.transition = Selectable.Transition.None;
+            backdropButton.onClick.AddListener(CloseOptions);
+
+            var frame = FrontUi.Box(root, "MenuFrame", new Vector2(400f, 520f));
+            frame.anchorMin = frame.anchorMax = new Vector2(0.5f, 0.5f);
+            frame.pivot = new Vector2(0.5f, 0.5f);
+            frame.anchoredPosition = Vector2.zero;
+            var frameImage = frame.gameObject.AddComponent<Image>();
+            frameImage.sprite = FrontArt.MenuFrame();
+            frameImage.preserveAspect = true;
+            frameImage.raycastTarget = false;
+            frameImage.color = frameImage.sprite != null ? Color.white : new Color(0.42f, 0.32f, 0.2f, 0.92f);
+
+            var column = FrontUi.Box(frame, "Buttons", new Vector2(320f, 420f));
+            column.anchorMin = column.anchorMax = new Vector2(0.5f, 0.5f);
+            column.pivot = new Vector2(0.5f, 0.5f);
+            column.anchoredPosition = Vector2.zero;
+            var layout = column.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.spacing = 16f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+
+            FrontUi.Label(column, "Options", 28f, true, FrontUi.TitleGold, new Vector2(320f, 48f));
+            tutorialButton = FrontUi.MenuButton(column, TutorialCaption(), true, ToggleTutorial);
+            FrontUi.MenuButton(column, "CLOSE", true, CloseOptions);
+
+            optionsRoot = root.gameObject;
+            optionsRoot.SetActive(false);
+        }
+
+        void OpenOptions()
+        {
+            optionsRoot.SetActive(true);
+            SetCaption(tutorialButton, TutorialCaption());
+            if (EventSystem.current != null)
+                EventSystem.current.SetSelectedGameObject(tutorialButton.gameObject);
+        }
+
+        void CloseOptions()
+        {
+            optionsRoot.SetActive(false);
+            if (EventSystem.current != null && newGame != null)
+                EventSystem.current.SetSelectedGameObject(newGame.gameObject);
+        }
+
+        void ToggleTutorial()
+        {
+            TutorialOption.Set(!TutorialOption.Enabled);
+            SetCaption(tutorialButton, TutorialCaption());
+        }
+
+        static string TutorialCaption()
+        {
+            return TutorialOption.Enabled ? "TUTORIAL ON" : "TUTORIAL OFF";
+        }
+
+        static void SetCaption(Button button, string text)
+        {
+            if (button == null)
+                return;
+            TMP_Text[] labels = button.GetComponentsInChildren<TMP_Text>(true);
+            for (int i = 0; i < labels.Length; i++)
+                labels[i].text = text;
         }
 
         void BuildDesert()
