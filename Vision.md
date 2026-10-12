@@ -1,6 +1,6 @@
 # Caravans of the Cutting Sands
 
-This document describes the game as it runs. `Concept.md` holds features still to choose. `Implementation.md` holds the build, when there is one. This file is a description. It does not add features.
+This document describes the game as it runs. It is a description for grok.com to read. It does not add features.
 
 The line under the title is "Buy on knowledge. Risk the journey."
 

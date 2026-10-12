@@ -1,13 +1,11 @@
 # Session
 
-The user opens in design or implementation. If they have not said which, ask.
+The user posts a build instruction written on grok.com. Build that instruction. Check it against the game in code before changing code. Do not add work beyond the instruction. Do not keep a task list.
 
-Design edits `Concept.md`. Add features there. Move a feature onto `Implementation.md` only when they choose it, and remove it from `Concept.md`. The moved entry is one id plus the behavior to build. Design does not write code.
+When the build changes how the game runs, update `Vision.md` so it still describes the game as it runs. `Vision.md` is a description for grok.com to read. It does not add features.
 
-Implementation builds the first entry in `Implementation.md`. Check it against the game in code before changing code. When the work is done, remove that entry. Do not add features. Do not write a record of the work.
-
-`Caravans_Goods.md`, `Name_List.md`, `Naming.md`, `data/markets.md`, the JSON sheets, and the economy sheets under `Docs/` are game data. They are not either list.
+`Caravans_Goods.md`, `Name_List.md`, `Naming.md`, `data/markets.md`, the JSON sheets, and the economy sheets under `Docs/` are game data.
 
 Do not use chrome, mint, plate, mark, or stall for systems, screens, or currency. Settlement names that already contain mark stay.
 
-The current state of the game is described in Vision.md. Tunable numbers live in data/config/.
+Tunable numbers live in `data/config/`.
