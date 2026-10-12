@@ -91,6 +91,36 @@ namespace Caravans.Play
             get { return GameConfig.Consumption.rationEat; }
         }
 
+        public static float WaterLitresPerDay
+        {
+            get { return GameConfig.Consumption.waterLitresPerDay; }
+        }
+
+        public static float RationsKgPerDay
+        {
+            get { return GameConfig.Consumption.rationsKgPerDay; }
+        }
+
+        public static float CanteenLitres
+        {
+            get { return GameConfig.Consumption.canteenLitres; }
+        }
+
+        public static float RationBagKg
+        {
+            get { return GameConfig.Consumption.rationBagKg; }
+        }
+
+        public static float WaterLitresPerUnit
+        {
+            get { return GameConfig.Consumption.waterLitresPerUnit; }
+        }
+
+        public static float RationsKgPerUnit
+        {
+            get { return GameConfig.Consumption.rationsKgPerUnit; }
+        }
+
         public static int TariffBase
         {
             get { return GameConfig.Prices.tariffBase; }

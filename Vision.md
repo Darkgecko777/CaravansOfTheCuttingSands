@@ -18,7 +18,7 @@ Five cities are house seats. The house is named for the city.
 
 Nine villages sit off the seats: Ashar, Moraq, Torvern, Draven, Sorel, Kethra, Neth, Rukh, and Ghûl. Each has a market and a plaza. Six posts sit on the roads: Westmark, Kaleth, Southmark, Highmark, Brineford, and Ridgewatch. Rukh opens from Westmark the way Neth opens from Zamath. Sarn's Rest is a landmark, not a dock.
 
-Shimmersteel is one metal, mined at Thalor. Work changes the finish. It stands in for bronze, silver, and gold, and it is not coin. Forty goods travel the map. Water and rations are made at every city and village. The traveller's canteen is kit in the goods sheet. The wagon does not drink from it, and the wagon does not eat.
+Shimmersteel is one metal, mined at Thalor. Work changes the finish. It stands in for bronze, silver, and gold, and it is not coin. Forty goods travel the map. Water and rations are made at every city and village, and the caravan carries them as kit. The canteen holds 75 litres. The ration bag holds 30 kilograms. That is three days for one person and one camel, at 25 litres and 10 kilograms a day. A new game starts with both full. Cargo water and cargo rations stay trade goods. Ordinary food in the wagon still ages. The kit is what the caravan drinks and eats.
 
 Names and place stories live in `Caravans_Goods.md`. Weight, pack size, base price, and daily appetite live in `Docs/Economy_Weight_Price.csv` and `Docs/Economy_Eat_Per_Day.csv`. The playable game reads those two sheets for every good they list. Water and rations are not on them. Their price, weight, and pack are read from `data/config/prices.json`. The game does not read `data/lines.json`, `data/markets.json`, or `data/markets.md`.
 
@@ -32,7 +32,7 @@ A run lives until play mode ends. Gear on the play screen says "Save is not in t
 
 ## A day at a settlement
 
-The top strip shows where the caravan is, the day and the hour, the coin, and a one-line cargo summary: space used of 16, weight used of 256, and up to three goods by name. Gear sits on that strip. The row under it opens the logbook.
+The top strip shows where the caravan is, the day and the hour, the coin, the canteen and the ration bag, and a one-line cargo summary: space used of 16, weight used of 256, and up to three goods by name. The kit reads as litres and kilograms against those caps. Gear sits on that strip. The row under it opens the logbook.
 
 The settlement banner names the place and names who holds it. A city is held by its own house. A village or a post starts with no patron. The line shows the holder and the cut, or "No patron · 0%".
 
@@ -40,7 +40,7 @@ The bottom of the dock is the rooms. Market and Plaza are always there. House ap
 
 The market has Buy and Sell. A row appears when the shelf has stock, or when the wagon has that good. Each row shows the name, the count, the coin, and a Buy or Sell press. One press is one unit. A good the place treats as contraband carries that word on the row. Dream lotus nectar is contraband everywhere it is shown. Sweet Bliss is contraband in a city. Crimson Eyed Melon Juice is contraband at Veythar and Thalor. Eyes of Arkhul are contraband at Kharûn. An empty wagon on the sell page says "The wagon is empty."
 
-The plaza, while the caravan is free, offers one road for each neighbor, "Wait an hour", "Fill water", and "Fill food". Fill water and fill food buy one unit of that good at the local price. Listen answers "Socialize is not in this slice." Look at the map opens the map without leaving. The plaza also states the weather on the road ahead. Heat, wind, and sandstorm lengthen the leg. Cargo loss from weather has no rate.
+The plaza, while the caravan is free, offers one road for each neighbor, "Wait an hour", "Fill water", and "Fill food". Fill water and fill food buy one shelf unit at the local price and pour it into the kit. One unit is 25 litres or 10 kilograms. The pour stops at the cap. A full kit takes nothing from the shelf and spends no coin. The unit does not go on the wagon. Listen answers "Socialize is not in this slice." Look at the map opens the map without leaving. The plaza also states the weather on the road ahead. Heat, wind, and sandstorm lengthen the leg. Cargo loss from weather has no rate. Weather does not change how fast the kit is drunk.
 
 A buy spends coin and takes a unit off the shelf onto the wagon, if the purse can pay, the shelf has stock, and the wagon has space and weight left. A sale pays the local price times the unit's remaining integrity, after any cut, and puts the unit back on the shelf. Selling at a village or a post adds the player's house to the local influence. The house with the most influence holds the place. Each morning that influence falls to three quarters. A rival holder takes a cut of 12 percent. Standing can lower that cut, and the cut does not fall under 4 percent. Standing starts at nothing, and play has no way to raise it. The player's own house, and a place with no patron, take no cut.
 
@@ -48,7 +48,7 @@ A buy spends coin and takes a unit off the shelf onto the wagon, if the purse ca
 
 Look at the map, or taking a road, shows the painted map. The player's wagon is a token. Nine rival wagons are smaller tokens, colored by house. Three weather masses move across the map: a sandstorm, a heat, and a wind. A fog of vision hides the rest. The radius is wider at noon, tighter at night, and tightest inside a sandstorm. The map itself cools toward night.
 
-While traveling, the top strip reads "Road to" the destination. Pace is Pause, 1×, 2×, or 4×. The clock follows the distance. The clear Kharûn–Draven road is one day. Heat and wind stretch a leg by about a sixth. A sandstorm stretches it by two fifths. A sea opening, Zamath to Neth or Westmark to Rukh, arrives at once. A dotted gap on a painted road adds no extra time. The leg line names the weather on that road.
+While traveling, the top strip reads "Road to" the destination. Pace is Pause, 1×, 2×, or 4×. The clock follows the distance. The clear Kharûn–Draven road is one day, and that day spends 25 litres and 10 kilograms. Heat and wind stretch a leg by about a sixth. A sandstorm stretches it by two fifths. A longer leg spends more kit only because the clock runs longer. A sea opening, Zamath to Neth or Westmark to Rukh, arrives at once and spends nothing. A dotted gap on a painted road adds no extra time. The leg line names the weather on that road. Waiting an hour spends one twenty-fourth of a day. At empty the kit stays empty.
 
 Arrival docks the caravan. The rooms return.
 
@@ -76,7 +76,7 @@ Starting stock is thinner the more hops a place sits from a producer. A place si
 
 Play reads `data/config/` from disk when a session needs a rate. The files hold the numbers the running game already uses.
 
-`consumption.json` holds the morning integrity loss: a tenth for ordinary food, a quarter for Sweet Bliss. It also holds the daily ration appetite of 1, which the eat sheet does not list.
+`consumption.json` holds the morning integrity loss: a tenth for ordinary food, a quarter for Sweet Bliss. It holds the daily ration appetite of 1, which the eat sheet does not list. It also holds the kit: 25 litres and 10 kilograms per day, a canteen of 75 litres, a ration bag of 30 kilograms, and a shelf unit of 25 litres or 10 kilograms.
 
 `prices.json` holds the shelf bands, the nightly production scale, the rival cut of 12 percent with a floor of 4, the standing cap of 8, and the morning keep of three quarters of village and post influence. It also holds the water and ration price, weight, and pack.
 
@@ -96,7 +96,7 @@ A button under the date and the coin opens a near-full-screen chart of every goo
 
 ## The jars lesson
 
-The lesson remains in the session. A new game does not enter it.
+The lesson remains in the session. A new game does not enter it. The canteen and the ration bag start full there too, and that road drinks them the same way. Skipping the lesson refills both when it resets the wagon.
 
 If it is running, Vekra of Kharûn, the clerk, walks the player through one circuit. Buy Shimmersteel Jars at Kharûn. Take the road to Draven. Choose a pace. At the halfway point a giant horned goat-lizard blocks the road. Steel fights it. Ken feeds it. Each is certain and costs 8 coin, held back from the starting 400 until the card is done. The road then opens. At Draven, sell the jars, buy Finger Fungus, return to Kharûn, and sell the fungus. The wagon keeps that kit, and the player chooses any house and docks there. Skipping the lesson from Gear resets the wagon and opens that same house choice. Free travel of the Kharûn–Draven road does not stop for the goat-lizard. The title tutorial switch does not start this lesson.
 
@@ -108,17 +108,17 @@ If it is running, Vekra of Kharûn, the clerk, walks the player through one circ
 - New Game, an inert Continue, Options, and Exit.
 - A saved tutorial switch that a new game leaves unread.
 - House select for Kharûn, Zamath, Thalor, Veythar, and Ghorath, each confirmable.
-- A confirmed house opens free play at that city with 400 coin and an empty wagon.
+- A confirmed house opens free play at that city with 400 coin, an empty wagon, a full canteen, and a full ration bag.
 
 **At a settlement**
 
-- Top strip for place, day and hour, coin, cargo space, cargo weight, and up to three goods.
+- Top strip for place, day and hour, coin, canteen litres, ration kilograms, cargo space, cargo weight, and up to three goods.
 - Gear, which states that save is absent from this build.
 - Logbook button on the row under that strip.
 - Settlement banner with the place and the patron line.
 - Market, Plaza, and, at a city, House.
 - Buy and Sell pages. One press moves one unit. Rows are shelf stock or wagon cargo, with a contraband label where the place treats the good that way.
-- Plaza roads to each neighbor, wait an hour, fill water, fill food, listen, and look at the map.
+- Plaza roads to each neighbor, wait an hour, fill water, fill food, listen, and look at the map. Fill pours one shelf unit into the kit, 25 litres or 10 kilograms, and stops at the cap.
 - Listen states that socializing is absent. The house room states that jobs and standing are absent.
 - Wagon limits of 16 space and 256 weight.
 
@@ -127,7 +127,7 @@ If it is running, Vekra of Kharûn, the clerk, walks the player through one circ
 - Painted map with the player's token, nine rival tokens colored by house, and three moving weather masses.
 - Vision fog that tightens at night and inside a sandstorm, and a map that cools after noon.
 - Pause and paces of 1×, 2×, and 4×. The clock follows the road.
-- A clear Kharûn–Draven leg of one day. Heat and wind lengthen a leg. A sandstorm lengthens it further.
+- A clear Kharûn–Draven leg of one day, which spends one day of water and rations. Heat and wind lengthen a leg. A sandstorm lengthens it further. The daily kit rate stays the same.
 - Sea openings from Zamath to Neth and from Westmark to Rukh that add no hours.
 - A leg line that names the weather. Weather does not destroy cargo.
 

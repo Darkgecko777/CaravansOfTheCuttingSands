@@ -98,6 +98,8 @@ namespace Caravans.Play
 
         public int Revision { get; private set; }
         public int Coin { get; private set; }
+        public float WaterLitres { get; private set; }
+        public float RationKg { get; private set; }
         public int Day { get; private set; }
         public float Hour { get; private set; }
         public PlaceId Dock { get; private set; }
@@ -435,6 +437,48 @@ namespace Caravans.Play
                 DecayedOnDay = DecayStamp()
             });
             Coin -= price;
+            Touch();
+            return true;
+        }
+
+        public bool CanFillWater()
+        {
+            return CanFill(GoodId.Water, WaterLitres, EconomyRates.CanteenLitres);
+        }
+
+        public bool CanFillFood()
+        {
+            return CanFill(GoodId.Rations, RationKg, EconomyRates.RationBagKg);
+        }
+
+        public bool TryFillWater()
+        {
+            return TryFill(GoodId.Water, WaterLitres, EconomyRates.CanteenLitres, EconomyRates.WaterLitresPerUnit, value => WaterLitres = value);
+        }
+
+        public bool TryFillFood()
+        {
+            return TryFill(GoodId.Rations, RationKg, EconomyRates.RationBagKg, EconomyRates.RationsKgPerUnit, value => RationKg = value);
+        }
+
+        bool CanFill(GoodId good, float held, float capacity)
+        {
+            if (Traveling || !BuyAllowed(good) || held >= capacity - 0.0001f)
+                return false;
+            int stock = StockOf(Dock, good);
+            int price = BuyCost(Dock, good);
+            return stock > 0 && Coin - price >= CoinReserve;
+        }
+
+        bool TryFill(GoodId good, float held, float capacity, float perUnit, System.Action<float> store)
+        {
+            if (perUnit <= 0f || !CanFill(good, held, capacity))
+                return false;
+            int stock = StockOf(Dock, good);
+            int price = BuyCost(Dock, good);
+            PutStock(Dock, good, stock - 1);
+            Coin -= price;
+            store(Mathf.Min(capacity, held + perUnit));
             Touch();
             return true;
         }
@@ -831,6 +875,7 @@ namespace Caravans.Play
                 Consider(ref step, ref hit, toNight, 2);
                 MoveNpcs(step);
                 MoveWeather(step);
+                Drink(step);
                 left -= step;
                 if (hit == 3)
                 {
@@ -866,6 +911,16 @@ namespace Caravans.Play
                 step = threshold;
                 hit = id;
             }
+        }
+
+        void Drink(float hours)
+        {
+            float day = EconomyRates.DayHours;
+            if (hours <= 0f || day <= 0f)
+                return;
+            float days = hours / day;
+            WaterLitres = Mathf.Max(0f, WaterLitres - days * EconomyRates.WaterLitresPerDay);
+            RationKg = Mathf.Max(0f, RationKg - days * EconomyRates.RationsKgPerDay);
         }
 
         float HoursUntil(int mark)
@@ -1539,6 +1594,8 @@ namespace Caravans.Play
                 standingOf[i] = 0;
 
             Coin = TravelScale.StartingCoin;
+            WaterLitres = EconomyRates.CanteenLitres;
+            RationKg = EconomyRates.RationBagKg;
             Day = 1;
             Hour = EconomyRates.MorningHour;
             Dock = PlaceId.Kharun;

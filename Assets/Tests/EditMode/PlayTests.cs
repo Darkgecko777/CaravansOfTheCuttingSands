@@ -336,6 +336,67 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(HouseId.Zamath, CaravanSession.AtHouse(HouseId.Zamath).House.Value);
         }
 
+        [Test]
+        public void TheKitStartsFullAndFollowsTheClock()
+        {
+            var session = new CaravanSession();
+            Assert.AreEqual(EconomyRates.CanteenLitres, session.WaterLitres, 0.001f);
+            Assert.AreEqual(EconomyRates.RationBagKg, session.RationKg, 0.001f);
+            Assert.AreEqual(0, session.CargoOf(GoodId.Water));
+            Assert.AreEqual(0, session.CargoOf(GoodId.Rations));
+
+            session.AdvanceHours(EconomyRates.DayHours);
+            Assert.AreEqual(EconomyRates.CanteenLitres - EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.02f);
+            Assert.AreEqual(EconomyRates.RationBagKg - EconomyRates.RationsKgPerDay, session.RationKg, 0.02f);
+
+            float water = session.WaterLitres;
+            float food = session.RationKg;
+            session.WaitOneHour();
+            float hourShare = 1f / EconomyRates.DayHours;
+            Assert.AreEqual(water - EconomyRates.WaterLitresPerDay * hourShare, session.WaterLitres, 0.02f);
+            Assert.AreEqual(food - EconomyRates.RationsKgPerDay * hourShare, session.RationKg, 0.02f);
+        }
+
+        [Test]
+        public void AClearDayOnTheRoadSpendsOneDayOfKit()
+        {
+            var session = new CaravanSession();
+            int day = session.Day;
+            float hour = session.Hour;
+            float water = session.WaterLitres;
+            float food = session.RationKg;
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            Ride(session);
+            float elapsed = (session.Day - day) * EconomyRates.DayHours + (session.Hour - hour);
+            Assert.Greater(elapsed, 20f);
+            Assert.AreEqual(water - elapsed / EconomyRates.DayHours * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.05f);
+            Assert.AreEqual(food - elapsed / EconomyRates.DayHours * EconomyRates.RationsKgPerDay, session.RationKg, 0.05f);
+        }
+
+        [Test]
+        public void FillPoursOneShelfUnitIntoTheKit()
+        {
+            var session = new CaravanSession();
+            session.AdvanceHours(1f);
+            int stock = session.StockOf(PlaceId.Kharun, GoodId.Water);
+            int rations = session.StockOf(PlaceId.Kharun, GoodId.Rations);
+            int coin = session.Coin;
+            Assert.IsTrue(session.CanFillWater());
+            Assert.IsTrue(session.TryFillWater());
+            Assert.AreEqual(EconomyRates.CanteenLitres, session.WaterLitres, 0.001f);
+            Assert.AreEqual(stock - 1, session.StockOf(PlaceId.Kharun, GoodId.Water));
+            Assert.AreEqual(0, session.CargoOf(GoodId.Water));
+            Assert.Less(session.Coin, coin);
+            Assert.IsFalse(session.CanFillWater());
+            Assert.IsFalse(session.TryFillWater());
+
+            Assert.IsTrue(session.TryFillFood());
+            Assert.AreEqual(EconomyRates.RationBagKg, session.RationKg, 0.001f);
+            Assert.AreEqual(rations - 1, session.StockOf(PlaceId.Kharun, GoodId.Rations));
+            Assert.AreEqual(0, session.CargoOf(GoodId.Rations));
+            Assert.IsFalse(session.TryFillFood());
+        }
+
         static void AssertNpcLoads(CaravanSession session)
         {
             Assert.AreEqual(9, session.NpcCount);

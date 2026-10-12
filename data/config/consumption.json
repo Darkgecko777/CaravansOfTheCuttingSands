@@ -1,5 +1,11 @@
 {
   "ordinaryDecay": 0.1,
   "sweetBlissDecay": 0.25,
-  "rationEat": 1
+  "rationEat": 1,
+  "waterLitresPerDay": 25,
+  "rationsKgPerDay": 10,
+  "canteenLitres": 75,
+  "rationBagKg": 30,
+  "waterLitresPerUnit": 25,
+  "rationsKgPerUnit": 10
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using Caravans.FrontDoor;
 using TMPro;
 using UnityEngine;
@@ -325,8 +326,8 @@ namespace Caravans.Play
             layout.childForceExpandHeight = false;
             roadButton = StackButton(column, "Take the road", () => session.Depart());
             waitButton = StackButton(column, "Wait an hour", () => session.WaitOneHour());
-            waterButton = StackButton(column, "Fill water", () => session.TryBuy(GoodId.Water));
-            foodButton = StackButton(column, "Fill food", () => session.TryBuy(GoodId.Rations));
+            waterButton = StackButton(column, "Fill water", () => session.TryFillWater());
+            foodButton = StackButton(column, "Fill food", () => session.TryFillFood());
             listenButton = StackButton(column, "Listen", () =>
             {
                 listenLine = "Socialize is not in this slice.";
@@ -711,8 +712,8 @@ namespace Caravans.Play
                 : "Take the road to Kharûn";
             outlookText.text = session.OutlookLine();
             listenText.text = listenLine;
-            waterButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill water", GoodId.Water);
-            foodButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill food", GoodId.Rations);
+            waterButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill water", GoodId.Water, session.WaterLitres, EconomyRates.CanteenLitres);
+            foodButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill food", GoodId.Rations, session.RationKg, EconomyRates.RationBagKg);
             houseNote.text = session.HouseNote ?? string.Empty;
 
             bool showChoices = session.CardPending;
@@ -1103,8 +1104,8 @@ namespace Caravans.Play
             sellTab.interactable = true;
             roadButton.interactable = !session.Traveling;
             waitButton.interactable = true;
-            waterButton.interactable = Afford(GoodId.Water, false);
-            foodButton.interactable = Afford(GoodId.Rations, false);
+            waterButton.interactable = session.CanFillWater();
+            foodButton.interactable = session.CanFillFood();
             listenButton.interactable = true;
             lookButton.interactable = !session.Traveling;
             pauseButton.interactable = session.Traveling;
@@ -1401,8 +1402,10 @@ namespace Caravans.Play
             return text;
         }
 
-        string FillLabel(string verb, GoodId good)
+        string FillLabel(string verb, GoodId good, float held, float capacity)
         {
+            if (held >= capacity - 0.0001f)
+                return verb + " · full";
             if (session.StockOf(session.Dock, good) <= 0)
                 return verb + " · none on the shelf";
             return verb + " · " + session.BuyCost(session.Dock, good) + " coin";
@@ -1411,6 +1414,8 @@ namespace Caravans.Play
         string CargoLine()
         {
             var parts = new List<string>();
+            parts.Add("Water " + Amount(session.WaterLitres) + "/" + Amount(EconomyRates.CanteenLitres) + " L");
+            parts.Add("Rations " + Amount(session.RationKg) + "/" + Amount(EconomyRates.RationBagKg) + " kg");
             parts.Add(session.CargoSpace() + "/" + EconomyRates.WagonSpace);
             parts.Add(session.CargoWeight() + "/" + EconomyRates.WagonWeight);
             int named = 0;
@@ -1433,10 +1438,15 @@ namespace Caravans.Play
             }
 
             if (named == 0)
-                return parts[0] + "  " + parts[1];
+                return string.Join("  ", parts);
             if (extra > 0)
                 parts.Add("+" + extra);
             return string.Join("  ", parts);
+        }
+
+        static string Amount(float value)
+        {
+            return value.ToString("0.#", CultureInfo.InvariantCulture);
         }
 
         void TintPace(Button button, bool selected)

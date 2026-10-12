@@ -56,7 +56,11 @@ namespace Caravans.Play
         {
             if (loaded)
                 return;
-            consumption = Read<ConsumptionFile>("consumption.json", "ordinaryDecay", "sweetBlissDecay", "rationEat");
+            consumption = Read<ConsumptionFile>("consumption.json",
+                "ordinaryDecay", "sweetBlissDecay", "rationEat",
+                "waterLitresPerDay", "rationsKgPerDay",
+                "canteenLitres", "rationBagKg",
+                "waterLitresPerUnit", "rationsKgPerUnit");
             prices = Read<PriceFile>("prices.json",
                 "fullCoverDays", "ordinaryCoverDays", "emptyMultiplier", "fullMultiplier", "productionScale",
                 "waterBasePrice", "waterWeight", "waterSpace",
@@ -128,6 +132,12 @@ namespace Caravans.Play
         public float ordinaryDecay;
         public float sweetBlissDecay;
         public float rationEat;
+        public float waterLitresPerDay;
+        public float rationsKgPerDay;
+        public float canteenLitres;
+        public float rationBagKg;
+        public float waterLitresPerUnit;
+        public float rationsKgPerUnit;
     }
 
     [Serializable]
