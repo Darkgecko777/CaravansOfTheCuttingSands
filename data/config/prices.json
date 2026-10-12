@@ -1,0 +1,17 @@
+{
+  "fullCoverDays": 6,
+  "ordinaryCoverDays": 3,
+  "emptyMultiplier": 2,
+  "fullMultiplier": 0.5,
+  "productionScale": 1,
+  "waterBasePrice": 6,
+  "waterWeight": 2,
+  "waterSpace": 1,
+  "rationBasePrice": 5,
+  "rationWeight": 1,
+  "rationSpace": 1,
+  "tariffBase": 12,
+  "tariffFloor": 4,
+  "standingMax": 8,
+  "influenceKeep": 0.75
+}

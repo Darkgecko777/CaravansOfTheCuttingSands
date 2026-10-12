@@ -1,0 +1,44 @@
+{
+  "recipes": [
+    {
+      "place": "Kharun",
+      "output": "ShimmersteelJars",
+      "inputA": "Shimmersteel",
+      "countA": 2,
+      "inputB": "Shimmersteel",
+      "countB": 0
+    },
+    {
+      "place": "Thalor",
+      "output": "ShimmersteelCookware",
+      "inputA": "Shimmersteel",
+      "countA": 1,
+      "inputB": "TitansHeartRock",
+      "countB": 1
+    },
+    {
+      "place": "Veythar",
+      "output": "ShimmersteelFineware",
+      "inputA": "Shimmersteel",
+      "countA": 1,
+      "inputB": "Shimmersteel",
+      "countB": 0
+    },
+    {
+      "place": "Zamath",
+      "output": "WaterWitchingRods",
+      "inputA": "LivingLumber",
+      "countA": 1,
+      "inputB": "LivingLumber",
+      "countB": 0
+    },
+    {
+      "place": "Ghul",
+      "output": "HulvBone",
+      "inputA": "Numbspindle",
+      "countA": 1,
+      "inputB": "Numbspindle",
+      "countB": 0
+    }
+  ]
+}

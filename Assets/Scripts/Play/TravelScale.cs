@@ -6,23 +6,46 @@ namespace Caravans.Play
     // Cargo loss from weather stays at zero until a rate is asked for.
     public static class TravelScale
     {
-        public const int StartingCoin = 400;
-        public const float BaseLegHours = EconomyRates.DayHours;
-        public const float RealSeconds = 36f;
+        public static int StartingCoin
+        {
+            get { return GameConfig.Travel.startingCoin; }
+        }
 
-        public const float VisionDay = 0.34f;
-        public const float VisionNight = 0.18f;
-        public const float VisionSandstorm = 0.14f;
+        public static float BaseLegHours
+        {
+            get { return EconomyRates.DayHours; }
+        }
+
+        public static float RealSeconds
+        {
+            get { return GameConfig.Travel.realSeconds; }
+        }
+
+        public static float VisionDay
+        {
+            get { return GameConfig.Weather.visionDay; }
+        }
+
+        public static float VisionNight
+        {
+            get { return GameConfig.Weather.visionNight; }
+        }
+
+        public static float VisionSandstorm
+        {
+            get { return GameConfig.Weather.visionSandstorm; }
+        }
 
         public static float TimeScale(WeatherKind kind)
         {
             switch (kind)
             {
                 case WeatherKind.Heat:
+                    return GameConfig.Weather.heatStretch;
                 case WeatherKind.Wind:
-                    return 1.15f;
+                    return GameConfig.Weather.windStretch;
                 case WeatherKind.Sandstorm:
-                    return 1.4f;
+                    return GameConfig.Weather.sandstormStretch;
                 default:
                     return 1f;
             }

@@ -117,7 +117,10 @@ namespace Caravans.Play
         public bool CardPending { get; private set; }
         public bool ResultPending { get; private set; }
 
-        public const int CardCoin = 8;
+        public static int CardCoin
+        {
+            get { return GameConfig.Travel.cardCoin; }
+        }
 
         bool cardResolvedThisLeg;
 
@@ -867,18 +870,19 @@ namespace Caravans.Play
 
         float HoursUntil(int mark)
         {
+            float day = EconomyRates.DayHours;
             if (mark == 0)
             {
-                if (Hour <= 0.0001f || Hour >= 24f - 0.0001f)
-                    return 24f;
-                return 24f - Hour;
+                if (Hour <= 0.0001f || Hour >= day - 0.0001f)
+                    return day;
+                return day - Hour;
             }
 
             if (Mathf.Abs(Hour - mark) <= 0.0001f)
-                return 24f;
+                return day;
             if (Hour < mark)
                 return mark - Hour;
-            return 24f - Hour + mark;
+            return day - Hour + mark;
         }
 
         void RunMorning()
@@ -1536,7 +1540,7 @@ namespace Caravans.Play
 
             Coin = TravelScale.StartingCoin;
             Day = 1;
-            Hour = 6f;
+            Hour = EconomyRates.MorningHour;
             Dock = PlaceId.Kharun;
             Traveling = false;
             TowardDraven = true;

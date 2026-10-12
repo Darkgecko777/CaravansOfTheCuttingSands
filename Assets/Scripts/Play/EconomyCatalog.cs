@@ -43,6 +43,11 @@ namespace Caravans.Play
         static float[] worldEat = new float[WorldIds.GoodCount];
         static float[] desired = new float[WorldIds.GoodCount];
 
+        public static void ForgetLoaded()
+        {
+            loaded = false;
+        }
+
         public static void EnsureLoaded()
         {
             if (loaded)
@@ -347,20 +352,19 @@ namespace Caravans.Play
 
         static float RecipeDraw(GoodId good)
         {
-            if (good == GoodId.Shimmersteel)
+            float sum = 0f;
+            Recipe[] recipes = EconomyRates.Recipes;
+            for (int i = 0; i < recipes.Length; i++)
             {
-                return 2f * worldEat[(int)GoodId.ShimmersteelJars]
-                    + worldEat[(int)GoodId.ShimmersteelCookware]
-                    + worldEat[(int)GoodId.ShimmersteelFineware];
+                Recipe recipe = recipes[i];
+                float eat = worldEat[(int)recipe.Output];
+                if (recipe.InputA == good)
+                    sum += recipe.CountA * eat;
+                if (recipe.HasSecond && recipe.InputB == good)
+                    sum += recipe.CountB * eat;
             }
 
-            if (good == GoodId.TitansHeartRock)
-                return worldEat[(int)GoodId.ShimmersteelCookware];
-            if (good == GoodId.LivingLumber)
-                return worldEat[(int)GoodId.WaterWitchingRods];
-            if (good == GoodId.Numbspindle)
-                return worldEat[(int)GoodId.HulvBone];
-            return 0f;
+            return sum;
         }
 
         static int NearestProducer(PlaceId place, GoodId good)
