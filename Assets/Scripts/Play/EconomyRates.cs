@@ -170,6 +170,42 @@ namespace Caravans.Play
         {
             get { return GameConfig.Workshops; }
         }
+
+        public static int SeaStart
+        {
+            get { return GameConfig.Abundance.SeaStart; }
+        }
+
+        public static float SeaMake
+        {
+            get { return GameConfig.Abundance.SeaMake; }
+        }
+
+        public static int SeaCap
+        {
+            get { return GameConfig.Abundance.SeaCap; }
+        }
+
+        public static bool MakesSea(PlaceId place)
+        {
+            return GameConfig.Abundance.Sea[(int)place];
+        }
+
+        public static float GradeStartDays(PlaceId place, GoodId good)
+        {
+            AbundanceTable table = GameConfig.Abundance;
+            if (good == GoodId.Rations)
+                return table.FoodDays[(int)place];
+            return table.WaterDays[(int)place];
+        }
+
+        public static float GradeMake(PlaceId place, GoodId good)
+        {
+            AbundanceTable table = GameConfig.Abundance;
+            if (good == GoodId.Rations)
+                return table.FoodMake[(int)place];
+            return table.WaterMake[(int)place];
+        }
     }
 
     public struct Recipe

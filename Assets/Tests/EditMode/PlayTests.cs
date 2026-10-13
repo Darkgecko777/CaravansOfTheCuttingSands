@@ -481,6 +481,109 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(cheap, session.LoggedBuy(GoodId.ShimmersteelJars));
         }
 
+        [Test]
+        public void GradesOpenFoodAndWaterAtDifferentPrices()
+        {
+            var session = new CaravanSession();
+            Assert.Less(session.PriceOf(PlaceId.Veythar, GoodId.Rations), session.PriceOf(PlaceId.Thalor, GoodId.Rations));
+            Assert.Less(session.PriceOf(PlaceId.Thalor, GoodId.Rations), session.PriceOf(PlaceId.Ashar, GoodId.Rations));
+            Assert.Less(session.PriceOf(PlaceId.Ghorath, GoodId.Water), session.PriceOf(PlaceId.Kharun, GoodId.Water));
+            Assert.Less(session.PriceOf(PlaceId.Kharun, GoodId.Water), session.PriceOf(PlaceId.Moraq, GoodId.Water));
+            Assert.AreEqual(6, session.StockOf(PlaceId.Kharun, GoodId.ShimmersteelJars));
+            Assert.AreEqual(6, session.StockOf(PlaceId.Draven, GoodId.FingerFungus));
+
+            session.SetShelf(PlaceId.Westmark, GoodId.ShimmersteelJars, 0);
+            int water = session.StockOf(PlaceId.Westmark, GoodId.Water);
+            session.TickNight();
+            Assert.AreEqual(0, session.StockOf(PlaceId.Westmark, GoodId.ShimmersteelJars));
+            Assert.Greater(session.StockOf(PlaceId.Westmark, GoodId.Water), water);
+            Assert.IsFalse(EconomyCatalog.IsProducer(PlaceId.Westmark, GoodId.ShimmersteelJars));
+            Assert.IsTrue(EconomyCatalog.IsProducer(PlaceId.Westmark, GoodId.Water));
+            Assert.IsTrue(EconomyCatalog.IsProducer(PlaceId.Westmark, GoodId.Rations));
+        }
+
+        [Test]
+        public void RationsAreKitAndWaterStillSellsAtKharun()
+        {
+            var session = new CaravanSession();
+            Assert.IsFalse(session.TryBuy(GoodId.Rations));
+            Assert.IsFalse(session.TrySell(GoodId.Rations));
+            Assert.AreEqual(0, session.CargoOf(GoodId.Rations));
+
+            session.AdvanceHours(1f);
+            int rations = session.StockOf(PlaceId.Kharun, GoodId.Rations);
+            Assert.IsTrue(session.TryFillFood());
+            Assert.AreEqual(rations - 1, session.StockOf(PlaceId.Kharun, GoodId.Rations));
+            Assert.AreEqual(0, session.CargoOf(GoodId.Rations));
+
+            Assert.IsTrue(session.TryBuy(GoodId.Water));
+            Assert.IsTrue(session.TrySell(GoodId.Water));
+            Assert.AreEqual(0, session.CargoOf(GoodId.Water));
+        }
+
+        [Test]
+        public void SeaWaterIsPricedAndReceivedAsPureWater()
+        {
+            Assert.AreEqual(0, EconomyCatalog.StartingStock(PlaceId.Kharun, GoodId.SeaWater));
+            Assert.AreEqual(EconomyRates.SeaStart, EconomyCatalog.StartingStock(PlaceId.Zamath, GoodId.SeaWater));
+            Assert.AreEqual(EconomyCatalog.Weight(GoodId.Water), EconomyCatalog.Weight(GoodId.SeaWater));
+            Assert.AreEqual(EconomyCatalog.Space(GoodId.Water), EconomyCatalog.Space(GoodId.SeaWater));
+            Assert.IsTrue(EconomyCatalog.IsProducer(PlaceId.Westmark, GoodId.SeaWater));
+            Assert.IsTrue(EconomyCatalog.IsProducer(PlaceId.Neth, GoodId.SeaWater));
+            Assert.IsTrue(EconomyCatalog.IsProducer(PlaceId.Sorel, GoodId.SeaWater));
+            Assert.IsTrue(EconomyCatalog.IsProducer(PlaceId.Zamath, GoodId.SeaWater));
+            Assert.IsTrue(EconomyCatalog.IsProducer(PlaceId.Ghul, GoodId.SeaWater));
+            Assert.IsTrue(EconomyCatalog.IsProducer(PlaceId.Kaleth, GoodId.SeaWater));
+            Assert.IsTrue(EconomyCatalog.IsProducer(PlaceId.Brineford, GoodId.SeaWater));
+            Assert.IsFalse(EconomyCatalog.IsProducer(PlaceId.Rukh, GoodId.SeaWater));
+            Assert.IsFalse(EconomyCatalog.IsProducer(PlaceId.Ghorath, GoodId.SeaWater));
+
+            var session = new CaravanSession();
+            Assert.AreEqual(0, session.StockOf(PlaceId.Kharun, GoodId.SeaWater));
+            Assert.AreEqual(session.BuyCost(PlaceId.Zamath, GoodId.Water), session.BuyCost(PlaceId.Zamath, GoodId.SeaWater));
+
+            var zamath = CaravanSession.AtHouse(HouseId.Zamath);
+            zamath.SetShelf(PlaceId.Zamath, GoodId.SeaWater, 4);
+            int waterAtZamath = zamath.StockOf(PlaceId.Zamath, GoodId.Water);
+            Assert.IsTrue(zamath.TryBuy(GoodId.SeaWater));
+            Assert.IsFalse(zamath.TrySell(GoodId.SeaWater));
+            Assert.AreEqual(1, zamath.CargoOf(GoodId.SeaWater));
+            Assert.AreEqual(waterAtZamath, zamath.StockOf(PlaceId.Zamath, GoodId.Water));
+
+            Assert.IsTrue(session.DepartTo(PlaceId.Westmark));
+            Ride(session);
+            session.SetShelf(PlaceId.Westmark, GoodId.SeaWater, 4);
+            Assert.IsTrue(session.TryBuy(GoodId.SeaWater));
+            Assert.IsTrue(session.DepartTo(PlaceId.Kharun));
+            Ride(session);
+            int water = session.StockOf(PlaceId.Kharun, GoodId.Water);
+            int coin = session.Coin;
+            int pay = session.SellValue(PlaceId.Kharun, GoodId.SeaWater);
+            Assert.AreEqual(session.SellValue(PlaceId.Kharun, GoodId.Water), pay);
+            Assert.IsTrue(session.TrySell(GoodId.SeaWater));
+            Assert.AreEqual(0, session.CargoOf(GoodId.SeaWater));
+            Assert.AreEqual(0, session.StockOf(PlaceId.Kharun, GoodId.SeaWater));
+            Assert.AreEqual(water + 1, session.StockOf(PlaceId.Kharun, GoodId.Water));
+            Assert.AreEqual(coin + pay, session.Coin);
+
+            Assert.IsTrue(session.DepartTo(PlaceId.Brineford));
+            Ride(session);
+            session.SetShelf(PlaceId.Brineford, GoodId.SeaWater, 4);
+            session.SetShelf(PlaceId.Brineford, GoodId.Water, 4);
+            Assert.IsTrue(session.TryBuy(GoodId.SeaWater));
+            Assert.IsTrue(session.TryBuy(GoodId.Water));
+            Assert.IsTrue(session.DepartTo(PlaceId.Moraq));
+            Ride(session);
+            Assert.IsTrue(session.DepartTo(PlaceId.Ghorath));
+            Ride(session);
+            int atGhorath = session.StockOf(PlaceId.Ghorath, GoodId.Water);
+            Assert.IsFalse(session.TrySell(GoodId.Water));
+            Assert.IsFalse(session.TrySell(GoodId.SeaWater));
+            Assert.AreEqual(atGhorath, session.StockOf(PlaceId.Ghorath, GoodId.Water));
+            Assert.AreEqual(1, session.CargoOf(GoodId.Water));
+            Assert.AreEqual(1, session.CargoOf(GoodId.SeaWater));
+        }
+
         static void Ride(CaravanSession session)
         {
             for (int i = 0; i < 800 && session.Traveling; i++)

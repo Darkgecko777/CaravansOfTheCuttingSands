@@ -236,6 +236,8 @@ namespace Caravans.Play
 
         public int PriceOf(PlaceId place, GoodId good)
         {
+            if (good == GoodId.SeaWater)
+                good = GoodId.Water;
             Shelf shelf = shelves[(int)place, (int)good];
             return EconomyCatalog.ShelfPrice(shelf.BasePrice, shelf.Stock, EconomyCatalog.DayUnit(place, good));
         }
@@ -290,6 +292,8 @@ namespace Caravans.Play
             for (int i = 0; i < WorldIds.GoodCount; i++)
             {
                 GoodId good = (GoodId)i;
+                if (good == GoodId.Rations)
+                    continue;
                 if (selling)
                 {
                     if (CargoOf(good) <= 0)
@@ -417,7 +421,7 @@ namespace Caravans.Play
 
         public bool TryBuy(GoodId good)
         {
-            if (Traveling || !BuyAllowed(good))
+            if (Traveling || !BuyAllowed(good) || good == GoodId.Rations)
                 return false;
 
             int stock = StockOf(Dock, good);
@@ -485,7 +489,7 @@ namespace Caravans.Play
 
         public bool TrySell(GoodId good)
         {
-            if (Traveling || !SellAllowed(good))
+            if (Traveling || !SellAllowed(good) || good == GoodId.Rations || !EconomyCatalog.Buys(Dock, good))
                 return false;
 
             int index = WorstStack(good);
@@ -495,7 +499,8 @@ namespace Caravans.Play
             int gross = Gross(Dock, good, stacks[index].Integrity);
             int net = Mathf.Max(0, gross - CutCoin(gross, TariffPercent(Dock)));
             stacks.RemoveAt(index);
-            PutStock(Dock, good, StockOf(Dock, good) + 1);
+            GoodId shelf = good == GoodId.SeaWater ? GoodId.Water : good;
+            PutStock(Dock, shelf, StockOf(Dock, shelf) + 1);
             Coin += net;
             if (House != null && !EconomyCatalog.IsCity(Dock))
             {
@@ -1010,7 +1015,7 @@ namespace Caravans.Play
         {
             int p = (int)place;
             int g = (int)good;
-            float want = EconomyCatalog.Desired(good);
+            float want = EconomyCatalog.MakeAmount(place, good);
             makeAcc[p, g] += want;
             int limit = shelves[p, g].Cap;
             if (shelves[p, g].Stock >= limit)
@@ -1246,6 +1251,8 @@ namespace Caravans.Play
                     if (shelves[(int)origin, good].Stock - load[good] <= 0)
                         continue;
                     var id = (GoodId)good;
+                    if (!EconomyCatalog.Buys(dest, id))
+                        continue;
                     int unitSpace = EconomyCatalog.Space(id);
                     int unitWeight = EconomyCatalog.Weight(id);
                     if (space + unitSpace > EconomyRates.WagonSpace)
@@ -1324,8 +1331,11 @@ namespace Caravans.Play
                 if (count <= 0)
                     continue;
                 var id = (GoodId)good;
+                if (!EconomyCatalog.Buys(npc.Dock, id))
+                    continue;
+                GoodId shelf = id == GoodId.SeaWater ? GoodId.Water : id;
                 int price = PriceOf(npc.Dock, id);
-                PutStock(npc.Dock, id, shelves[(int)npc.Dock, good].Stock + count);
+                PutStock(npc.Dock, shelf, shelves[(int)npc.Dock, (int)shelf].Stock + count);
                 npc.Cargo[good] = 0;
                 if (!EconomyCatalog.IsCity(npc.Dock))
                 {

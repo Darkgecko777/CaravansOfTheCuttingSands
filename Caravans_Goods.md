@@ -18,9 +18,11 @@ Not locked numbers.
 
 ## On every market
 
-**Water.** Fresh water. Cities and villages sell it. The container looks local. The traveller’s canteen is kit, not cargo: a large waterskin, about a hundred litres as story-capacity, drunk by the watch. Cargo water can be tipped into it at a poor rate.
+**Water.** Fresh water. Every settlement makes some. An abundant shelf opens cheaper and a scarce shelf opens dearer. Ghorath and Rukh do not buy cargo water. The container looks local. The traveller’s canteen is kit, not cargo: a large waterskin, about a hundred litres as story-capacity, drunk by the watch. Cargo water can be tipped into it at a poor rate.
 
-**Rations.** Cooked travel food, not an origin good. Hard bread, dried stew, pressed cake. Edible origin goods can be broken into rations at a bad rate. Do not draw rations as those goods.
+**Rations.** Cooked travel food, not an origin good. Every settlement makes some for the local appetite. The market does not buy or sell rations. Fill food buys one shelf unit into the bag. Hard bread, dried stew, pressed cake. Edible origin goods can be broken into rations at a bad rate. Do not draw rations as those goods.
+
+**Sea water.** Shore cargo, not an origin good. Westmark, Neth, Sorel, Zamath, Ghûl, Kaleth, and Brineford draw it. The price is the local pure-water price. A place that buys a unit puts it on the pure-water shelf. Those shores do not buy it, and neither do Ghorath or Rukh. The caravan does not desalt it.
 
 Edible on the current sheet: Tiger Cactus Flesh, Moon Soaked Zethi-Bulb, Finger Fungus, Fire Salt, Sweetrock, Clack Fiend Larvae, Kel Eel Flesh. Sweet Bliss is food until it turns toxic.
 

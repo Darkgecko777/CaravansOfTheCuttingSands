@@ -18,9 +18,9 @@ Five cities are house seats. The house is named for the city.
 
 Nine villages sit off the seats: Ashar, Moraq, Torvern, Draven, Sorel, Kethra, Neth, Rukh, and Ghûl. Each has a market and a plaza. Six posts sit on the roads: Westmark, Kaleth, Southmark, Highmark, Brineford, and Ridgewatch. Rukh opens from Westmark the way Neth opens from Zamath. Sarn's Rest is a landmark, not a dock.
 
-Shimmersteel is one metal, mined at Thalor. Work changes the finish. It stands in for bronze, silver, and gold, and it is not coin. Forty goods travel the map. Water and rations are made at every city and village, and the caravan carries them as kit. The canteen holds 75 litres. The ration bag holds 30 kilograms. That is three days for one person and one camel, at 25 litres and 10 kilograms a day. A new game starts with both full. Cargo water and cargo rations stay trade goods. Ordinary food in the wagon still ages. The kit is what the caravan drinks and eats.
+Shimmersteel is one metal, mined at Thalor. Work changes the finish. It stands in for bronze, silver, and gold, and it is not coin. Forty-one goods travel the map. Water and rations are made at every settlement, including the posts. A grade at each place sets how full those two shelves open and how fast they refill. An abundant grade opens cheaper. A scarce grade opens dearer. Posts mint no unique good. The canteen holds 75 litres. The ration bag holds 30 kilograms. That is three days for one person and one camel, at 25 litres and 10 kilograms a day. A new game starts with both full. Cargo water stays a trade good. Rations do not. The market does not buy or sell them. Fill food still buys one shelf unit into the bag. Ordinary food in the wagon still ages. The kit is what the caravan drinks and eats. Sea water is cargo drawn at Westmark, Neth, Sorel, Zamath, Ghûl, Kaleth, and Brineford. Its buy coin and its sell coin are that place's pure-water price. A sale adds one to the pure-water shelf and does not stock sea water. Those shores do not buy sea water. Ghorath and Rukh buy neither pure water nor sea water. The caravan does not desalt a unit.
 
-Names and place stories live in `Caravans_Goods.md`. Weight, pack size, base price, and daily appetite live in `Docs/Economy_Weight_Price.csv` and `Docs/Economy_Eat_Per_Day.csv`. The playable game reads those two sheets for every good they list. Water and rations are not on them. Their price, weight, and pack are read from `data/config/prices.json`. The game does not read `data/lines.json`, `data/markets.json`, or `data/markets.md`.
+Names and place stories live in `Caravans_Goods.md`. Weight, pack size, base price, and daily appetite live in `Docs/Economy_Weight_Price.csv` and `Docs/Economy_Eat_Per_Day.csv`. The playable game reads those two sheets for every good they list. Water, rations, and sea water are not on them. Water and ration price, weight, and pack are read from `data/config/prices.json`. Sea water uses that same pack, and its price is the pure-water shelf. Grades and the sea-water supply are read from `data/config/abundance.json`. The game does not read `data/lines.json`, `data/markets.json`, or `data/markets.md`.
 
 ## How a session opens
 
@@ -38,7 +38,7 @@ The settlement banner names the place and names who holds it. A city is held by 
 
 The bottom of the dock is the rooms. Market and Plaza are always there. House appears at a city. The house room says "Jobs and standing are not in this slice."
 
-The market has Buy and Sell. A row appears when the shelf has stock, or when the wagon has that good. Each row shows the name, the count, the coin, and a Buy or Sell press. One press is one unit. A good the place treats as contraband carries that word on the row. Dream lotus nectar is contraband everywhere it is shown. Sweet Bliss is contraband in a city. Crimson Eyed Melon Juice is contraband at Veythar and Thalor. Eyes of Arkhul are contraband at Kharûn. An empty wagon on the sell page says "The wagon is empty."
+The market has Buy and Sell. A row appears when the shelf has stock, or when the wagon has that good. Rations are the exception: they stay off both pages. Each row shows the name, the count, the coin, and a Buy or Sell press. One press is one unit. A sell press does nothing when that place does not buy the good, and the unit stays aboard. A good the place treats as contraband carries that word on the row. Dream lotus nectar is contraband everywhere it is shown. Sweet Bliss is contraband in a city. Crimson Eyed Melon Juice is contraband at Veythar and Thalor. Eyes of Arkhul are contraband at Kharûn. An empty wagon on the sell page says "The wagon is empty."
 
 The plaza, while the caravan is free, offers one road for each neighbor, "Wait an hour", "Fill water", and "Fill food". Fill water and fill food buy one shelf unit at the local price and pour it into the kit. One unit is 25 litres or 10 kilograms. The pour stops at the cap. A full kit takes nothing from the shelf and spends no coin. The unit does not go on the wagon. Listen answers "Socialize is not in this slice." Look at the map opens the map without leaving. The plaza also states the weather on the road ahead. Heat, wind, and sandstorm lengthen the leg. Cargo loss from weather has no rate. Weather does not change how fast the kit is drunk.
 
@@ -58,7 +58,7 @@ Day 1 begins at hour 6, which is morning. Morning and night are hours 6 and 18. 
 
 Each morning, every place eats from its shelves by the appetite sheet. Stock that hits zero stops being eaten until more arrives. Ordinary food in the wagon loses a tenth of its integrity. Sweet Bliss loses a quarter. A unit near zero leaves the wagon. Water does not age. A unit bought on a morning does not age again that same morning. Sale coin follows the worst unit of that good still aboard.
 
-Each night, a place that produces a good makes more of it, up to a cap. The nightly amount scales with `productionScale` in `data/config/prices.json`, which is 1. Five workshops craft from stock on hand. The place, the goods, and the input counts are read from `data/config/workshops.json`:
+Each night, a place that produces a good makes more of it, up to a cap. The nightly amount scales with `productionScale` in `data/config/prices.json`, which is 1. Water and rations use that scale on the local grade instead of the shared make. Sea water is made only on the shore list, from the supply in `data/config/abundance.json`. Five workshops craft from stock on hand. The place, the goods, and the input counts are read from `data/config/workshops.json`:
 
 - Kharûn turns shimmersteel into jars.
 - Thalor turns shimmersteel and Titan's Heart-rock into cookware.
@@ -70,7 +70,7 @@ A shelf's coin comes from how many days of local appetite the stock covers. Thos
 
 Nine rival caravans share the map: one of Kharûn and two of each other house. They buy a profitable load, travel at most two hops, and sell on arrival. A sale at a village or a post can move who holds the place. During a new game they trade everywhere. Their tokens are on the map. The player has no screen for their cargo.
 
-Starting stock is thinner the more hops a place sits from a producer. A place six or more hops out starts empty of that good. Caps sit at six days of local appetite, or at a night's make, whichever is larger.
+Starting stock is thinner the more hops a place sits from a producer. A place six or more hops out starts empty of that good. Caps sit at six days of local appetite, or at a night's make, whichever is larger. Water and rations do not use that hop gradient. Their opening cover and their nightly make come from the local grade in `data/config/abundance.json`. A is six days and one and a half times the local appetite. B is four days and 1.15. C is three days and 0.85. D is one day and 0.4. The shelf price is still the cover curve. Sea water starts only on the shores that draw it. Elsewhere it starts empty, and a sale never adds to a sea-water pile.
 
 ## Tunable numbers
 
@@ -88,11 +88,13 @@ Play reads `data/config/` from disk when a session needs a rate. The files hold 
 
 `workshops.json` holds the five recipes named above. It names places and goods by id, such as Kharun and ShimmersteelJars.
 
+`abundance.json` holds the four grades and one row per place, plus the sea-water supply: shores start with 4, make 2 a night, and cap at 12. The grade letters are the locked table. A later tune changes the day counts and the make rates in that file.
+
 There is no file yet for upgrade costs or check odds. The goat-lizard card has no odds. Both answers spend the held coin and clear the road.
 
 ## The logbook
 
-A button under the date and the coin opens a near-full-screen chart of every good, in catalog order, including water and rations. Each row keeps the lowest buy and the highest sale the market screen has shown for that good, and the settlement of each figure. An empty cell is a price not yet seen. A later cheaper buy replaces the low. A later higher sale replaces the high. Talk, rumours, and leaving someone to watch a market do not write a row.
+A button under the date and the coin opens a near-full-screen chart of every good, in catalog order, including water, rations, and sea water. Each row keeps the lowest buy and the highest sale the market screen has shown for that good, and the settlement of each figure. An empty cell is a price not yet seen. A later cheaper buy replaces the low. A later higher sale replaces the high. Talk, rumours, and leaving someone to watch a market do not write a row.
 
 ## The jars lesson
 
@@ -117,7 +119,7 @@ If it is running, Vekra of Kharûn, the clerk, walks the player through one circ
 - Logbook button on the row under that strip.
 - Settlement banner with the place and the patron line.
 - Market, Plaza, and, at a city, House.
-- Buy and Sell pages. One press moves one unit. Rows are shelf stock or wagon cargo, with a contraband label where the place treats the good that way.
+- Buy and Sell pages. One press moves one unit. Rows are shelf stock or wagon cargo, with a contraband label where the place treats the good that way. Rations stay off both pages. A place that does not buy a good takes no sale.
 - Plaza roads to each neighbor, wait an hour, fill water, fill food, listen, and look at the map. Fill pours one shelf unit into the kit, 25 litres or 10 kilograms, and stops at the cap.
 - Listen states that socializing is absent. The house room states that jobs and standing are absent.
 - Wagon limits of 16 space and 256 weight.
@@ -139,7 +141,7 @@ If it is running, Vekra of Kharûn, the clerk, walks the player through one circ
 - Nightly production, scaled from `data/config/prices.json`, and five crafting workshops whose recipes are read from `data/config/workshops.json`.
 - Cargo aging: ordinary food loses a tenth each morning, Sweet Bliss a quarter, and a spent unit leaves the wagon. Water stays whole. Sale coin follows integrity.
 - Nine rival caravans that buy, travel up to two hops, sell, and can shift who holds a village or a post.
-- Forty goods, twenty places, and five houses. Weight, pack, base price, and appetite come from the economy sheets. Water and rations come from `data/config/prices.json`.
+- Forty-one goods, twenty places, and five houses. Weight, pack, base price, and appetite come from the economy sheets. Water and rations come from `data/config/prices.json`. Grades and sea-water supply come from `data/config/abundance.json`. Sea water is priced and received as pure water.
 
 **The logbook**
 

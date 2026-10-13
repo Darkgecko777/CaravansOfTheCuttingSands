@@ -3,7 +3,7 @@ namespace Caravans.Play
     public static class WorldIds
     {
         public const int PlaceCount = 20;
-        public const int GoodCount = 40;
+        public const int GoodCount = 41;
         public const int HouseCount = 5;
     }
 
@@ -81,7 +81,8 @@ namespace Caravans.Play
         TerrorshriekTalons,
         KelkrisFeathers,
         RethsBlood,
-        IshkaMusicMakers
+        IshkaMusicMakers,
+        SeaWater
     }
 
     public enum HouseId

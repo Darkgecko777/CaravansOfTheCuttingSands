@@ -14,6 +14,7 @@ namespace Caravans.Play
         static TravelFile travel;
         static RivalFile rivals;
         static Recipe[] workshops;
+        static AbundanceTable abundance;
 
         public static ConsumptionFile Consumption
         {
@@ -45,6 +46,11 @@ namespace Caravans.Play
             get { EnsureLoaded(); return workshops; }
         }
 
+        public static AbundanceTable Abundance
+        {
+            get { EnsureLoaded(); return abundance; }
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset()
         {
@@ -74,6 +80,7 @@ namespace Caravans.Play
                 "dayHours", "morningHour", "nightHour", "realSeconds", "seaHourFloor", "cardCoin");
             rivals = Read<RivalFile>("rivals.json", "hopLimit", "seed");
             workshops = ReadWorkshops();
+            abundance = ReadAbundance();
             loaded = true;
         }
 
@@ -98,6 +105,81 @@ namespace Caravans.Play
             }
 
             return recipes;
+        }
+
+        static AbundanceTable ReadAbundance()
+        {
+            AbundanceFile file = Read<AbundanceFile>("abundance.json",
+                "gradeAStartDays", "gradeAMake",
+                "gradeBStartDays", "gradeBMake",
+                "gradeCStartDays", "gradeCMake",
+                "gradeDStartDays", "gradeDMake",
+                "seaStart", "seaMake", "seaCap",
+                "rows", "place", "food", "water", "sea");
+            if (file.rows == null || file.rows.Length != WorldIds.PlaceCount)
+                throw new InvalidOperationException("abundance.json needs one row for every place.");
+            if (file.seaStart <= 0 || file.seaMake <= 0f || file.seaCap <= 0)
+                throw new InvalidOperationException("abundance.json sea supply must be above zero.");
+
+            var table = new AbundanceTable
+            {
+                FoodDays = new float[WorldIds.PlaceCount],
+                FoodMake = new float[WorldIds.PlaceCount],
+                WaterDays = new float[WorldIds.PlaceCount],
+                WaterMake = new float[WorldIds.PlaceCount],
+                Sea = new bool[WorldIds.PlaceCount],
+                SeaStart = file.seaStart,
+                SeaMake = file.seaMake,
+                SeaCap = file.seaCap
+            };
+            var seen = new bool[WorldIds.PlaceCount];
+            for (int i = 0; i < file.rows.Length; i++)
+            {
+                AbundanceRow row = file.rows[i];
+                if (row == null)
+                    throw new InvalidOperationException("abundance.json row " + i + " is empty.");
+                PlaceId place = Parse<PlaceId>(row.place, "place");
+                if (seen[(int)place])
+                    throw new InvalidOperationException("abundance.json repeats " + row.place + ".");
+                seen[(int)place] = true;
+                Grade(file, row.food, out float foodDays, out float foodMake);
+                Grade(file, row.water, out float waterDays, out float waterMake);
+                table.FoodDays[(int)place] = foodDays;
+                table.FoodMake[(int)place] = foodMake;
+                table.WaterDays[(int)place] = waterDays;
+                table.WaterMake[(int)place] = waterMake;
+                table.Sea[(int)place] = row.sea;
+            }
+
+            return table;
+        }
+
+        static void Grade(AbundanceFile file, string letter, out float days, out float make)
+        {
+            switch (letter)
+            {
+                case "A":
+                    days = file.gradeAStartDays;
+                    make = file.gradeAMake;
+                    break;
+                case "B":
+                    days = file.gradeBStartDays;
+                    make = file.gradeBMake;
+                    break;
+                case "C":
+                    days = file.gradeCStartDays;
+                    make = file.gradeCMake;
+                    break;
+                case "D":
+                    days = file.gradeDStartDays;
+                    make = file.gradeDMake;
+                    break;
+                default:
+                    throw new InvalidOperationException("abundance.json has an unknown grade: " + letter);
+            }
+
+            if (days <= 0f || make <= 0f)
+                throw new InvalidOperationException("abundance.json grade " + letter + " must be above zero.");
         }
 
         static TEnum Parse<TEnum>(string name, string field) where TEnum : struct
@@ -207,5 +289,43 @@ namespace Caravans.Play
         public int countA;
         public string inputB;
         public int countB;
+    }
+
+    [Serializable]
+    public class AbundanceFile
+    {
+        public float gradeAStartDays;
+        public float gradeAMake;
+        public float gradeBStartDays;
+        public float gradeBMake;
+        public float gradeCStartDays;
+        public float gradeCMake;
+        public float gradeDStartDays;
+        public float gradeDMake;
+        public int seaStart;
+        public float seaMake;
+        public int seaCap;
+        public AbundanceRow[] rows;
+    }
+
+    [Serializable]
+    public class AbundanceRow
+    {
+        public string place;
+        public string food;
+        public string water;
+        public bool sea;
+    }
+
+    public sealed class AbundanceTable
+    {
+        public float[] FoodDays;
+        public float[] FoodMake;
+        public float[] WaterDays;
+        public float[] WaterMake;
+        public bool[] Sea;
+        public int SeaStart;
+        public float SeaMake;
+        public int SeaCap;
     }
 }

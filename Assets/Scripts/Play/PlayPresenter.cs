@@ -750,14 +750,15 @@ namespace Caravans.Play
             for (int i = 0; i < WorldIds.GoodCount; i++)
             {
                 GoodId good = (GoodId)i;
+                if (good == GoodId.Rations)
+                    continue;
                 int count = selling ? session.CargoOf(good) : session.StockOf(session.Dock, good);
                 if (count <= 0)
                     continue;
                 any = true;
                 bool lessonGood = lesson && (good == GoodId.ShimmersteelJars
                     || good == GoodId.FingerFungus
-                    || good == GoodId.Water
-                    || good == GoodId.Rations);
+                    || good == GoodId.Water);
                 tradeButtons[good] = MakeRow(lessonGood ? pinnedHost : rowHost, good, count);
                 if (lessonGood)
                     pinned += 1;
@@ -878,6 +879,8 @@ namespace Caravans.Play
                     session.TryBuy(captured);
             });
             button.GetComponent<LayoutElement>().preferredWidth = 110f;
+            if (selling && !EconomyCatalog.Buys(session.Dock, good))
+                button.interactable = false;
             return button;
         }
 

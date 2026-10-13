@@ -26,7 +26,8 @@ namespace Caravans.Play
             "Clack Fiend Larvae", "Moon Soaked Zethi-Bulb", "Fire Salt", "Sweetrock",
             "Sweet Bliss Pomegranates", "Sunburnt Brew", "Crimson Eyed Melon Juice", "Dream Lotus Nectar",
             "Sarn's Bane Liver", "Numbspindle", "Dune Mollusk Pearls", "Eyes of Arkhul",
-            "Terrorshriek Talons", "Kelkris Feathers", "Reth's Blood", "Ishka Crafted Music Makers"
+            "Terrorshriek Talons", "Kelkris Feathers", "Reth's Blood", "Ishka Crafted Music Makers",
+            "Sea Water"
         };
 
         static readonly Dictionary<string, PlaceId> PlaceByName = BuildPlaces();
@@ -175,6 +176,28 @@ namespace Caravans.Play
             return producer[(int)place, (int)good];
         }
 
+        public static bool Buys(PlaceId place, GoodId good)
+        {
+            if (good == GoodId.Rations)
+                return false;
+            if ((good == GoodId.Water || good == GoodId.SeaWater)
+                && (place == PlaceId.Ghorath || place == PlaceId.Rukh))
+                return false;
+            if (good == GoodId.SeaWater && IsProducer(place, good))
+                return false;
+            return true;
+        }
+
+        public static float MakeAmount(PlaceId place, GoodId good)
+        {
+            EnsureLoaded();
+            if (good == GoodId.Water || good == GoodId.Rations)
+                return Eat(place, good) * EconomyRates.GradeMake(place, good) * EconomyRates.ProductionScale;
+            if (good == GoodId.SeaWater)
+                return EconomyRates.SeaMake * EconomyRates.ProductionScale;
+            return Desired(good);
+        }
+
         public static int HopsFromProducer(PlaceId place, GoodId good)
         {
             EnsureLoaded();
@@ -183,6 +206,19 @@ namespace Caravans.Play
 
         public static int StartingStock(PlaceId place, GoodId good)
         {
+            EnsureLoaded();
+            if (good == GoodId.Water || good == GoodId.Rations)
+            {
+                float days = EconomyRates.GradeStartDays(place, good);
+                int stock = Mathf.FloorToInt(DayUnit(place, good) * days);
+                if (days > 0f && stock < 1)
+                    return 1;
+                return stock;
+            }
+
+            if (good == GoodId.SeaWater)
+                return IsProducer(place, good) ? EconomyRates.SeaStart : 0;
+
             int distance = HopsFromProducer(place, good);
             int span = EconomyRates.FullCoverDays - distance;
             if (span <= 0)
@@ -299,6 +335,9 @@ namespace Caravans.Play
             basePrice[(int)GoodId.Rations] = EconomyRates.RationBasePrice;
             weight[(int)GoodId.Rations] = EconomyRates.RationWeight;
             space[(int)GoodId.Rations] = EconomyRates.RationSpace;
+            basePrice[(int)GoodId.SeaWater] = basePrice[(int)GoodId.Water];
+            weight[(int)GoodId.SeaWater] = weight[(int)GoodId.Water];
+            space[(int)GoodId.SeaWater] = space[(int)GoodId.Water];
             for (int place = 0; place < WorldIds.PlaceCount; place++)
                 eat[place, (int)GoodId.Rations] = EconomyRates.RationEat;
 
@@ -321,7 +360,7 @@ namespace Caravans.Play
                         makers += 1;
                 }
 
-                if (sum <= 0f)
+                if (sum <= 0f && (GoodId)good != GoodId.SeaWater)
                     throw new InvalidOperationException("Nothing eats " + GoodLabels[good]);
                 if (makers <= 0)
                     throw new InvalidOperationException("Nothing produces " + GoodLabels[good]);
@@ -342,6 +381,12 @@ namespace Caravans.Play
                 for (int good = 0; good < WorldIds.GoodCount; good++)
                 {
                     hops[place, good] = NearestProducer((PlaceId)place, (GoodId)good);
+                    if ((GoodId)good == GoodId.SeaWater)
+                    {
+                        cap[place, good] = producer[place, good] ? EconomyRates.SeaCap : 0;
+                        continue;
+                    }
+
                     float day = eat[place, good] > 0f ? eat[place, good] : 1f;
                     int coverCap = Mathf.Max(1, Mathf.CeilToInt(EconomyRates.FullCoverDays * day));
                     int makeCap = producer[place, good] ? Mathf.CeilToInt(desired[good]) : 0;
@@ -425,10 +470,10 @@ namespace Caravans.Play
             Produces(GoodId.HulvBone, PlaceId.Ghul);
             for (int i = 0; i < WorldIds.PlaceCount; i++)
             {
-                if (KindOf((PlaceId)i) == PlaceKind.Post)
-                    continue;
                 producer[i, (int)GoodId.Water] = true;
                 producer[i, (int)GoodId.Rations] = true;
+                if (EconomyRates.MakesSea((PlaceId)i))
+                    producer[i, (int)GoodId.SeaWater] = true;
             }
         }
 
@@ -610,6 +655,7 @@ namespace Caravans.Play
             map["Music Makers"] = GoodId.IshkaMusicMakers;
             map["Water"] = GoodId.Water;
             map["Rations"] = GoodId.Rations;
+            map["Sea Water"] = GoodId.SeaWater;
             return map;
         }
     }
