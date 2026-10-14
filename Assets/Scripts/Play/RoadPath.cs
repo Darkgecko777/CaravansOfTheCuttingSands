@@ -3,10 +3,10 @@ using UnityEngine;
 
 namespace Caravans.Play
 {
-    // Centers of the painted Kharûn–Draven road on upscale_map.png (3840×2160).
-    // y is from the top of the image. The first point is the Kharûn dock,
-    // on the road just east of the city. The last is the Draven dock, on the
-    // road under the tent. Retrace these if the map art changes.
+    // Traced stroke of the painted Kharûn–Draven road on upscale_map.png
+    // (3840×2160). y is from the top of the image. The first point is the
+    // Kharûn dock and the last is the Draven dock. These samples match
+    // RoadGraph. Retrace both if the map art changes.
     public static class RoadPath
     {
         public const float MapWidth = 3840f;
@@ -15,21 +15,13 @@ namespace Caravans.Play
 
         static readonly int[] Pixels =
         {
-            1408, 856,
-            1412, 848,
-            1479, 840,
-            1488, 830,
-            1494, 804,
-            1498, 756,
-            1494, 732,
-            1485, 708,
-            1473, 672,
-            1455, 636,
-            1431, 564,
-            1409, 528,
-            1428, 480,
-            1440, 420,
-            1443, 384
+            1256, 827, 1240, 838, 1256, 854, 1274, 840, 1298, 840, 1304, 844,
+            1316, 844, 1338, 858, 1390, 858, 1404, 854, 1408, 846, 1418, 838,
+            1472, 838, 1482, 832, 1488, 818, 1494, 756, 1490, 734, 1480, 706,
+            1480, 682, 1450, 618, 1440, 574, 1420, 544, 1412, 526, 1414, 502,
+            1424, 488, 1424, 480, 1436, 456, 1436, 406, 1442, 394, 1444, 372,
+            1432, 354, 1432, 344, 1426, 334, 1426, 326, 1420, 314, 1410, 304,
+            1408, 288, 1403, 289
         };
 
         static readonly Vector2[] Points;
