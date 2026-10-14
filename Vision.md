@@ -46,7 +46,7 @@ A buy spends coin and takes a unit off the shelf onto the wagon, if the purse ca
 
 ## The road
 
-Look at the map, or taking a road, shows the painted map. The player's wagon is a token. Nine rival wagons are smaller tokens, colored by house. Three weather masses move across the map: a sandstorm, a heat, and a wind. A fog of vision hides the rest. The radius is wider at noon, tighter at night, and tightest inside a sandstorm. The map itself cools toward night.
+Look at the map, or taking a road, shows the painted map. The player's wagon is a token on the painted stroke, and it docks at the center of the place. Nine rival wagons are smaller tokens, colored by house, and they use those same strokes. Three weather masses move across the map: a sandstorm, a heat, and a wind. A fog of vision hides the rest. The radius is wider at noon, tighter at night, and tightest inside a sandstorm. The map itself cools toward night.
 
 While traveling, the top strip reads "Road to" the destination. Pace is Pause, 1×, 2×, or 4×. The clock follows the distance along the painted road, dotted stretches included. The clear Kharûn–Draven road is one day, and that day spends 25 litres and 10 kilograms. The same road in the same weather always takes the same time. Heat and wind stretch a leg by about a sixth. A sandstorm stretches it by two fifths. A longer leg spends more kit only because the clock runs longer. A sea opening, Zamath to Neth or Westmark to Rukh, arrives at once and spends nothing. The leg line names the weather on that road. Waiting an hour spends one twenty-fourth of a day. At empty the kit stays empty.
 
@@ -126,10 +126,10 @@ If it is running, Vekra of Kharûn, the clerk, walks the player through one circ
 
 **On the road**
 
-- Painted map with the player's token, nine rival tokens colored by house, and three moving weather masses.
+- Painted map with the player's token and nine rival tokens on the painted strokes, colored by house, and three moving weather masses. A wagon docks at the center of the place.
 - Vision fog that tightens at night and inside a sandstorm, and a map that cools after noon.
-- Pause and paces of 1×, 2×, and 4×. The clock follows the road.
-- A clear Kharûn–Draven leg of one day, which spends one day of water and rations. Heat and wind lengthen a leg. A sandstorm lengthens it further. The daily kit rate stays the same.
+- Pause and paces of 1×, 2×, and 4×. The clock follows the painted road, dotted stretches included. The same road in the same weather takes the same time.
+- A clear Kharûn–Draven leg of one day, which spends one day of water and rations. Other clear legs take time in proportion to their painted length. Heat and wind lengthen a leg. A sandstorm lengthens it further. The daily kit rate stays the same.
 - Sea openings from Zamath to Neth and from Westmark to Rukh that add no hours.
 - A leg line that names the weather. Weather does not destroy cargo.
 
