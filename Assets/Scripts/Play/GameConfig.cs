@@ -77,7 +77,9 @@ namespace Caravans.Play
                 "visionDay", "visionNight", "visionSandstorm");
             travel = Read<TravelFile>("travel.json",
                 "startingCoin", "wagonSpace", "wagonWeight",
-                "dayHours", "morningHour", "nightHour", "realSeconds", "seaHourFloor", "cardCoin");
+                "dayHours", "morningHour", "nightHour", "realSeconds", "seaHourFloor",
+                "travelWindowHours", "reserveHours", "townRestHours", "campHours",
+                "rushSpeed", "rushKit", "steadySpeed", "steadyKit", "carefulSpeed", "carefulKit");
             rivals = Read<RivalFile>("rivals.json", "hopLimit", "seed");
             workshops = ReadWorkshops();
             abundance = ReadAbundance();
@@ -264,7 +266,16 @@ namespace Caravans.Play
         public int nightHour;
         public float realSeconds;
         public float seaHourFloor;
-        public int cardCoin;
+        public float travelWindowHours;
+        public float reserveHours;
+        public float townRestHours;
+        public float campHours;
+        public float rushSpeed;
+        public float rushKit;
+        public float steadySpeed;
+        public float steadyKit;
+        public float carefulSpeed;
+        public float carefulKit;
     }
 
     [Serializable]

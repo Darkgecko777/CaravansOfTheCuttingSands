@@ -69,7 +69,7 @@ Use one or two. Not all three every time. House kin is "of House Kharûn" and is
 
 **Gender, locked.** Men end on a consonant. Women end on a vowel. Same onsets. A woman's name is not a softened man's name with a flower on it, and it is not an elf name. -eth and -ath are place endings, not women's names.
 
-The tutorial clerk is fixed: **Vekra of Kharûn, the clerk.** Everyone else is drawn once per save from `Name_List.md` and not reused in that save. The first build does not need the whole reservoir.
+Names are drawn once per save from `Name_List.md` and not reused in that save. The first build does not need the whole reservoir.
 
 ## Map, do not quietly rename
 

@@ -9,7 +9,6 @@ namespace Caravans.FrontDoor
     {
         GameObject optionsRoot;
         Button newGame;
-        Button tutorialButton;
         public static void Spawn()
         {
             var house = FindAnyObjectByType<HouseSelectScreen>();
@@ -122,7 +121,6 @@ namespace Caravans.FrontDoor
             layout.childForceExpandHeight = false;
 
             FrontUi.Label(column, "Options", 28f, true, FrontUi.TitleGold, new Vector2(320f, 48f));
-            tutorialButton = FrontUi.MenuButton(column, TutorialCaption(), true, ToggleTutorial);
             FrontUi.MenuButton(column, "CLOSE", true, CloseOptions);
 
             optionsRoot = root.gameObject;
@@ -132,9 +130,6 @@ namespace Caravans.FrontDoor
         void OpenOptions()
         {
             optionsRoot.SetActive(true);
-            SetCaption(tutorialButton, TutorialCaption());
-            if (EventSystem.current != null)
-                EventSystem.current.SetSelectedGameObject(tutorialButton.gameObject);
         }
 
         void CloseOptions()
@@ -142,26 +137,6 @@ namespace Caravans.FrontDoor
             optionsRoot.SetActive(false);
             if (EventSystem.current != null && newGame != null)
                 EventSystem.current.SetSelectedGameObject(newGame.gameObject);
-        }
-
-        void ToggleTutorial()
-        {
-            TutorialOption.Set(!TutorialOption.Enabled);
-            SetCaption(tutorialButton, TutorialCaption());
-        }
-
-        static string TutorialCaption()
-        {
-            return TutorialOption.Enabled ? "TUTORIAL ON" : "TUTORIAL OFF";
-        }
-
-        static void SetCaption(Button button, string text)
-        {
-            if (button == null)
-                return;
-            TMP_Text[] labels = button.GetComponentsInChildren<TMP_Text>(true);
-            for (int i = 0; i < labels.Length; i++)
-                labels[i].text = text;
         }
 
         void BuildDesert()

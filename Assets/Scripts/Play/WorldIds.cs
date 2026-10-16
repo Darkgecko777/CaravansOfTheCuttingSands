@@ -14,7 +14,7 @@ namespace Caravans.Play
         Post
     }
 
-    // Kharun then Draven stay first. The lesson and the tests use those names.
+    // Kharun then Draven stay first. The tests use those names.
     public enum PlaceId
     {
         Kharun,
@@ -39,7 +39,7 @@ namespace Caravans.Play
         Ridgewatch
     }
 
-    // Jars, fungus, water, and rations stay first. The lesson buys them by these names.
+    // Jars, fungus, water, and rations stay first. The tests buy them by these names.
     public enum GoodId
     {
         ShimmersteelJars,

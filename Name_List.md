@@ -7,8 +7,6 @@ Houses are named after the cities. No surnames. Given name, then one or two iden
 
 Men end on a consonant. Women end on a vowel. One or two syllables. Map places are not given names.
 
-The tutorial clerk is fixed and is not drawn: Vekra of Kharûn, the clerk.
-
 Spoken: Thulek son of Korv. Sulena of Draven, the factor.
 
 ## Men
@@ -57,4 +55,4 @@ Spoken: Thulek son of Korv. Sulena of Draven, the factor.
 19. Zuli
 20. Suli
 
-Vekra is on the list so other saves can use her after the tutorial voice is not in that save. The tutorial save does not draw her twice.
+Vekra is one name on the list. A save draws her at most once.

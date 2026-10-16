@@ -4,7 +4,7 @@ This document describes the game as it runs. It is a description for grok.com to
 
 The line under the title is "Buy on knowledge. Risk the journey."
 
-The player takes a house and docks at that house's city with 400 coin and an empty wagon. Twenty places share one painted map. Profit is the gap between a full shelf and a thin one. The road spends the day. Food in the wagon ages. Other caravans are already buying the same goods.
+The player takes a house and docks at that house's city with 400 coin and an empty wagon. Twenty places share one painted map. Profit is the gap between a full shelf and a thin one. Travel is a store of hours. The caravan rests in town or camps on the road when that store runs down to a reserve. Food in the wagon ages. Other caravans are already buying the same goods.
 
 ## The world
 
@@ -24,7 +24,7 @@ Names and place stories live in `Caravans_Goods.md`. Weight, pack size, base pri
 
 ## How a session opens
 
-The title is a desert picture with a bed of blowing sand and a loop of wind. New Game, Continue, Options, and Exit are on the menu. New Game and Exit work. Continue is present and inert. Options stores a tutorial switch. A missing preference reads off. A new game leaves the switch unread.
+The title is a desert picture with a bed of blowing sand and a loop of wind. New Game, Continue, Options, and Exit are on the menu. New Game and Exit work. Continue is present and inert. Options opens a panel whose only control closes it.
 
 New Game asks "Choose Your House" under the line "The market does not forgive the uncommitted." All five houses can be confirmed: Kharûn, Zamath, Thalor, Veythar, and Ghorath. Each card carries a letter, K, Z, T, V, or G, and a short flavour. Confirm opens free play at that city. Back returns to the title.
 
@@ -32,7 +32,7 @@ A run lives until play mode ends. Gear on the play screen says "Save is not in t
 
 ## A day at a settlement
 
-The top strip shows where the caravan is, the day and the hour, the coin, the canteen and the ration bag, and a one-line cargo summary: space used of 16, weight used of 256, and up to three goods by name. The kit reads as litres and kilograms against those caps. Gear sits on that strip. The row under it opens the logbook.
+The top strip shows where the caravan is, the day and the hour, the travel hours left, the coin, the canteen and the ration bag, and a one-line cargo summary: space used of 16, weight used of 256, and up to three goods by name. The travel hours read as "Travel 9 h", or with a fraction when one is left. The kit reads as litres and kilograms against those caps. Gear sits on that strip. The row under it opens the logbook.
 
 The settlement banner names the place and names who holds it. A city is held by its own house. A village or a post starts with no patron. The line shows the holder and the cut, or "No patron · 0%".
 
@@ -40,7 +40,7 @@ The bottom of the dock is the rooms. Market and Plaza are always there. House ap
 
 The market has Buy and Sell. A row appears when the shelf has stock, or when the wagon has that good. Rations are the exception: they stay off both pages. Each row shows the name, the count, the coin, and a Buy or Sell press. One press is one unit. A sell press does nothing when that place does not buy the good, and the unit stays aboard. A good the place treats as contraband carries that word on the row. Dream lotus nectar is contraband everywhere it is shown. Sweet Bliss is contraband in a city. Crimson Eyed Melon Juice is contraband at Veythar and Thalor. Eyes of Arkhul are contraband at Kharûn. An empty wagon on the sell page says "The wagon is empty."
 
-The plaza, while the caravan is free, offers one road for each neighbor, "Wait an hour", "Fill water", and "Fill food". Fill water and fill food buy one shelf unit at the local price and pour it into the kit. One unit is 25 litres or 10 kilograms. The pour stops at the cap. A full kit takes nothing from the shelf and spends no coin. The unit does not go on the wagon. Listen answers "Socialize is not in this slice." Look at the map opens the map without leaving. The plaza also states the weather on the road ahead. Heat, wind, and sandstorm lengthen the leg. Cargo loss from weather has no rate. Weather does not change how fast the kit is drunk.
+The plaza offers one road for each neighbor, "Wait an hour", "Rest", "Fill water", and "Fill food". Fill water and fill food buy one shelf unit at the local price and pour it into the kit. One unit is 25 litres or 10 kilograms. The pour stops at the cap. A full kit takes nothing from the shelf and spends no coin. The unit does not go on the wagon. Listen answers "Socialize is not in this slice." Look at the map opens the map without leaving. The plaza also states the weather on the road ahead. Heat, wind, and sandstorm lengthen the leg. Cargo stays whole in every weather. Weather does not change how fast the kit is drunk.
 
 A buy spends coin and takes a unit off the shelf onto the wagon, if the purse can pay, the shelf has stock, and the wagon has space and weight left. A sale pays the local price times the unit's remaining integrity, after any cut, and puts the unit back on the shelf. Selling at a village or a post adds the player's house to the local influence. The house with the most influence holds the place. Each morning that influence falls to three quarters. A rival holder takes a cut of 12 percent. Standing can lower that cut, and the cut does not fall under 4 percent. Standing starts at nothing, and play has no way to raise it. The player's own house, and a place with no patron, take no cut.
 
@@ -48,13 +48,21 @@ A buy spends coin and takes a unit off the shelf onto the wagon, if the purse ca
 
 Look at the map, or taking a road, shows the painted map. The player's wagon is a token on the painted stroke, and it docks at the center of the place. Nine rival wagons are smaller tokens, colored by house, and they use those same strokes. Three weather masses move across the map: a sandstorm, a heat, and a wind. A fog of vision hides the rest. The radius is wider at noon, tighter at night, and tightest inside a sandstorm. The map itself cools toward night.
 
-While traveling, the top strip reads "Road to" the destination. Pace is Pause, 1×, 2×, or 4×. The clock follows the distance along the painted road, dotted stretches included. The clear Kharûn–Draven road is one day, and that day spends 25 litres and 10 kilograms. The same road in the same weather always takes the same time. Heat and wind stretch a leg by about a sixth. A sandstorm stretches it by two fifths. A longer leg spends more kit only because the clock runs longer. A sea opening, Zamath to Neth or Westmark to Rukh, arrives at once and spends nothing. The leg line names the weather on that road. Waiting an hour spends one twenty-fourth of a day. At empty the kit stays empty.
+The travel store is hours. A new game starts at 12. Travel stops with 3 hours left unspent. Those 3 hours are one watch, and the screen still shows hours. Nine hours of the full store can be spent before that stop. Waiting an hour spends one of them, at the ordinary kit rate of one twenty-fourth of a day. A road spends them as the wagon moves. Rest and camp spend none of them. Each refills the store to 12.
 
-Arrival docks the caravan. The rooms return.
+A neighbor road opens a choice before the wagon leaves: Rush, Steady, or Careful, and Day or Night, then Take the road. Back stays in town. The same choice is asked again after a camp, and that confirm continues the same leg. Steady is the ordinary pace. Its speed is 1 and its kit factor is 1. Rush speed is 1.5, so the same road takes two thirds of the Steady hours, and each of those hours drinks 1.25 of the ordinary kit. Careful speed is 0.5, so the road takes twice the Steady hours, and each hour drinks 0.75 of the ordinary kit. The kit factor applies to water and to rations, and only to hours on the road. Wait, rest, and camp use a factor of 1. Day or night is stored with the choice. Nothing in this build reads it. Encounters are not in the game, so which stretches will raise encounter weight is unset. A later pass will slot that in.
+
+The same road, in the same weather, at the same pace, takes the same travel hours. Heat and wind stretch a leg by about a sixth. A sandstorm stretches it by two fifths. The stretch sits on top of the pace. A clear Steady Kharûn–Draven road is 24 travel hours. The reserve stops the wagon after 9 of them. Make camp then spends 6 hours of the clock at the ordinary kit rate, refills the travel hours to 12, and asks for the pace again. The direct crossing camps twice and finishes the last 6 travel hours with 6 still in the store. Those two camps add 12 clock hours. At Steady the kit follows all 36. A sandstorm still only lengthens the leg. A later weather pass will also force camp in a sandstorm.
+
+On the road the stop is a card titled "Make camp", with the line "The travel hours are spent." Its only press is Make camp. In town, the neighbor roads and Wait an hour go grey once the store sits on the 3-hour reserve. A press that lands exactly on 3 hours is still allowed. Fill water and fill food stay available, because they do not move the clock. Rest spends 4 hours of the clock at the ordinary kit rate and refills the store to 12. Rest is grey while the store is already full. Camp hours and rest hours still cross morning and night.
+
+While the wagon is moving, the top strip reads "Road to" the destination. Pause, 1×, 2×, and 4× change only how fast that movement plays. They do not change the travel hours or the kit. The clock follows the distance along the painted road, dotted stretches included. A clear Steady day of that road, the Kharûn–Draven length, takes 36 real seconds at 1× while the wagon is moving. Rush and Careful scale that moving time with their speed. Camp and rest move the clock at the press. A sea opening, Zamath to Neth or Westmark to Rukh, arrives at once and spends no travel hours and no kit. That road is grey with the others once the reserve is reached. The leg line names the weather on that road. At empty the kit stays empty. Cargo stays whole at every pace.
+
+Arrival docks the caravan. The rooms return. A leg that spends the last usable hours arrives with 3 travel hours left, and the roads stay grey until a rest.
 
 ## The market the world runs
 
-Day 1 begins at hour 6, which is morning. Morning and night are hours 6 and 18. Midnight rolls the day. Waiting an hour, and time on the road, both cross those hours.
+Day 1 begins at hour 6, which is morning. Morning and night are hours 6 and 18. Midnight rolls the day. Waiting an hour, time on the road, a town rest, and a camp all cross those hours.
 
 Each morning, every place eats from its shelves by the appetite sheet. Stock that hits zero stops being eaten until more arrives. Ordinary food in the wagon loses a tenth of its integrity. Sweet Bliss loses a quarter. A unit near zero leaves the wagon. Water does not age. A unit bought on a morning does not age again that same morning. Sale coin follows the worst unit of that good still aboard.
 
@@ -68,7 +76,7 @@ Each night, a place that produces a good makes more of it, up to a cap. The nigh
 
 A shelf's coin comes from how many days of local appetite the stock covers. Those bands are read from `data/config/prices.json`. An empty shelf asks double the base price. Three days of cover asks the base. Six days asks half. The figure on a buy row is that price plus any cut. The figure on a sell row is the integrity-adjusted price after the cut. Opening the market records those figures. It does not invent a price for a good that is absent from the shelf and from the wagon.
 
-Nine rival caravans share the map: one of Kharûn and two of each other house. They buy a profitable load, travel at most two hops, and sell on arrival. A sale at a village or a post can move who holds the place. During a new game they trade everywhere. Their tokens are on the map. The player has no screen for their cargo.
+Nine rival caravans share the map: one of Kharûn and two of each other house. They buy a profitable load, travel at most two hops, and sell on arrival. A sale at a village or a post can move who holds the place. They trade everywhere. Their tokens are on the map. The player has no screen for their cargo.
 
 Starting stock is thinner the more hops a place sits from a producer. A place six or more hops out starts empty of that good. Caps sit at six days of local appetite, or at a night's make, whichever is larger. Water and rations do not use that hop gradient. Their opening cover and their nightly make come from the local grade in `data/config/abundance.json`. A is six days and one and a half times the local appetite. B is four days and 1.15. C is three days and 0.85. D is one day and 0.4. The shelf price is still the cover curve. Sea water starts only on the shores that draw it. Elsewhere it starts empty, and a sale never adds to a sea-water pile.
 
@@ -82,7 +90,7 @@ Play reads `data/config/` from disk when a session needs a rate. The files hold 
 
 `weather.json` holds the leg stretches. Heat and wind multiply a leg by 1.15. A sandstorm multiplies it by 1.4. A clear leg stays at 1, and that 1 is not a field in the file. The same file holds the vision radii: 0.34 by day, 0.18 at night, and 0.14 inside a sandstorm. Cargo loss is not in the file. The road does not apply one.
 
-`travel.json` holds the starting 400 coin, the wagon limits of 16 space and 256 weight, and the clock. Morning is hour 6, night is hour 18, and a day is 24 hours. A clear day at 1× takes 36 real seconds. A sea opening still adds no hours on the player's clock. Rivals treat that opening as one hour when they score a trip, from `seaHourFloor`. The same file holds the 8 coin the lesson card holds back.
+`travel.json` holds the starting 400 coin, the wagon limits of 16 space and 256 weight, and the clock. Morning is hour 6, night is hour 18, and a day is 24 hours. A clear Steady day of road at 1× takes 36 real seconds while the wagon is moving. A sea opening still adds no hours on the player's clock. Rivals treat that opening as one hour when they score a trip, from `seaHourFloor`. The same file holds the travel store of 12 hours, the reserve of 3 hours, a town rest of 4 hours, a camp of 6 hours, and the three paces: Steady speed 1 and kit 1, Rush speed 1.5 and kit 1.25, Careful speed 0.5 and kit 0.75.
 
 `rivals.json` holds the two-hop limit and the seed 1701 that places the nine rival caravans.
 
@@ -90,37 +98,30 @@ Play reads `data/config/` from disk when a session needs a rate. The files hold 
 
 `abundance.json` holds the four grades and one row per place, plus the sea-water supply: shores start with 4, make 2 a night, and cap at 12. The grade letters are the locked table. A later tune changes the day counts and the make rates in that file.
 
-There is no file yet for upgrade costs or check odds. The goat-lizard card has no odds. Both answers spend the held coin and clear the road.
+There is no file yet for upgrade costs or check odds.
 
 ## The logbook
 
 A button under the date and the coin opens a near-full-screen chart of every good, in catalog order, including water, rations, and sea water. Each row keeps the lowest buy and the highest sale the market screen has shown for that good, and the settlement of each figure. An empty cell is a price not yet seen. A later cheaper buy replaces the low. A later higher sale replaces the high. Talk, rumours, and leaving someone to watch a market do not write a row.
-
-## The jars lesson
-
-The lesson remains in the session. A new game does not enter it. The canteen and the ration bag start full there too, and that road drinks them the same way. Skipping the lesson refills both when it resets the wagon.
-
-If it is running, Vekra of Kharûn, the clerk, walks the player through one circuit. Buy Shimmersteel Jars at Kharûn. Take the road to Draven. Choose a pace. At the halfway point a giant horned goat-lizard blocks the road. Steel fights it. Ken feeds it. Each is certain and costs 8 coin, held back from the starting 400 until the card is done. The road then opens. At Draven, sell the jars, buy Finger Fungus, return to Kharûn, and sell the fungus. The wagon keeps that kit, and the player chooses any house and docks there. Skipping the lesson from Gear resets the wagon and opens that same house choice. Free travel of the Kharûn–Draven road does not stop for the goat-lizard. The title tutorial switch does not start this lesson.
 
 ## Current features
 
 **Front door**
 
 - Title with blowing sand, wind, and the line "Buy on knowledge. Risk the journey."
-- New Game, an inert Continue, Options, and Exit.
-- A saved tutorial switch that a new game leaves unread.
+- New Game, an inert Continue, Options, and Exit. Options opens a panel whose only control closes it.
 - House select for Kharûn, Zamath, Thalor, Veythar, and Ghorath, each confirmable.
 - A confirmed house opens free play at that city with 400 coin, an empty wagon, a full canteen, and a full ration bag.
 
 **At a settlement**
 
-- Top strip for place, day and hour, coin, canteen litres, ration kilograms, cargo space, cargo weight, and up to three goods.
+- Top strip for place, day and hour, travel hours, coin, canteen litres, ration kilograms, cargo space, cargo weight, and up to three goods.
 - Gear, which states that save is absent from this build.
 - Logbook button on the row under that strip.
 - Settlement banner with the place and the patron line.
 - Market, Plaza, and, at a city, House.
 - Buy and Sell pages. One press moves one unit. Rows are shelf stock or wagon cargo, with a contraband label where the place treats the good that way. Rations stay off both pages. A place that does not buy a good takes no sale.
-- Plaza roads to each neighbor, wait an hour, fill water, fill food, listen, and look at the map. Fill pours one shelf unit into the kit, 25 litres or 10 kilograms, and stops at the cap.
+- Plaza roads to each neighbor, wait an hour, rest, fill water, fill food, listen, and look at the map. Fill pours one shelf unit into the kit, 25 litres or 10 kilograms, and stops at the cap. Rest spends 4 hours and refills the travel store to 12. Roads and wait go grey at the 3-hour reserve. Fill stays available.
 - Listen states that socializing is absent. The house room states that jobs and standing are absent.
 - Wagon limits of 16 space and 256 weight.
 
@@ -128,10 +129,14 @@ If it is running, Vekra of Kharûn, the clerk, walks the player through one circ
 
 - Painted map with the player's token and nine rival tokens on the painted strokes, colored by house, and three moving weather masses. A wagon docks at the center of the place.
 - Vision fog that tightens at night and inside a sandstorm, and a map that cools after noon.
-- Pause and paces of 1×, 2×, and 4×. The clock follows the painted road, dotted stretches included. The same road in the same weather takes the same time.
-- A clear Kharûn–Draven leg of one day, which spends one day of water and rations. Other clear legs take time in proportion to their painted length. Heat and wind lengthen a leg. A sandstorm lengthens it further. The daily kit rate stays the same.
-- Sea openings from Zamath to Neth and from Westmark to Rukh that add no hours.
-- A leg line that names the weather. Weather does not destroy cargo.
+- A travel store of 12 hours. Travel stops with 3 hours left. The screen shows hours.
+- A pace choice at each departure and after each camp: Rush, Steady, or Careful, and Day or Night. Steady is speed 1 and kit 1. Rush is speed 1.5 and kit 1.25. Careful is speed 0.5 and kit 0.75. Day or night is stored and changes nothing yet.
+- Pause, 1×, 2×, and 4× for how fast the wagon plays. The clock follows the painted road, dotted stretches included. The same road in the same weather at the same pace takes the same travel hours.
+- A clear Steady Kharûn–Draven leg of 24 travel hours. Other clear Steady legs take time in proportion to their painted length. Heat and wind lengthen a leg. A sandstorm lengthens it further. The pace kit factor applies on the road. Wait, rest, and camp use the ordinary kit rate.
+- A camp of 6 hours when the reserve is reached on the road. Camp refills the store to 12 and continues the same leg after a new pace choice. A later weather pass will also force camp in a sandstorm.
+- A town rest of 4 hours that refills the same store. Encounters are absent. A later pass will slot stretch weights for day and night.
+- Sea openings from Zamath to Neth and from Westmark to Rukh that add no hours and spend no travel hours. They stay grey with the other roads at the reserve.
+- A leg line that names the weather. Cargo stays whole.
 
 **The living market**
 
@@ -148,9 +153,3 @@ If it is running, Vekra of Kharûn, the clerk, walks the player through one circ
 - A scrolling chart of every good.
 - Lowest buy and highest sale actually shown on the market screen, each with its settlement.
 - An empty cell for a price not yet seen.
-
-**In the session, off the path of a new game**
-
-- The jars lesson, the clerk Vekra, the pace prompt, and the goat-lizard card with Steel and Ken.
-- Skip the lesson, from Gear, while that lesson is the running step.
-- A second house choice after the fungus sale or after a skip, which keeps the wagon when the lesson was finished and resets it when the lesson was skipped.

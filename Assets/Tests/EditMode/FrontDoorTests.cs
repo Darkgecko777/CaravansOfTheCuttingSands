@@ -100,55 +100,5 @@ namespace Caravans.Play.Tests
                 Assert.IsTrue(Houses.All[i].Available);
         }
 
-        [Test]
-        public void AMissingTutorialPreferenceReadsOffAndRoundTrips()
-        {
-            bool had = PlayerPrefs.HasKey(TutorialOption.Key);
-            int previous = had ? PlayerPrefs.GetInt(TutorialOption.Key) : 0;
-            PlayerPrefs.DeleteKey(TutorialOption.Key);
-            try
-            {
-                Assert.IsFalse(TutorialOption.DefaultEnabled);
-                Assert.IsFalse(TutorialOption.Enabled);
-                TutorialOption.Set(true);
-                Assert.IsTrue(TutorialOption.Enabled);
-                Assert.AreEqual(1, PlayerPrefs.GetInt(TutorialOption.Key));
-                TutorialOption.Set(false);
-                Assert.IsFalse(TutorialOption.Enabled);
-                Assert.AreEqual(0, PlayerPrefs.GetInt(TutorialOption.Key));
-            }
-            finally
-            {
-                RestoreTutorialKey(had, previous);
-            }
-        }
-
-        [Test]
-        public void ChoosingAHouseLeavesTheTutorialOptionAlone()
-        {
-            bool had = PlayerPrefs.HasKey(TutorialOption.Key);
-            int previous = had ? PlayerPrefs.GetInt(TutorialOption.Key) : 0;
-            PlayerPrefs.DeleteKey(TutorialOption.Key);
-            try
-            {
-                var session = new CaravanSession();
-                session.SkipTutorial();
-                Assert.IsTrue(session.ChooseHouse(HouseId.Kharun));
-                Assert.IsFalse(PlayerPrefs.HasKey(TutorialOption.Key));
-            }
-            finally
-            {
-                RestoreTutorialKey(had, previous);
-            }
-        }
-
-        static void RestoreTutorialKey(bool had, int previous)
-        {
-            if (had)
-                PlayerPrefs.SetInt(TutorialOption.Key, previous);
-            else
-                PlayerPrefs.DeleteKey(TutorialOption.Key);
-            PlayerPrefs.Save();
-        }
     }
 }

@@ -21,6 +21,52 @@ namespace Caravans.Play
             get { return GameConfig.Travel.realSeconds; }
         }
 
+        public static float WindowHours
+        {
+            get { return GameConfig.Travel.travelWindowHours; }
+        }
+
+        public static float ReserveHours
+        {
+            get { return GameConfig.Travel.reserveHours; }
+        }
+
+        public static float TownRestHours
+        {
+            get { return GameConfig.Travel.townRestHours; }
+        }
+
+        public static float CampHours
+        {
+            get { return GameConfig.Travel.campHours; }
+        }
+
+        public static float Speed(RoadPace pace)
+        {
+            switch (pace)
+            {
+                case RoadPace.Rush:
+                    return GameConfig.Travel.rushSpeed;
+                case RoadPace.Careful:
+                    return GameConfig.Travel.carefulSpeed;
+                default:
+                    return GameConfig.Travel.steadySpeed;
+            }
+        }
+
+        public static float Kit(RoadPace pace)
+        {
+            switch (pace)
+            {
+                case RoadPace.Rush:
+                    return GameConfig.Travel.rushKit;
+                case RoadPace.Careful:
+                    return GameConfig.Travel.carefulKit;
+                default:
+                    return GameConfig.Travel.steadyKit;
+            }
+        }
+
         public static float VisionDay
         {
             get { return GameConfig.Weather.visionDay; }

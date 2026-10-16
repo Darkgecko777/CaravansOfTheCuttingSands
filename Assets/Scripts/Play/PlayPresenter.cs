@@ -33,7 +33,6 @@ namespace Caravans.Play
         readonly List<Image> npcTokens = new List<Image>();
 
         CaravanSession session;
-        bool lesson;
         TMP_FontAsset font;
         Sprite quad;
         Sprite disc;
@@ -46,6 +45,10 @@ namespace Caravans.Play
         bool optionsOpen;
         bool lookingAtMap;
         bool logbookOpen;
+        bool choosingRoad;
+        PlaceId pendingDest;
+        RoadPace draftPace = RoadPace.Steady;
+        bool draftDay = true;
         string listenLine = string.Empty;
 
         RectTransform dock;
@@ -58,20 +61,21 @@ namespace Caravans.Play
         RectTransform[] weatherDiscs;
         TextMeshProUGUI[] weatherLabels;
         Image dimmer;
-        RectTransform callout;
-        TextMeshProUGUI calloutText;
         RectTransform cardRoot;
+        TextMeshProUGUI cardTitle;
         TextMeshProUGUI cardBody;
-        TextMeshProUGUI cardResult;
-        Button steelButton;
-        Button kenButton;
-        Button continueButton;
-        RectTransform houseRoot;
-        TextMeshProUGUI houseNote;
+        Button rushButton;
+        Button steadyButton;
+        Button carefulButton;
+        Button dayButton;
+        Button nightButton;
+        Button confirmPaceButton;
+        Button campButton;
+        Button backPaceButton;
         RectTransform optionsRoot;
-        Button skipButton;
         TextMeshProUGUI placeText;
         TextMeshProUGUI clockText;
+        TextMeshProUGUI travelText;
         TextMeshProUGUI coinText;
         TextMeshProUGUI cargoText;
         TextMeshProUGUI bannerName;
@@ -94,6 +98,7 @@ namespace Caravans.Play
         Button sellTab;
         Button roadButton;
         Button waitButton;
+        Button restButton;
         Button waterButton;
         Button foodButton;
         Button listenButton;
@@ -115,8 +120,6 @@ namespace Caravans.Play
         void Awake()
         {
             HouseId house = HouseFromGate();
-            // A new game does not enter the jars lesson.
-            lesson = false;
             session = CaravanSession.AtHouse(house);
             EnsureEventSystem();
             quad = MakeSprite(false);
@@ -175,11 +178,7 @@ namespace Caravans.Play
             dimmer = ImageOn(Child(root, "Dimmer"), new Color(0.05f, 0.04f, 0.03f, 0.72f), true);
             Stretch(dimmer.rectTransform);
             RaiseCanvas(dimmer.gameObject, 12);
-            callout = Overlay(root, "Callout", new Vector2(460f, 180f), 40);
-            calloutText = Body(callout, 22, TextAlignmentOptions.Center);
-            Stretch(calloutText.rectTransform, 16f);
-            BuildCard(root);
-            BuildHouseChoice(root);
+            BuildRoadChoice(root);
             BuildOptions(root);
         }
 
@@ -324,8 +323,9 @@ namespace Caravans.Play
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
-            roadButton = StackButton(column, "Take the road", () => session.Depart());
+            roadButton = StackButton(column, "Take the road", () => { });
             waitButton = StackButton(column, "Wait an hour", () => session.WaitOneHour());
+            restButton = StackButton(column, "Rest", () => session.TryRest());
             waterButton = StackButton(column, "Fill water", () => session.TryFillWater());
             foodButton = StackButton(column, "Fill food", () => session.TryFillFood());
             listenButton = StackButton(column, "Listen", () =>
@@ -468,9 +468,10 @@ namespace Caravans.Play
             layout.childControlHeight = true;
             layout.childForceExpandHeight = true;
             layout.childForceExpandWidth = false;
-            placeText = HudText(bar.rectTransform, 280f, TextAlignmentOptions.MidlineLeft);
-            clockText = HudText(bar.rectTransform, 220f, TextAlignmentOptions.MidlineLeft);
-            coinText = HudText(bar.rectTransform, 160f, TextAlignmentOptions.MidlineLeft);
+            placeText = HudText(bar.rectTransform, 260f, TextAlignmentOptions.MidlineLeft);
+            clockText = HudText(bar.rectTransform, 240f, TextAlignmentOptions.MidlineLeft);
+            travelText = HudText(bar.rectTransform, 160f, TextAlignmentOptions.MidlineLeft);
+            coinText = HudText(bar.rectTransform, 150f, TextAlignmentOptions.MidlineLeft);
             cargoText = HudText(bar.rectTransform, 0f, TextAlignmentOptions.MidlineLeft);
             cargoText.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
             gearButton = Tab(bar.rectTransform, "Gear", ToggleOptions);
@@ -562,17 +563,17 @@ namespace Caravans.Play
             logbookRoot.gameObject.SetActive(false);
         }
 
-        void BuildCard(RectTransform root)
+        void BuildRoadChoice(RectTransform root)
         {
-            cardRoot = Child(root, "Card");
+            cardRoot = Child(root, "RoadChoice");
             Stretch(cardRoot);
             RaiseCanvas(cardRoot.gameObject, 36);
             ImageOn(cardRoot, new Color(0.04f, 0.03f, 0.02f, 0.55f), true);
-            var panel = Overlay(cardRoot, "Panel", new Vector2(760f, 440f), 0);
-            Center(panel, new Vector2(760f, 440f));
-            var title = Body(panel, 28, TextAlignmentOptions.Center);
-            title.text = "The road";
-            var titleRt = title.rectTransform;
+            var panel = Overlay(cardRoot, "Panel", new Vector2(820f, 460f), 0);
+            Center(panel, new Vector2(820f, 460f));
+            cardTitle = Body(panel, 28, TextAlignmentOptions.Center);
+            cardTitle.text = "The road";
+            var titleRt = cardTitle.rectTransform;
             titleRt.anchorMin = new Vector2(0f, 1f);
             titleRt.anchorMax = Vector2.one;
             titleRt.pivot = new Vector2(0.5f, 1f);
@@ -580,51 +581,57 @@ namespace Caravans.Play
             titleRt.anchoredPosition = Vector2.zero;
             cardBody = Body(panel, 22, TextAlignmentOptions.Center);
             var bodyRt = cardBody.rectTransform;
-            bodyRt.anchorMin = new Vector2(0f, 0.55f);
-            bodyRt.anchorMax = new Vector2(1f, 0.82f);
-            bodyRt.offsetMin = new Vector2(28f, 0f);
-            bodyRt.offsetMax = new Vector2(-28f, 0f);
-            cardBody.text = "A giant horned goat-lizard blocks the road.";
-            cardResult = Body(panel, 22, TextAlignmentOptions.Center);
-            var resultRt = cardResult.rectTransform;
-            resultRt.anchorMin = new Vector2(0f, 0.42f);
-            resultRt.anchorMax = new Vector2(1f, 0.78f);
-            resultRt.offsetMin = new Vector2(28f, 0f);
-            resultRt.offsetMax = new Vector2(-28f, 0f);
-            steelButton = CardButton(panel, "Steel\nFight it\nCertain · 8 coin", new Vector2(-170f, -70f), () => session.ResolveCard(true));
-            kenButton = CardButton(panel, "Ken\nFeed it\nCertain · 8 coin", new Vector2(170f, -70f), () => session.ResolveCard(false));
-            continueButton = CardButton(panel, "The road is open", new Vector2(0f, -70f), () => session.ContinueFromCard());
-            continueButton.GetComponent<RectTransform>().sizeDelta = new Vector2(320f, 64f);
+            bodyRt.anchorMin = new Vector2(0f, 1f);
+            bodyRt.anchorMax = Vector2.one;
+            bodyRt.pivot = new Vector2(0.5f, 1f);
+            bodyRt.sizeDelta = new Vector2(-56f, 72f);
+            bodyRt.anchoredPosition = new Vector2(0f, -64f);
+            rushButton = ChoiceButton(panel, "Rush", new Vector2(-240f, 20f), () => PickPace(RoadPace.Rush));
+            steadyButton = ChoiceButton(panel, "Steady", new Vector2(0f, 20f), () => PickPace(RoadPace.Steady));
+            carefulButton = ChoiceButton(panel, "Careful", new Vector2(240f, 20f), () => PickPace(RoadPace.Careful));
+            dayButton = ChoiceButton(panel, "Day", new Vector2(-120f, -60f), () => PickDay(true));
+            nightButton = ChoiceButton(panel, "Night", new Vector2(120f, -60f), () => PickDay(false));
+            confirmPaceButton = ChoiceButton(panel, "Take the road", new Vector2(0f, -150f), ConfirmPace);
+            campButton = ChoiceButton(panel, "Make camp", new Vector2(0f, -20f), () => session.MakeCamp());
+            backPaceButton = ChoiceButton(panel, "Back", new Vector2(220f, -150f), CloseRoadChoice);
+            confirmPaceButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
+            campButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
+            backPaceButton.GetComponent<RectTransform>().sizeDelta = new Vector2(160f, 56f);
         }
 
-        void BuildHouseChoice(RectTransform root)
+        void CloseRoadChoice()
         {
-            houseRoot = Child(root, "HouseChoice");
-            Stretch(houseRoot);
-            RaiseCanvas(houseRoot.gameObject, 42);
-            ImageOn(houseRoot, new Color(0.04f, 0.03f, 0.02f, 0.72f), true);
-            var panel = Overlay(houseRoot, "Panel", new Vector2(640f, 620f), 0);
-            Center(panel, new Vector2(640f, 620f));
-            var column = Child(panel, "Houses");
-            Stretch(column, 28f);
-            var layout = column.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 10f;
-            layout.childAlignment = TextAnchor.UpperCenter;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-            var title = Body(column, 24, TextAlignmentOptions.Center);
-            title.text = "Choose the house. The wagon keeps this kit.";
-            title.gameObject.AddComponent<LayoutElement>().preferredHeight = 64f;
-            houseNote = Body(column, 18, TextAlignmentOptions.Center);
-            houseNote.color = Quiet;
-            houseNote.gameObject.AddComponent<LayoutElement>().preferredHeight = 36f;
-            AddHouseButton(column, HouseId.Kharun);
-            AddHouseButton(column, HouseId.Zamath);
-            AddHouseButton(column, HouseId.Thalor);
-            AddHouseButton(column, HouseId.Veythar);
-            AddHouseButton(column, HouseId.Ghorath);
+            choosingRoad = false;
+            Redraw();
+        }
+
+        void PickPace(RoadPace pace)
+        {
+            draftPace = pace;
+            Redraw();
+        }
+
+        void PickDay(bool byDay)
+        {
+            draftDay = byDay;
+            Redraw();
+        }
+
+        Button ChoiceButton(RectTransform panel, string label, Vector2 position, UnityEngine.Events.UnityAction action)
+        {
+            Button button = CardButton(panel, label, position, action);
+            button.GetComponent<RectTransform>().sizeDelta = new Vector2(200f, 56f);
+            return button;
+        }
+
+        void ConfirmPace()
+        {
+            session.ChooseRoadPace(draftPace, draftDay);
+            if (!choosingRoad)
+                return;
+            PlaceId dest = pendingDest;
+            choosingRoad = false;
+            session.DepartTo(dest);
         }
 
         static HouseId HouseFromGate()
@@ -644,21 +651,6 @@ namespace Caravans.Play
             }
         }
 
-        void AddHouseButton(RectTransform column, HouseId house)
-        {
-            var button = Tab(column, CaravanSession.HouseName(house), () =>
-            {
-                if (session.ChooseHouse(house))
-                {
-                    if (lesson && !session.Skipped)
-                        TutorialOption.Set(false);
-                    page = Page.Plaza;
-                    lookingAtMap = false;
-                }
-            });
-            button.GetComponent<LayoutElement>().preferredHeight = 52f;
-        }
-
         void BuildOptions(RectTransform root)
         {
             optionsRoot = Child(root, "Options");
@@ -675,16 +667,8 @@ namespace Caravans.Play
             titleRt.anchorMax = Vector2.one;
             titleRt.offsetMin = new Vector2(20f, 0f);
             titleRt.offsetMax = new Vector2(-20f, -16f);
-            skipButton = CardButton(panel, "Skip the lesson", new Vector2(0f, 10f), () =>
-            {
-                optionsOpen = false;
-                lookingAtMap = false;
-                page = Page.None;
-                session.SkipTutorial();
-            });
-            var close = CardButton(panel, "Close", new Vector2(0f, -70f), ToggleOptions);
+            var close = CardButton(panel, "Close", new Vector2(0f, -40f), ToggleOptions);
             close.GetComponent<RectTransform>().sizeDelta = new Vector2(220f, 52f);
-            skipButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
         }
 
         void Redraw()
@@ -697,45 +681,84 @@ namespace Caravans.Play
             plazaPage.SetActive(page == Page.Plaza);
             housePage.SetActive(page == Page.House);
             houseTab.gameObject.SetActive(EconomyCatalog.IsCity(session.Dock));
-            paceBar.SetActive(session.Traveling);
+            paceBar.SetActive(session.Traveling && !session.CampPending && !session.AwaitingPace);
             backButton.gameObject.SetActive(lookingAtMap && !session.Traveling);
-            cardRoot.gameObject.SetActive(session.CardPending || session.ResultPending);
-            houseRoot.gameObject.SetActive(session.Step == TutorialStep.HouseChoice);
+            bool roadChoice = choosingRoad || session.CampPending || session.AwaitingPace;
+            cardRoot.gameObject.SetActive(roadChoice);
             optionsRoot.gameObject.SetActive(optionsOpen);
             logbookRoot.gameObject.SetActive(logbookOpen);
-            skipButton.gameObject.SetActive(session.Step != TutorialStep.HouseChoice && session.Step != TutorialStep.Free);
+            dimmer.gameObject.SetActive(roadChoice && !optionsOpen);
+            ShowRoadChoice(roadChoice);
 
             bannerName.text = CaravanSession.PlaceName(session.Dock);
             bannerTag.text = session.PatronLine();
-            roadButton.GetComponentInChildren<TextMeshProUGUI>().text = session.Dock == PlaceId.Kharun
-                ? "Take the road to Draven"
-                : "Take the road to Kharûn";
             outlookText.text = session.OutlookLine();
             listenText.text = listenLine;
             waterButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill water", GoodId.Water, session.WaterLitres, EconomyRates.CanteenLitres);
             foodButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill food", GoodId.Rations, session.RationKg, EconomyRates.RationBagKg);
-            houseNote.text = session.HouseNote ?? string.Empty;
-
-            bool showChoices = session.CardPending;
-            steelButton.gameObject.SetActive(showChoices);
-            kenButton.gameObject.SetActive(showChoices);
-            cardBody.gameObject.SetActive(showChoices);
-            continueButton.gameObject.SetActive(session.ResultPending);
-            cardResult.gameObject.SetActive(session.ResultPending);
-            if (session.ResultPending)
-            {
-                cardResult.text = session.CardWasSteel
-                    ? "You drive it off the road. The coin is spent."
-                    : "You feed it. It leaves the road. The coin is spent.";
-            }
 
             RebuildRows();
             if (MarketInFront())
                 session.NoteMarketShown(selling);
             RebuildLogbook();
             SyncRoads();
-            ApplyLesson();
+            if (roadChoice && !optionsOpen)
+            {
+                LockButtons();
+                EnableRoadChoice();
+            }
+            else if (optionsOpen)
+            {
+                LockButtons();
+                EnableUnder(optionsRoot);
+                gearButton.interactable = true;
+            }
+            else
+            {
+                ApplyFreeButtons();
+            }
+
             UpdateLive();
+        }
+
+        void ShowRoadChoice(bool open)
+        {
+            bool camp = session.CampPending;
+            bool pace = open && !camp;
+            cardTitle.text = camp ? "Make camp" : "The road";
+            cardBody.text = camp ? "The travel hours are spent." : "Choose a pace.";
+            rushButton.gameObject.SetActive(pace);
+            steadyButton.gameObject.SetActive(pace);
+            carefulButton.gameObject.SetActive(pace);
+            dayButton.gameObject.SetActive(pace);
+            nightButton.gameObject.SetActive(pace);
+            confirmPaceButton.gameObject.SetActive(pace);
+            backPaceButton.gameObject.SetActive(choosingRoad && !session.AwaitingPace);
+            campButton.gameObject.SetActive(camp);
+            if (!pace)
+                return;
+            TintPace(rushButton, draftPace == RoadPace.Rush);
+            TintPace(steadyButton, draftPace == RoadPace.Steady);
+            TintPace(carefulButton, draftPace == RoadPace.Careful);
+            TintPace(dayButton, draftDay);
+            TintPace(nightButton, !draftDay);
+        }
+
+        void EnableRoadChoice()
+        {
+            if (session.CampPending)
+            {
+                campButton.interactable = true;
+                return;
+            }
+
+            rushButton.interactable = true;
+            steadyButton.interactable = true;
+            carefulButton.interactable = true;
+            dayButton.interactable = true;
+            nightButton.interactable = true;
+            confirmPaceButton.interactable = true;
+            backPaceButton.interactable = choosingRoad;
         }
 
         void RebuildRows()
@@ -746,7 +769,6 @@ namespace Caravans.Play
             buttons.RemoveAll(button => button == null);
 
             bool any = false;
-            int pinned = 0;
             for (int i = 0; i < WorldIds.GoodCount; i++)
             {
                 GoodId good = (GoodId)i;
@@ -756,28 +778,16 @@ namespace Caravans.Play
                 if (count <= 0)
                     continue;
                 any = true;
-                bool lessonGood = lesson && (good == GoodId.ShimmersteelJars
-                    || good == GoodId.FingerFungus
-                    || good == GoodId.Water);
-                tradeButtons[good] = MakeRow(lessonGood ? pinnedHost : rowHost, good, count);
-                if (lessonGood)
-                    pinned += 1;
+                tradeButtons[good] = MakeRow(rowHost, good, count);
             }
 
-            float height = pinned * 72f;
             if (pinnedHost != null)
-            {
-                Vector2 size = pinnedHost.sizeDelta;
-                size.y = height;
-                pinnedHost.sizeDelta = size;
-            }
-
+                pinnedHost.gameObject.SetActive(false);
             if (scrollRoot != null)
-                scrollRoot.offsetMax = new Vector2(0f, -(64f + height));
+                scrollRoot.offsetMax = new Vector2(0f, -64f);
 
             emptySell.gameObject.SetActive(page == Page.Market && selling && !any);
             bool showRows = !(page == Page.Market && selling && !any);
-            pinnedHost.gameObject.SetActive(showRows);
             scrollRoot.gameObject.SetActive(showRows);
         }
 
@@ -791,15 +801,6 @@ namespace Caravans.Play
 
         void SyncRoads()
         {
-            bool free = session.Step == TutorialStep.Free;
-            if (!free)
-            {
-                roadButton.gameObject.SetActive(true);
-                if (neighborRoads.Count > 0)
-                    ClearNeighborRoads();
-                return;
-            }
-
             roadButton.gameObject.SetActive(false);
             if (roadsReady && roadsDock == session.Dock)
                 return;
@@ -810,7 +811,7 @@ namespace Caravans.Play
             {
                 PlaceId dest = roads[i];
                 string label = "Take the road to " + CaravanSession.PlaceName(dest);
-                Button button = StackButton(plazaColumn, label, () => session.DepartTo(dest));
+                Button button = StackButton(plazaColumn, label, () => AskRoad(dest));
                 button.transform.SetSiblingIndex(i);
                 neighborRoads.Add(button);
             }
@@ -832,6 +833,17 @@ namespace Caravans.Play
 
             neighborRoads.Clear();
             roadsReady = false;
+        }
+
+        void AskRoad(PlaceId dest)
+        {
+            if (!session.CanTakeRoad())
+                return;
+            pendingDest = dest;
+            choosingRoad = true;
+            draftPace = session.ChosenPace;
+            draftDay = session.TravelsByDay;
+            Redraw();
         }
 
         Button MakeRow(RectTransform host, GoodId good, int count)
@@ -884,213 +896,6 @@ namespace Caravans.Play
             return button;
         }
 
-        void ApplyLesson()
-        {
-            bool free = session.Step == TutorialStep.Free;
-            bool cardUp = session.CardPending || session.ResultPending;
-            bool houseUp = session.Step == TutorialStep.HouseChoice;
-            bool dim = !free && !cardUp && !houseUp && !session.Traveling && !lookingAtMap
-                && session.Step != TutorialStep.UsePace;
-            dimmer.gameObject.SetActive(dim && !optionsOpen);
-            callout.gameObject.SetActive(false);
-
-            if (free)
-            {
-                ApplyFreeButtons();
-                return;
-            }
-
-            LockButtons();
-            gearButton.interactable = true;
-            logbookButton.interactable = true;
-            steelButton.interactable = session.CardPending;
-            kenButton.interactable = session.CardPending;
-            continueButton.interactable = session.ResultPending;
-            if (optionsOpen)
-            {
-                EnableUnder(optionsRoot);
-                return;
-            }
-
-            if (houseUp)
-            {
-                EnableUnder(houseRoot);
-                return;
-            }
-
-            if (cardUp)
-                return;
-
-            switch (session.Step)
-            {
-                case TutorialStep.OpenMarket:
-                    Aim(marketTab, "Vekra of Kharûn, the clerk. Draven takes Shimmersteel Jars. Open the market. The gear skips this lesson.");
-                    break;
-                case TutorialStep.BuyJars:
-                    AimBuyJars();
-                    break;
-                case TutorialStep.LeaveForDraven:
-                    AimRoad("Take the road to Draven.");
-                    break;
-                case TutorialStep.UsePace:
-                    AimPace();
-                    break;
-                case TutorialStep.RidingOut:
-                case TutorialStep.RidingHome:
-                    AllowPace();
-                    break;
-                case TutorialStep.ArriveDraven:
-                    AimSell("Draven buys the jars. Open the market.", "Sell the jars.");
-                    break;
-                case TutorialStep.SellJars:
-                    AimSell("Open the market.", "Sell the jars. One press is one unit.");
-                    break;
-                case TutorialStep.BuyFungus:
-                    AimFungus();
-                    break;
-                case TutorialStep.LeaveForKharun:
-                    AimRoad("Take the road back to Kharûn. This leg stays quiet.");
-                    break;
-                case TutorialStep.SellFungus:
-                    AimFungusSale();
-                    break;
-            }
-        }
-
-        void AimBuyJars()
-        {
-            if (page != Page.Market)
-            {
-                Aim(marketTab, "The jars are on the market.");
-                return;
-            }
-
-            if (session.CargoOf(GoodId.ShimmersteelJars) < 1)
-            {
-                AimTrade(GoodId.ShimmersteelJars, false, "Buy Shimmersteel Jars. One press is one unit.");
-                return;
-            }
-
-            Aim(plazaTab, "Open the plaza when the wagon has the jars you want.");
-            AllowTrade(GoodId.ShimmersteelJars);
-        }
-
-        void AimFungus()
-        {
-            if (page != Page.Market)
-            {
-                Aim(marketTab, "Finger Fungus is the cave good. Open the market.");
-                return;
-            }
-
-            if (selling)
-            {
-                Aim(buyTab, "Open Buy.");
-                return;
-            }
-
-            if (session.CargoOf(GoodId.FingerFungus) < 1)
-            {
-                AimTrade(GoodId.FingerFungus, false, "Buy Finger Fungus. Bring it back to Kharûn.");
-                return;
-            }
-
-            Aim(plazaTab, "Open the plaza when you have the fungus you want.");
-            AllowTrade(GoodId.FingerFungus);
-        }
-
-        void AimFungusSale()
-        {
-            if (page != Page.Market)
-            {
-                Aim(marketTab, "Sell the Finger Fungus at Kharûn.");
-                return;
-            }
-
-            if (!selling)
-            {
-                Aim(sellTab, "Open Sell.");
-                return;
-            }
-
-            AimTrade(GoodId.FingerFungus, true, "Sell the Finger Fungus. The coin is the point of the trip.");
-        }
-
-        void AimSell(string closed, string open)
-        {
-            if (page != Page.Market)
-            {
-                Aim(marketTab, closed);
-                return;
-            }
-
-            if (!selling)
-            {
-                Aim(sellTab, "Open Sell.");
-                return;
-            }
-
-            AimTrade(GoodId.ShimmersteelJars, true, open);
-        }
-
-        void AimRoad(string line)
-        {
-            if (page != Page.Plaza)
-            {
-                Aim(plazaTab, "The plaza is where you leave.");
-                return;
-            }
-
-            Aim(roadButton, line);
-        }
-
-        void AimPace()
-        {
-            PlaceCallout(true, "The caravan moves on its own. Choose a pace. The hour follows the road.");
-            AllowPace();
-            pauseButton.interactable = false;
-        }
-
-        void AllowPace()
-        {
-            Allow(pauseButton.gameObject);
-            Allow(pace1.gameObject);
-            Allow(pace2.gameObject);
-            Allow(pace4.gameObject);
-            pauseButton.interactable = true;
-            pace1.interactable = true;
-            pace2.interactable = true;
-            pace4.interactable = true;
-        }
-
-        void AimTrade(GoodId good, bool sell, string line)
-        {
-            if (selling != sell)
-            {
-                Aim(sell ? sellTab : buyTab, sell ? "Open Sell." : "Open Buy.");
-                return;
-            }
-
-            Button button;
-            if (!tradeButtons.TryGetValue(good, out button) || button == null)
-            {
-                Aim(marketTab, line);
-                return;
-            }
-
-            Aim(button, line);
-        }
-
-        void AllowTrade(GoodId good)
-        {
-            Button button;
-            if (tradeButtons.TryGetValue(good, out button) && button != null)
-            {
-                button.interactable = Afford(good, false);
-                Allow(button.gameObject);
-            }
-        }
-
         void ApplyFreeButtons()
         {
             gearButton.interactable = true;
@@ -1101,24 +906,22 @@ namespace Caravans.Play
             for (int i = 0; i < neighborRoads.Count; i++)
             {
                 if (neighborRoads[i] != null)
-                    neighborRoads[i].interactable = !session.Traveling;
+                    neighborRoads[i].interactable = session.CanTakeRoad();
             }
             buyTab.interactable = true;
             sellTab.interactable = true;
-            roadButton.interactable = !session.Traveling;
-            waitButton.interactable = true;
+            roadButton.interactable = false;
+            waitButton.interactable = session.CanWait();
+            restButton.interactable = session.CanRest();
             waterButton.interactable = session.CanFillWater();
             foodButton.interactable = session.CanFillFood();
             listenButton.interactable = true;
             lookButton.interactable = !session.Traveling;
-            pauseButton.interactable = session.Traveling;
-            pace1.interactable = true;
-            pace2.interactable = true;
-            pace4.interactable = true;
+            pauseButton.interactable = session.Traveling && !session.HoldTravel;
+            pace1.interactable = session.Traveling && !session.HoldTravel;
+            pace2.interactable = session.Traveling && !session.HoldTravel;
+            pace4.interactable = session.Traveling && !session.HoldTravel;
             backButton.interactable = true;
-            steelButton.interactable = session.CardPending;
-            kenButton.interactable = session.CardPending;
-            continueButton.interactable = session.ResultPending;
             foreach (var pair in tradeButtons)
             {
                 if (pair.Value == null)
@@ -1151,50 +954,7 @@ namespace Caravans.Play
                 return session.CargoOf(good) > 0;
             if (session.StockOf(session.Dock, good) <= 0)
                 return false;
-            return session.Coin - session.BuyCost(session.Dock, good) >= session.CoinReserve;
-        }
-
-        void Aim(Button button, string line)
-        {
-            if (button == null)
-                return;
-            button.interactable = true;
-            Allow(button.gameObject);
-            PlaceCallout(false, line);
-        }
-
-        void Allow(GameObject go)
-        {
-            if (go == null || raised.Contains(go))
-                return;
-            var canvas = go.AddComponent<Canvas>();
-            canvas.overrideSorting = true;
-            canvas.sortingOrder = 30;
-            canvas.additionalShaderChannels = ExtraChannels();
-            go.AddComponent<GraphicRaycaster>();
-            raised.Add(go);
-        }
-
-        void PlaceCallout(bool pace, string line)
-        {
-            callout.gameObject.SetActive(true);
-            calloutText.text = line;
-            if (pace)
-            {
-                callout.anchorMin = new Vector2(0.5f, 0f);
-                callout.anchorMax = new Vector2(0.5f, 0f);
-                callout.pivot = new Vector2(0.5f, 0f);
-                callout.anchoredPosition = new Vector2(0f, 96f);
-                callout.sizeDelta = new Vector2(720f, 120f);
-            }
-            else
-            {
-                callout.anchorMin = new Vector2(1f, 0.5f);
-                callout.anchorMax = new Vector2(1f, 0.5f);
-                callout.pivot = new Vector2(1f, 0.5f);
-                callout.anchoredPosition = new Vector2(-36f, 20f);
-                callout.sizeDelta = new Vector2(460f, 210f);
-            }
+            return session.Coin >= session.BuyCost(session.Dock, good);
         }
 
         void ClearRaised()
@@ -1221,6 +981,7 @@ namespace Caravans.Play
                 return;
             placeText.text = session.BoundLabel();
             clockText.text = "Day " + session.Day + ", hour " + Mathf.FloorToInt(session.Hour);
+            travelText.text = "Travel " + session.TravelHours.ToString("0.#") + " h";
             coinText.text = "Coin " + session.Coin;
             cargoText.text = CargoLine();
             if (legText != null)
@@ -1303,14 +1064,12 @@ namespace Caravans.Play
         void OpenMarket()
         {
             page = Page.Market;
-            session.NoteMarketOpened();
             Redraw();
         }
 
         void OpenPlaza()
         {
             page = Page.Plaza;
-            session.NotePlazaOpened();
             Redraw();
         }
 
@@ -1323,7 +1082,6 @@ namespace Caravans.Play
         void OpenSell()
         {
             selling = true;
-            session.NoteSellOpened();
             Redraw();
         }
 

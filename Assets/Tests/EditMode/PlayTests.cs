@@ -19,19 +19,6 @@ namespace Caravans.Play.Tests
         }
 
         [Test]
-        public void BuyingJarsKeepsTheCardCoin()
-        {
-            var session = CaravanSession.Lesson();
-            session.NoteMarketOpened();
-            int bought = 0;
-            while (session.TryBuy(GoodId.ShimmersteelJars))
-                bought += 1;
-
-            Assert.Greater(bought, 0);
-            Assert.GreaterOrEqual(session.Coin, CaravanSession.CardCoin);
-        }
-
-        [Test]
         public void TheRoadStartsClear()
         {
             var session = new CaravanSession();
@@ -44,114 +31,6 @@ namespace Caravans.Play.Tests
             Vector2 mid = RoadPath.PointAtDistance(RoadPath.Length * 0.5f);
             Assert.Less(RoadPath.Draven.y, mid.y);
             Assert.Less(mid.y, RoadPath.Kharun.y);
-        }
-
-        [Test]
-        public void LessonChangesCoinAndEndsAtHouseChoice()
-        {
-            var session = CaravanSession.Lesson();
-            session.NoteMarketOpened();
-            Assert.IsTrue(session.TryBuy(GoodId.ShimmersteelJars));
-            int paid = TravelScale.StartingCoin - session.Coin;
-
-            session.NotePlazaOpened();
-            Assert.AreEqual(TutorialStep.LeaveForDraven, session.Step);
-            Assert.IsTrue(session.Depart());
-            session.ChoosePace(4);
-
-            Pump(session, TutorialStep.RoadCard);
-            Assert.AreEqual(TutorialStep.RoadCard, session.Step);
-            int beforeCard = session.Coin;
-            session.ResolveCard(false);
-            Assert.AreEqual(beforeCard - CaravanSession.CardCoin, session.Coin);
-            Assert.AreEqual(1, session.CardsResolved);
-            session.ContinueFromCard();
-
-            Pump(session, TutorialStep.ArriveDraven);
-            Assert.AreEqual(PlaceId.Draven, session.Dock);
-            Assert.IsFalse(session.Traveling);
-            Assert.Greater(session.PriceOf(PlaceId.Draven, GoodId.ShimmersteelJars), paid);
-
-            session.NoteSellOpened();
-            Assert.IsTrue(session.TrySell(GoodId.ShimmersteelJars));
-            Assert.AreEqual(TutorialStep.BuyFungus, session.Step);
-            int fungusPaid = session.PriceOf(PlaceId.Draven, GoodId.FingerFungus);
-            Assert.IsTrue(session.TryBuy(GoodId.FingerFungus));
-            session.NotePlazaOpened();
-            Assert.AreEqual(TutorialStep.LeaveForKharun, session.Step);
-            Assert.IsTrue(session.Depart());
-            Pump(session, TutorialStep.SellFungus);
-
-            Assert.AreEqual(PlaceId.Kharun, session.Dock);
-            Assert.AreEqual(1, session.CardsResolved);
-            Assert.AreEqual(TutorialStep.SellFungus, session.Step);
-            int beforeSale = session.Coin;
-            Assert.IsTrue(session.TrySell(GoodId.FingerFungus));
-            Assert.Greater(session.Coin, beforeSale);
-            Assert.Greater(session.Coin - beforeSale, fungusPaid);
-            Assert.Greater(session.Coin, TravelScale.StartingCoin);
-            Assert.AreEqual(TutorialStep.HouseChoice, session.Step);
-        }
-
-        [Test]
-        public void ReturnLegDoesNotOpenACard()
-        {
-            var session = RideToDraven();
-            session.NoteSellOpened();
-            session.TrySell(GoodId.ShimmersteelJars);
-            session.TryBuy(GoodId.FingerFungus);
-            session.NotePlazaOpened();
-            session.Depart();
-
-            for (int i = 0; i < 400 && session.Traveling; i++)
-            {
-                session.Tick(0.25f);
-                Assert.IsFalse(session.CardPending);
-            }
-
-            Assert.AreEqual(PlaceId.Kharun, session.Dock);
-            Assert.AreEqual(1, session.CardsResolved);
-        }
-
-        [Test]
-        public void SkipDropsTheStartingCaravanAtHouseChoice()
-        {
-            var session = new CaravanSession();
-            session.NoteMarketOpened();
-            session.TryBuy(GoodId.ShimmersteelJars);
-            session.SkipTutorial();
-
-            Assert.AreEqual(TutorialStep.HouseChoice, session.Step);
-            Assert.AreEqual(TravelScale.StartingCoin, session.Coin);
-            Assert.AreEqual(0, session.CargoOf(GoodId.ShimmersteelJars));
-            Assert.AreEqual(EconomyCatalog.StartingStock(PlaceId.Kharun, GoodId.ShimmersteelJars), session.StockOf(PlaceId.Kharun, GoodId.ShimmersteelJars));
-            Assert.IsFalse(session.Traveling);
-            Assert.IsTrue(session.Skipped);
-            Assert.IsTrue(session.ChooseHouse(HouseId.Zamath));
-            Assert.AreEqual(TutorialStep.Free, session.Step);
-            Assert.AreEqual(HouseId.Zamath, session.House.Value);
-            Assert.AreEqual(PlaceId.Zamath, session.Dock);
-            Assert.AreEqual(TravelScale.StartingCoin, session.Coin);
-            Assert.IsFalse(session.Traveling);
-        }
-
-        [Test]
-        public void FreeTravelOnTheKharunDravenRoadDoesNotOpenTheCard()
-        {
-            var session = CaravanSession.AtHouse(HouseId.Kharun);
-            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
-            for (int i = 0; i < 800 && session.Traveling; i++)
-            {
-                Assert.IsFalse(session.CardPending);
-                Assert.IsFalse(session.ResultPending);
-                session.Tick(0.25f);
-            }
-
-            Assert.IsFalse(session.Traveling);
-            Assert.IsFalse(session.CardPending);
-            Assert.AreEqual(0, session.CardsResolved);
-            Assert.AreEqual(PlaceId.Draven, session.Dock);
-            Assert.AreEqual(TutorialStep.Free, session.Step);
         }
 
         [Test]
@@ -222,8 +101,6 @@ namespace Caravans.Play.Tests
         public void RivalCutFallsFromTwelveToFour()
         {
             var session = new CaravanSession();
-            session.SkipTutorial();
-            session.ChooseHouse(HouseId.Kharun);
             session.AddPresence(PlaceId.Draven, HouseId.Zamath, 80);
             session.AddPresence(PlaceId.Draven, HouseId.Thalor, 80);
             Assert.AreEqual(HouseId.Zamath, session.PatronOf(PlaceId.Draven));
@@ -248,8 +125,6 @@ namespace Caravans.Play.Tests
         public void FoodDecaysAndSweetBlissIsGoneAfterFourMornings()
         {
             var session = new CaravanSession();
-            session.SkipTutorial();
-            session.ChooseHouse(HouseId.Kharun);
             session.SetShelf(PlaceId.Kharun, GoodId.SweetBliss, 4);
             session.SetShelf(PlaceId.Kharun, GoodId.FingerFungus, 4);
             Assert.IsTrue(session.TryBuy(GoodId.SweetBliss));
@@ -292,29 +167,21 @@ namespace Caravans.Play.Tests
         }
 
         [Test]
-        public void LessonStillOpensAtKharun()
-        {
-            var session = CaravanSession.Lesson();
-            Assert.AreEqual(TutorialStep.OpenMarket, session.Step);
-            Assert.AreEqual(PlaceId.Kharun, session.Dock);
-            Assert.IsFalse(session.House.HasValue);
-        }
-
-        [Test]
         public void APlainSessionStartsFreeAtKharun()
         {
             var session = new CaravanSession();
-            Assert.AreEqual(TutorialStep.Free, session.Step);
             Assert.AreEqual(HouseId.Kharun, session.House.Value);
             Assert.AreEqual(PlaceId.Kharun, session.Dock);
             Assert.IsFalse(session.Traveling);
+            Assert.AreEqual(TravelScale.WindowHours, session.TravelHours, 0.001f);
+            Assert.AreEqual(RoadPace.Steady, session.ChosenPace);
+            Assert.IsTrue(session.TravelsByDay);
         }
 
         [Test]
         public void AHouseStartIsFreeAtThatCityWithTheSharedPurse()
         {
             var session = CaravanSession.AtHouse(HouseId.Kharun);
-            Assert.AreEqual(TutorialStep.Free, session.Step);
             Assert.IsTrue(session.House.HasValue);
             Assert.AreEqual(HouseId.Kharun, session.House.Value);
             Assert.AreEqual(PlaceId.Kharun, session.Dock);
@@ -322,7 +189,6 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(0, session.CargoOf(GoodId.Water));
             Assert.AreEqual(0, session.CargoOf(GoodId.Rations));
             Assert.IsFalse(session.Traveling);
-            Assert.IsFalse(session.Skipped);
         }
 
         [Test]
@@ -413,8 +279,6 @@ namespace Caravans.Play.Tests
         public void LogbookKeepsTheCheapestBuyAndTheDearestSale()
         {
             var session = new CaravanSession();
-            session.SkipTutorial();
-            Assert.IsTrue(session.ChooseHouse(HouseId.Kharun));
             Assert.IsFalse(session.HasLoggedBuy(GoodId.ShimmersteelJars));
             Assert.IsFalse(session.HasLoggedSale(GoodId.ShimmersteelJars));
 
@@ -550,12 +414,10 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(1, zamath.CargoOf(GoodId.SeaWater));
             Assert.AreEqual(waterAtZamath, zamath.StockOf(PlaceId.Zamath, GoodId.Water));
 
-            Assert.IsTrue(session.DepartTo(PlaceId.Westmark));
-            Ride(session);
+            Leave(session, PlaceId.Westmark);
             session.SetShelf(PlaceId.Westmark, GoodId.SeaWater, 4);
             Assert.IsTrue(session.TryBuy(GoodId.SeaWater));
-            Assert.IsTrue(session.DepartTo(PlaceId.Kharun));
-            Ride(session);
+            Leave(session, PlaceId.Kharun);
             int water = session.StockOf(PlaceId.Kharun, GoodId.Water);
             int coin = session.Coin;
             int pay = session.SellValue(PlaceId.Kharun, GoodId.SeaWater);
@@ -566,16 +428,13 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(water + 1, session.StockOf(PlaceId.Kharun, GoodId.Water));
             Assert.AreEqual(coin + pay, session.Coin);
 
-            Assert.IsTrue(session.DepartTo(PlaceId.Brineford));
-            Ride(session);
+            Leave(session, PlaceId.Brineford);
             session.SetShelf(PlaceId.Brineford, GoodId.SeaWater, 4);
             session.SetShelf(PlaceId.Brineford, GoodId.Water, 4);
             Assert.IsTrue(session.TryBuy(GoodId.SeaWater));
             Assert.IsTrue(session.TryBuy(GoodId.Water));
-            Assert.IsTrue(session.DepartTo(PlaceId.Moraq));
-            Ride(session);
-            Assert.IsTrue(session.DepartTo(PlaceId.Ghorath));
-            Ride(session);
+            Leave(session, PlaceId.Moraq);
+            Leave(session, PlaceId.Ghorath);
             int atGhorath = session.StockOf(PlaceId.Ghorath, GoodId.Water);
             Assert.IsFalse(session.TrySell(GoodId.Water));
             Assert.IsFalse(session.TrySell(GoodId.SeaWater));
@@ -584,21 +443,27 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(1, session.CargoOf(GoodId.SeaWater));
         }
 
+        static void Leave(CaravanSession session, PlaceId dest)
+        {
+            if (!session.CanTakeRoad())
+                Assert.IsTrue(session.TryRest());
+            Assert.IsTrue(session.DepartTo(dest));
+            Ride(session);
+        }
+
         static void Ride(CaravanSession session)
         {
-            for (int i = 0; i < 800 && session.Traveling; i++)
+            for (int i = 0; i < 4000 && session.Traveling; i++)
             {
-                if (session.CardPending)
-                {
-                    session.ResolveCard(true);
-                    session.ContinueFromCard();
-                }
-
+                if (session.CampPending)
+                    session.MakeCamp();
+                if (session.AwaitingPace)
+                    session.ChooseRoadPace(session.ChosenPace, session.TravelsByDay);
                 session.Tick(0.25f);
             }
 
             Assert.IsFalse(session.Traveling);
-            Assert.IsFalse(session.CardPending);
+            Assert.IsFalse(session.CampPending);
         }
 
         static int Cut(int price, int percent)
@@ -606,26 +471,112 @@ namespace Caravans.Play.Tests
             return (price * percent + 50) / 100;
         }
 
-        static CaravanSession RideToDraven()
+        [Test]
+        public void TheTravelWindowStopsAtThreeHours()
         {
-            var session = CaravanSession.Lesson();
-            session.NoteMarketOpened();
-            session.TryBuy(GoodId.ShimmersteelJars);
-            session.NotePlazaOpened();
-            session.Depart();
-            session.ChoosePace(4);
-            Pump(session, TutorialStep.RoadCard);
-            session.ResolveCard(true);
-            session.ContinueFromCard();
-            Pump(session, TutorialStep.ArriveDraven);
-            return session;
+            var session = new CaravanSession();
+            Assert.IsTrue(session.CanWait());
+            for (int i = 0; i < 9; i++)
+                session.WaitOneHour();
+            Assert.AreEqual(TravelScale.ReserveHours, session.TravelHours, 0.001f);
+            Assert.IsFalse(session.CanWait());
+            Assert.IsFalse(session.CanTakeRoad());
+            float hour = session.Hour;
+            session.WaitOneHour();
+            Assert.AreEqual(hour, session.Hour, 0.001f);
+
+            float water = session.WaterLitres;
+            Assert.IsTrue(session.TryRest());
+            Assert.AreEqual(TravelScale.WindowHours, session.TravelHours, 0.001f);
+            Assert.AreEqual(water - TravelScale.TownRestHours / EconomyRates.DayHours * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.02f);
+            Assert.IsTrue(session.CanTakeRoad());
         }
 
-        static void Pump(CaravanSession session, TutorialStep until)
+        [Test]
+        public void CampRestoresTheWindowAfterNineTravelHours()
         {
-            for (int i = 0; i < 400 && session.Step != until; i++)
+            var session = new CaravanSession();
+            session.ChooseRoadPace(RoadPace.Steady, false);
+            Assert.IsFalse(session.TravelsByDay);
+            float water = session.WaterLitres;
+            int day = session.Day;
+            float hour = session.Hour;
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            for (int i = 0; i < 4000 && !session.CampPending; i++)
                 session.Tick(0.25f);
-            Assert.AreEqual(until, session.Step);
+
+            Assert.IsTrue(session.CampPending);
+            Assert.AreEqual(TravelScale.ReserveHours, session.TravelHours, 0.05f);
+            float elapsed = Elapsed(session, day, hour);
+            Assert.AreEqual(TravelScale.WindowHours - TravelScale.ReserveHours, elapsed, 0.05f);
+            float travelDays = elapsed / EconomyRates.DayHours;
+            Assert.AreEqual(water - travelDays * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.05f);
+            float covered = session.TravelDistance / RoadGraph.Length(PlaceId.Kharun, PlaceId.Draven);
+            Assert.AreEqual(travelDays, covered, 0.02f);
+
+            session.MakeCamp();
+            Assert.AreEqual(TravelScale.WindowHours, session.TravelHours, 0.001f);
+            Assert.IsTrue(session.AwaitingPace);
+            float afterCamp = Elapsed(session, day, hour);
+            Assert.AreEqual(elapsed + TravelScale.CampHours, afterCamp, 0.05f);
+            session.ChooseRoadPace(RoadPace.Steady, true);
+            Assert.IsFalse(session.AwaitingPace);
+            Assert.IsFalse(session.HoldTravel);
+        }
+
+        [Test]
+        public void RushCoversMoreRoadAndCarefulDrinksLess()
+        {
+            float steady = DistanceUntilCamp(RoadPace.Steady);
+            float rush = DistanceUntilCamp(RoadPace.Rush);
+            float careful = DistanceUntilCamp(RoadPace.Careful);
+            Assert.AreEqual(steady * 1.5f, rush, steady * 0.02f);
+            Assert.AreEqual(steady * 0.5f, careful, steady * 0.02f);
+
+            float steadyKit = KitUntilCamp(RoadPace.Steady);
+            float rushKit = KitUntilCamp(RoadPace.Rush);
+            float carefulKit = KitUntilCamp(RoadPace.Careful);
+            Assert.AreEqual(steadyKit * 1.25f, rushKit, 0.05f);
+            Assert.AreEqual(steadyKit * 0.75f, carefulKit, 0.05f);
+        }
+
+        [Test]
+        public void ASeaOpeningSpendsNoTravelHours()
+        {
+            var session = CaravanSession.AtHouse(HouseId.Zamath);
+            float hours = session.TravelHours;
+            Assert.IsTrue(session.DepartTo(PlaceId.Neth));
+            Assert.IsFalse(session.Traveling);
+            Assert.AreEqual(PlaceId.Neth, session.Dock);
+            Assert.AreEqual(hours, session.TravelHours, 0.001f);
+        }
+
+        static float DistanceUntilCamp(RoadPace pace)
+        {
+            var session = new CaravanSession();
+            session.ChooseRoadPace(pace, true);
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            for (int i = 0; i < 4000 && !session.CampPending; i++)
+                session.Tick(0.25f);
+            Assert.IsTrue(session.CampPending);
+            return session.TravelDistance;
+        }
+
+        static float KitUntilCamp(RoadPace pace)
+        {
+            var session = new CaravanSession();
+            float water = session.WaterLitres;
+            session.ChooseRoadPace(pace, true);
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            for (int i = 0; i < 4000 && !session.CampPending; i++)
+                session.Tick(0.25f);
+            Assert.IsTrue(session.CampPending);
+            return water - session.WaterLitres;
+        }
+
+        static float Elapsed(CaravanSession session, int day, float hour)
+        {
+            return (session.Day - day) * EconomyRates.DayHours + (session.Hour - hour);
         }
     }
 }

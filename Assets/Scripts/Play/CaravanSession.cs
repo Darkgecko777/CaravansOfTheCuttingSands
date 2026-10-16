@@ -11,23 +11,11 @@ namespace Caravans.Play
         Sandstorm
     }
 
-    public enum TutorialStep
+    public enum RoadPace
     {
-        OpenMarket,
-        BuyJars,
-        LeaveForDraven,
-        UsePace,
-        RidingOut,
-        RoadCard,
-        ReadResult,
-        ArriveDraven,
-        SellJars,
-        BuyFungus,
-        LeaveForKharun,
-        RidingHome,
-        SellFungus,
-        HouseChoice,
-        Free
+        Careful,
+        Steady,
+        Rush
     }
 
     public sealed class WeatherMass
@@ -104,36 +92,23 @@ namespace Caravans.Play
         public float Hour { get; private set; }
         public PlaceId Dock { get; private set; }
         public bool Traveling { get; private set; }
-        public bool TowardDraven { get; private set; }
         public float TravelDistance { get; private set; }
+        public float TravelHours { get; private set; }
         public int Pace { get; private set; }
         public bool HoldTravel { get; private set; }
-        public TutorialStep Step { get; private set; }
+        public RoadPace ChosenPace { get; private set; }
+        public bool TravelsByDay { get; private set; }
+        public bool CampPending { get; private set; }
+        public bool AwaitingPace { get; private set; }
         public WeatherKind LegWeather { get; private set; }
         public float LegScale { get; private set; }
-        public string HouseNote { get; private set; }
-        public bool CardWasSteel { get; private set; }
-        public int CardsResolved { get; private set; }
-        public bool Skipped { get; private set; }
         public HouseId? House { get; private set; }
-        public bool CardPending { get; private set; }
-        public bool ResultPending { get; private set; }
 
-        public static int CardCoin
-        {
-            get { return GameConfig.Travel.cardCoin; }
-        }
-
-        bool cardResolvedThisLeg;
+        float kitFactor = 1f;
 
         public IReadOnlyList<WeatherMass> Masses
         {
             get { return masses; }
-        }
-
-        public int CoinReserve
-        {
-            get { return NeedsCardReserve() ? CardCoin : 0; }
         }
 
         public int NpcCount
@@ -155,13 +130,6 @@ namespace Caravans.Play
         {
             ResetCaravan();
             SitAt(HouseId.Kharun);
-        }
-
-        public static CaravanSession Lesson()
-        {
-            var session = new CaravanSession();
-            session.ResetCaravan();
-            return session;
         }
 
         public static PlaceId HomeOf(HouseId house)
@@ -286,7 +254,7 @@ namespace Caravans.Play
 
         public void NoteMarketShown(bool selling)
         {
-            if (Traveling || CardPending || ResultPending || Step == TutorialStep.HouseChoice)
+            if (Traveling || CampPending || AwaitingPace)
                 return;
 
             for (int i = 0; i < WorldIds.GoodCount; i++)
@@ -399,34 +367,14 @@ namespace Caravans.Play
             return 1 + npc.Path.Count;
         }
 
-        public void NoteMarketOpened()
-        {
-            if (Step == TutorialStep.OpenMarket)
-                Advance(TutorialStep.BuyJars);
-        }
-
-        public void NotePlazaOpened()
-        {
-            if (Step == TutorialStep.BuyJars && CargoOf(GoodId.ShimmersteelJars) >= 1)
-                Advance(TutorialStep.LeaveForDraven);
-            if (Step == TutorialStep.BuyFungus && CargoOf(GoodId.FingerFungus) >= 1)
-                Advance(TutorialStep.LeaveForKharun);
-        }
-
-        public void NoteSellOpened()
-        {
-            if (Step == TutorialStep.ArriveDraven)
-                Advance(TutorialStep.SellJars);
-        }
-
         public bool TryBuy(GoodId good)
         {
-            if (Traveling || !BuyAllowed(good) || good == GoodId.Rations)
+            if (Traveling || good == GoodId.Rations)
                 return false;
 
             int stock = StockOf(Dock, good);
             int price = BuyCost(Dock, good);
-            if (stock <= 0 || Coin - price < CoinReserve)
+            if (stock <= 0 || Coin < price)
                 return false;
             if (CargoSpace() + EconomyCatalog.Space(good) > EconomyRates.WagonSpace)
                 return false;
@@ -467,11 +415,11 @@ namespace Caravans.Play
 
         bool CanFill(GoodId good, float held, float capacity)
         {
-            if (Traveling || !BuyAllowed(good) || held >= capacity - 0.0001f)
+            if (Traveling || held >= capacity - 0.0001f)
                 return false;
             int stock = StockOf(Dock, good);
             int price = BuyCost(Dock, good);
-            return stock > 0 && Coin - price >= CoinReserve;
+            return stock > 0 && Coin >= price;
         }
 
         bool TryFill(GoodId good, float held, float capacity, float perUnit, System.Action<float> store)
@@ -489,7 +437,7 @@ namespace Caravans.Play
 
         public bool TrySell(GoodId good)
         {
-            if (Traveling || !SellAllowed(good) || good == GoodId.Rations || !EconomyCatalog.Buys(Dock, good))
+            if (Traveling || good == GoodId.Rations || !EconomyCatalog.Buys(Dock, good))
                 return false;
 
             int index = WorstStack(good);
@@ -507,11 +455,6 @@ namespace Caravans.Play
                 influence[(int)Dock, (int)House.Value] += gross;
                 RefreshPatron(Dock);
             }
-
-            if (Step == TutorialStep.SellJars && good == GoodId.ShimmersteelJars && CargoOf(GoodId.ShimmersteelJars) == 0)
-                Step = TutorialStep.BuyFungus;
-            if (Step == TutorialStep.SellFungus && good == GoodId.FingerFungus && CargoOf(GoodId.FingerFungus) == 0)
-                Step = TutorialStep.HouseChoice;
 
             Touch();
             return true;
@@ -536,27 +479,42 @@ namespace Caravans.Play
             Touch();
         }
 
-        public bool Depart()
+        public bool CanTakeRoad()
         {
-            if (Traveling)
-                return false;
-            if (Step != TutorialStep.LeaveForDraven
-                && Step != TutorialStep.LeaveForKharun
-                && Step != TutorialStep.Free)
-                return false;
+            return !Traveling && TravelHours > TravelScale.ReserveHours + 0.0001f;
+        }
 
-            if (Dock == PlaceId.Kharun && (Step == TutorialStep.LeaveForDraven || Step == TutorialStep.Free))
-                return BeginTravel(PlaceId.Draven);
-            if (Dock == PlaceId.Draven && (Step == TutorialStep.LeaveForKharun || Step == TutorialStep.Free))
-                return BeginTravel(PlaceId.Kharun);
-            return false;
+        public bool CanWait()
+        {
+            return !Traveling && TravelHours - 1f >= TravelScale.ReserveHours - 0.0001f;
+        }
+
+        public bool CanRest()
+        {
+            return !Traveling && TravelHours < TravelScale.WindowHours - 0.001f;
         }
 
         public bool DepartTo(PlaceId destination)
         {
-            if (Traveling || Step != TutorialStep.Free || destination == Dock)
+            if (!CanTakeRoad() || destination == Dock)
                 return false;
             return BeginTravel(destination);
+        }
+
+        public void ChooseRoadPace(RoadPace pace, bool byDay)
+        {
+            ChosenPace = pace;
+            // Day or night is stored for a later encounter pass. No stretch reads it yet.
+            TravelsByDay = byDay;
+            if (AwaitingPace)
+            {
+                AwaitingPace = false;
+                HoldTravel = false;
+                if (Pace <= 0)
+                    Pace = 1;
+            }
+
+            Touch();
         }
 
         public void ChoosePace(int pace)
@@ -564,20 +522,12 @@ namespace Caravans.Play
             if (pace != 1 && pace != 2 && pace != 4)
                 return;
             Pace = pace;
-            if (Step == TutorialStep.UsePace)
-            {
-                HoldTravel = false;
-                Advance(TutorialStep.RidingOut);
-            }
-            else
-            {
-                Touch();
-            }
+            Touch();
         }
 
         public void SetPaused(bool paused)
         {
-            if (Step == TutorialStep.UsePace || HoldTravel)
+            if (HoldTravel)
                 return;
             if (paused)
                 Pace = 0;
@@ -596,72 +546,67 @@ namespace Caravans.Play
                 return;
             }
 
-            float duration = TravelScale.RealSeconds * (edgeLength / RoadPath.Length) * Mathf.Max(0.01f, LegScale);
+            float speed = Mathf.Max(0.01f, TravelScale.Speed(ChosenPace));
+            float duration = TravelScale.RealSeconds * (edgeLength / RoadPath.Length) * Mathf.Max(0.01f, LegScale) / speed;
             float step = edgeLength / duration * Pace * realSeconds;
             float next = TravelDistance + step;
-            float half = edgeLength * 0.5f;
-
-            if (Step == TutorialStep.RidingOut && TowardDraven && !cardResolvedThisLeg && TravelDistance < half && next >= half)
-            {
-                CommitMove(half - TravelDistance);
-                TravelDistance = half;
-                HoldTravel = true;
-                CardPending = true;
-                Step = TutorialStep.RoadCard;
-                ResampleWeather();
-                Touch();
-                return;
-            }
-
-            if (next >= edgeLength)
-            {
-                CommitMove(edgeLength - TravelDistance);
-                Arrive(travelTo);
-                return;
-            }
+            if (next > edgeLength)
+                next = edgeLength;
 
             float moved = next - TravelDistance;
+            float hours = HoursForDistance(moved);
+            float room = TravelHours - TravelScale.ReserveHours;
+            if (room <= 0.00001f)
+            {
+                OpenCamp();
+                return;
+            }
+
+            if (hours > room + 0.00001f)
+            {
+                TravelDistance += DistanceForHours(room);
+                SpendWindow(room, TravelScale.Kit(ChosenPace));
+                OpenCamp();
+                return;
+            }
+
             TravelDistance = next;
-            CommitMove(moved);
+            SpendWindow(hours, TravelScale.Kit(ChosenPace));
+            if (TravelDistance >= edgeLength - 0.000001f)
+                Arrive(travelTo);
         }
 
-        public void ResolveCard(bool steel)
+        public void MakeCamp()
         {
-            if (!CardPending)
+            if (!CampPending)
                 return;
 
-            ResampleWeather();
-            int cost = Mathf.Min(CardCoin, Coin);
-            Coin -= cost;
-            CardWasSteel = steel;
-            CardsResolved += 1;
-            cardResolvedThisLeg = true;
-            CardPending = false;
-            ResultPending = true;
+            CampPending = false;
+            kitFactor = 1f;
+            AdvanceClock(TravelScale.CampHours);
+            TravelHours = TravelScale.WindowHours;
+            AwaitingPace = true;
             HoldTravel = true;
-            if (Step == TutorialStep.RoadCard)
-                Step = TutorialStep.ReadResult;
             Touch();
         }
 
-        public void ContinueFromCard()
+        public bool TryRest()
         {
-            if (!ResultPending)
-                return;
-            ResultPending = false;
-            HoldTravel = false;
-            if (Pace <= 0)
-                Pace = 1;
-            if (Step == TutorialStep.ReadResult)
-                Step = TutorialStep.RidingOut;
+            if (!CanRest())
+                return false;
+
+            kitFactor = 1f;
+            AdvanceClock(TravelScale.TownRestHours);
+            TravelHours = TravelScale.WindowHours;
             Touch();
+            return true;
         }
 
         public void WaitOneHour()
         {
-            if (Traveling || Step != TutorialStep.Free)
+            if (!CanWait())
                 return;
-            AdvanceClock(1f);
+            SpendWindow(1f, 1f);
             Touch();
         }
 
@@ -710,26 +655,6 @@ namespace Caravans.Play
             Touch();
         }
 
-        public void SkipTutorial()
-        {
-            ResetCaravan();
-            Skipped = true;
-            Step = TutorialStep.HouseChoice;
-            HouseNote = string.Empty;
-            Touch();
-        }
-
-        public bool ChooseHouse(HouseId house)
-        {
-            if (Step != TutorialStep.HouseChoice)
-                return false;
-
-            SitAt(house);
-            ReplanDocked();
-            Touch();
-            return true;
-        }
-
         public WeatherKind WeatherAt(Vector2 topLeft)
         {
             WeatherKind best = WeatherKind.Clear;
@@ -754,7 +679,7 @@ namespace Caravans.Play
 
         public WeatherKind WeatherAlongRoad()
         {
-            if (Traveling && !LessonRoad(travelFrom, travelTo))
+            if (Traveling)
                 return WeatherOn(travelFrom, travelTo);
             return WeatherOn(PlaceId.Kharun, PlaceId.Draven);
         }
@@ -813,29 +738,14 @@ namespace Caravans.Play
             travelTo = destination;
             edgeLength = RoadGraph.Length(Dock, destination);
             TravelDistance = 0f;
-            TowardDraven = Dock == PlaceId.Kharun && destination == PlaceId.Draven;
             Traveling = true;
-            cardResolvedThisLeg = false;
+            CampPending = false;
+            AwaitingPace = false;
             LegWeather = WeatherOn(travelFrom, travelTo);
             LegScale = TravelScale.TimeScale(LegWeather);
             Pace = 1;
-
-            if (Step == TutorialStep.LeaveForDraven)
-            {
-                HoldTravel = true;
-                Pace = 0;
-                Advance(TutorialStep.UsePace);
-            }
-            else if (Step == TutorialStep.LeaveForKharun)
-            {
-                HoldTravel = false;
-                Advance(TutorialStep.RidingHome);
-            }
-            else
-            {
-                HoldTravel = false;
-                Touch();
-            }
+            HoldTravel = false;
+            Touch();
 
             if (edgeLength <= 0.000001f)
                 Arrive(destination);
@@ -847,21 +757,45 @@ namespace Caravans.Play
             Dock = place;
             Traveling = false;
             HoldTravel = false;
+            CampPending = false;
+            AwaitingPace = false;
             Pace = 1;
             TravelDistance = 0f;
-            if (place == PlaceId.Draven && Step == TutorialStep.RidingOut)
-                Step = TutorialStep.ArriveDraven;
-            if (place == PlaceId.Kharun && Step == TutorialStep.RidingHome)
-                Step = TutorialStep.SellFungus;
             Touch();
         }
 
-        void CommitMove(float distanceMoved)
+        // The hour reserve stops the leg. A later weather pass will also force camp in a sandstorm.
+        void OpenCamp()
         {
-            if (distanceMoved <= 0f)
+            HoldTravel = true;
+            CampPending = true;
+            ResampleWeather();
+            Touch();
+        }
+
+        void SpendWindow(float hours, float kit)
+        {
+            if (hours <= 0f)
                 return;
-            float hours = distanceMoved / RoadPath.Length * TravelScale.BaseLegHours * LegScale;
+            kitFactor = kit;
             AdvanceClock(hours);
+            kitFactor = 1f;
+            TravelHours -= hours;
+        }
+
+        float HoursForDistance(float distance)
+        {
+            if (distance <= 0f)
+                return 0f;
+            float speed = Mathf.Max(0.01f, TravelScale.Speed(ChosenPace));
+            return distance / RoadPath.Length * TravelScale.BaseLegHours * Mathf.Max(0.01f, LegScale) / speed;
+        }
+
+        float DistanceForHours(float hours)
+        {
+            float speed = Mathf.Max(0.01f, TravelScale.Speed(ChosenPace));
+            float perHour = RoadPath.Length * speed / (TravelScale.BaseLegHours * Mathf.Max(0.01f, LegScale));
+            return hours * perHour;
         }
 
         void AdvanceClock(float hours)
@@ -923,7 +857,7 @@ namespace Caravans.Play
             float day = EconomyRates.DayHours;
             if (hours <= 0f || day <= 0f)
                 return;
-            float days = hours / day;
+            float days = hours / day * kitFactor;
             WaterLitres = Mathf.Max(0f, WaterLitres - days * EconomyRates.WaterLitresPerDay);
             RationKg = Mathf.Max(0f, RationKg - days * EconomyRates.RationsKgPerDay);
         }
@@ -1112,13 +1046,6 @@ namespace Caravans.Play
             patron[index] = best;
         }
 
-        bool Tradable(PlaceId place)
-        {
-            if (Step == TutorialStep.Free)
-                return true;
-            return place != PlaceId.Kharun && place != PlaceId.Draven;
-        }
-
         void SpawnNpcs()
         {
             npcs.Clear();
@@ -1149,45 +1076,9 @@ namespace Caravans.Play
                 NpcCaravan npc = npcs[i];
                 if (npc.Traveling)
                     continue;
-                if (!Tradable(npc.Dock))
-                    Flee(npc);
-                else
-                {
-                    SellCargo(npc);
-                    Plan(npc);
-                }
+                SellCargo(npc);
+                Plan(npc);
             }
-        }
-
-        void Flee(NpcCaravan npc)
-        {
-            IReadOnlyList<PlaceId> neighbors = RoadGraph.Neighbors(npc.Dock);
-            if (neighbors.Count == 0)
-            {
-                npc.Traveling = false;
-                return;
-            }
-
-            PlaceId best = neighbors[0];
-            for (int i = 1; i < neighbors.Count; i++)
-            {
-                if (PreferFlee(neighbors[i], best))
-                    best = neighbors[i];
-            }
-
-            var path = new List<PlaceId> { npc.Dock, best };
-            StartPath(npc, path);
-        }
-
-        bool PreferFlee(PlaceId candidate, PlaceId best)
-        {
-            bool candidateClosed = !Tradable(candidate);
-            bool bestClosed = !Tradable(best);
-            if (bestClosed && !candidateClosed)
-                return true;
-            if (candidateClosed && !bestClosed)
-                return false;
-            return (int)candidate < (int)best;
         }
 
         void Plan(NpcCaravan npc)
@@ -1200,7 +1091,7 @@ namespace Caravans.Play
             for (int place = 0; place < WorldIds.PlaceCount; place++)
             {
                 var dest = (PlaceId)place;
-                if (dest == origin || !Tradable(dest))
+                if (dest == origin)
                     continue;
                 int hops = RoadGraph.Hops(origin, dest);
                 if (hops <= 0 || hops > EconomyRates.NpcHopLimit)
@@ -1425,15 +1316,8 @@ namespace Caravans.Play
 
             npc.Traveling = false;
             npc.Distance = 0f;
-            if (Tradable(arrived))
-            {
-                SellCargo(npc);
-                Plan(npc);
-            }
-            else
-            {
-                Flee(npc);
-            }
+            SellCargo(npc);
+            Plan(npc);
         }
 
         int NpcPercent(PlaceId place, HouseId house)
@@ -1502,38 +1386,6 @@ namespace Caravans.Play
             return (price * percent + 50) / 100;
         }
 
-        bool BuyAllowed(GoodId good)
-        {
-            if (Step == TutorialStep.Free)
-                return true;
-            if (Step == TutorialStep.BuyJars)
-                return good == GoodId.ShimmersteelJars;
-            if (Step == TutorialStep.BuyFungus)
-                return good == GoodId.FingerFungus;
-            return false;
-        }
-
-        bool SellAllowed(GoodId good)
-        {
-            if (Step == TutorialStep.Free)
-                return true;
-            if (Step == TutorialStep.SellJars)
-                return good == GoodId.ShimmersteelJars;
-            if (Step == TutorialStep.SellFungus)
-                return good == GoodId.FingerFungus;
-            return false;
-        }
-
-        bool NeedsCardReserve()
-        {
-            return Step == TutorialStep.OpenMarket
-                || Step == TutorialStep.BuyJars
-                || Step == TutorialStep.LeaveForDraven
-                || Step == TutorialStep.UsePace
-                || Step == TutorialStep.RidingOut
-                || Step == TutorialStep.RoadCard;
-        }
-
         void ResampleWeather()
         {
             WeatherKind again = WeatherAlongRoad();
@@ -1558,11 +1410,6 @@ namespace Caravans.Play
             return worst;
         }
 
-        static bool LessonRoad(PlaceId a, PlaceId b)
-        {
-            return (a == PlaceId.Kharun && b == PlaceId.Draven) || (a == PlaceId.Draven && b == PlaceId.Kharun);
-        }
-
         void MoveWeather(float hours)
         {
             for (int i = 0; i < masses.Count; i++)
@@ -1578,7 +1425,6 @@ namespace Caravans.Play
         void ResetCaravan()
         {
             EconomyCatalog.EnsureLoaded();
-            Step = TutorialStep.OpenMarket;
             stacks.Clear();
             for (int place = 0; place < WorldIds.PlaceCount; place++)
             {
@@ -1608,23 +1454,23 @@ namespace Caravans.Play
             RationKg = EconomyRates.RationBagKg;
             Day = 1;
             Hour = EconomyRates.MorningHour;
+            TravelHours = TravelScale.WindowHours;
             Dock = PlaceId.Kharun;
             Traveling = false;
-            TowardDraven = true;
             TravelDistance = 0f;
             travelFrom = PlaceId.Kharun;
             travelTo = PlaceId.Draven;
             edgeLength = RoadGraph.Length(PlaceId.Kharun, PlaceId.Draven);
             Pace = 1;
             HoldTravel = false;
+            ChosenPace = RoadPace.Steady;
+            TravelsByDay = true;
+            CampPending = false;
+            AwaitingPace = false;
+            kitFactor = 1f;
             LegWeather = WeatherKind.Clear;
             LegScale = 1f;
-            CardWasSteel = false;
-            cardResolvedThisLeg = false;
-            CardPending = false;
-            ResultPending = false;
             House = null;
-            HouseNote = string.Empty;
             masses.Clear();
             masses.Add(new WeatherMass
             {
@@ -1660,20 +1506,13 @@ namespace Caravans.Play
         {
             House = house;
             Dock = HomeOf(house);
-            Step = TutorialStep.Free;
             Traveling = false;
             HoldTravel = false;
+            CampPending = false;
+            AwaitingPace = false;
             TravelDistance = 0f;
             travelFrom = Dock;
-            TowardDraven = false;
             Pace = 1;
-            HouseNote = string.Empty;
-        }
-
-        void Advance(TutorialStep step)
-        {
-            Step = step;
-            Touch();
         }
 
         void Touch()

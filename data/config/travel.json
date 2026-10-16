@@ -7,5 +7,14 @@
   "nightHour": 18,
   "realSeconds": 36,
   "seaHourFloor": 1,
-  "cardCoin": 8
+  "travelWindowHours": 12,
+  "reserveHours": 3,
+  "townRestHours": 4,
+  "campHours": 6,
+  "rushSpeed": 1.5,
+  "rushKit": 1.25,
+  "steadySpeed": 1,
+  "steadyKit": 1,
+  "carefulSpeed": 0.5,
+  "carefulKit": 0.75
 }
