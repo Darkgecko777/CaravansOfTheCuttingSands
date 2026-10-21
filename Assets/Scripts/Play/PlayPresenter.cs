@@ -25,6 +25,9 @@ namespace Caravans.Play
         static readonly Color ButtonDown = new Color(0.3f, 0.2f, 0.14f, 1f);
         static readonly Color ButtonOff = new Color(0.24f, 0.19f, 0.16f, 0.85f);
         static readonly Color Field = new Color(0.28f, 0.21f, 0.16f, 1f);
+        const string InkHex = "#F2E3C7";
+        const string DayHex = "#E6C36A";
+        const string NightHex = "#8EBFEE";
 
         readonly List<Button> buttons = new List<Button>();
         readonly List<GameObject> raised = new List<GameObject>();
@@ -48,7 +51,6 @@ namespace Caravans.Play
         bool choosingRoad;
         PlaceId pendingDest;
         RoadPace draftPace = RoadPace.Steady;
-        bool draftDay = true;
         string listenLine = string.Empty;
 
         RectTransform dock;
@@ -58,8 +60,6 @@ namespace Caravans.Play
         RawImage fogImage;
         Material fogMaterial;
         RectTransform token;
-        RectTransform[] weatherDiscs;
-        TextMeshProUGUI[] weatherLabels;
         Image dimmer;
         RectTransform cardRoot;
         TextMeshProUGUI cardTitle;
@@ -67,10 +67,11 @@ namespace Caravans.Play
         Button rushButton;
         Button steadyButton;
         Button carefulButton;
-        Button dayButton;
-        Button nightButton;
         Button confirmPaceButton;
+        Button dawnButton;
+        Button duskButton;
         Button campButton;
+        Button continueButton;
         Button backPaceButton;
         RectTransform optionsRoot;
         TextMeshProUGUI placeText;
@@ -373,18 +374,6 @@ namespace Caravans.Play
             mapImage.color = new Color(0.72f, 0.61f, 0.42f, 1f);
             mapImage.raycastTarget = false;
 
-            weatherDiscs = new RectTransform[3];
-            weatherLabels = new TextMeshProUGUI[3];
-            for (int i = 0; i < 3; i++)
-            {
-                var discImage = ImageOn(Child(mapRoot, "Weather" + i), Color.white, false);
-                discImage.sprite = disc;
-                weatherDiscs[i] = discImage.rectTransform;
-                weatherLabels[i] = Body(weatherDiscs[i], 16, TextAlignmentOptions.Center);
-                Stretch(weatherLabels[i].rectTransform);
-                weatherLabels[i].raycastTarget = false;
-            }
-
             var fogGo = Child(mapRoot, "Fog");
             Stretch(fogGo);
             fogImage = fogGo.gameObject.AddComponent<RawImage>();
@@ -589,14 +578,21 @@ namespace Caravans.Play
             rushButton = ChoiceButton(panel, "Rush", new Vector2(-240f, 20f), () => PickPace(RoadPace.Rush));
             steadyButton = ChoiceButton(panel, "Steady", new Vector2(0f, 20f), () => PickPace(RoadPace.Steady));
             carefulButton = ChoiceButton(panel, "Careful", new Vector2(240f, 20f), () => PickPace(RoadPace.Careful));
-            dayButton = ChoiceButton(panel, "Day", new Vector2(-120f, -60f), () => PickDay(true));
-            nightButton = ChoiceButton(panel, "Night", new Vector2(120f, -60f), () => PickDay(false));
-            confirmPaceButton = ChoiceButton(panel, "Take the road", new Vector2(0f, -150f), ConfirmPace);
+            dawnButton = ChoiceButton(panel, "Wait until dawn", new Vector2(-170f, -48f), () => session.WaitUntilDawn());
+            duskButton = ChoiceButton(panel, "Wait until dusk", new Vector2(170f, -48f), () => session.WaitUntilDusk());
+            confirmPaceButton = ChoiceButton(panel, "Take the road", new Vector2(0f, -160f), ConfirmPace);
             campButton = ChoiceButton(panel, "Make camp", new Vector2(0f, -20f), () => session.MakeCamp());
-            backPaceButton = ChoiceButton(panel, "Back", new Vector2(220f, -150f), CloseRoadChoice);
-            confirmPaceButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
+            continueButton = ChoiceButton(panel, "Continue", new Vector2(0f, -20f), () => session.ContinueEncounter());
+            backPaceButton = ChoiceButton(panel, "Back", new Vector2(300f, -160f), CloseRoadChoice);
+            dawnButton.GetComponent<RectTransform>().sizeDelta = new Vector2(250f, 56f);
+            duskButton.GetComponent<RectTransform>().sizeDelta = new Vector2(250f, 56f);
+            confirmPaceButton.GetComponent<RectTransform>().sizeDelta = new Vector2(360f, 88f);
             campButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
+            continueButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
             backPaceButton.GetComponent<RectTransform>().sizeDelta = new Vector2(160f, 56f);
+            var confirmLabel = confirmPaceButton.GetComponentInChildren<TextMeshProUGUI>();
+            confirmLabel.color = Color.white;
+            confirmLabel.richText = true;
         }
 
         void CloseRoadChoice()
@@ -611,12 +607,6 @@ namespace Caravans.Play
             Redraw();
         }
 
-        void PickDay(bool byDay)
-        {
-            draftDay = byDay;
-            Redraw();
-        }
-
         Button ChoiceButton(RectTransform panel, string label, Vector2 position, UnityEngine.Events.UnityAction action)
         {
             Button button = CardButton(panel, label, position, action);
@@ -626,7 +616,7 @@ namespace Caravans.Play
 
         void ConfirmPace()
         {
-            session.ChooseRoadPace(draftPace, draftDay);
+            session.ChooseRoadPace(draftPace);
             if (!choosingRoad)
                 return;
             PlaceId dest = pendingDest;
@@ -681,9 +671,9 @@ namespace Caravans.Play
             plazaPage.SetActive(page == Page.Plaza);
             housePage.SetActive(page == Page.House);
             houseTab.gameObject.SetActive(EconomyCatalog.IsCity(session.Dock));
-            paceBar.SetActive(session.Traveling && !session.CampPending && !session.AwaitingPace);
+            paceBar.SetActive(session.Traveling && !session.CampPending && !session.AwaitingPace && !session.EncounterPending);
             backButton.gameObject.SetActive(lookingAtMap && !session.Traveling);
-            bool roadChoice = choosingRoad || session.CampPending || session.AwaitingPace;
+            bool roadChoice = choosingRoad || session.CampPending || session.AwaitingPace || session.EncounterPending;
             cardRoot.gameObject.SetActive(roadChoice);
             optionsRoot.gameObject.SetActive(optionsOpen);
             logbookRoot.gameObject.SetActive(logbookOpen);
@@ -723,29 +713,63 @@ namespace Caravans.Play
 
         void ShowRoadChoice(bool open)
         {
-            bool camp = session.CampPending;
-            bool pace = open && !camp;
-            cardTitle.text = camp ? "Make camp" : "The road";
-            cardBody.text = camp ? "The travel hours are spent." : "Choose a pace.";
+            bool encounter = session.EncounterPending;
+            bool camp = session.CampPending && !encounter;
+            bool pace = open && !camp && !encounter;
+            bool resume = pace && session.AwaitingPace;
+            cardTitle.text = encounter ? session.EncounterId : camp ? "Make camp" : "The road";
+            cardBody.text = encounter ? "Nothing comes of this yet." : camp ? "The travel hours are spent." : "Choose a pace.";
             rushButton.gameObject.SetActive(pace);
             steadyButton.gameObject.SetActive(pace);
             carefulButton.gameObject.SetActive(pace);
-            dayButton.gameObject.SetActive(pace);
-            nightButton.gameObject.SetActive(pace);
+            dawnButton.gameObject.SetActive(resume);
+            duskButton.gameObject.SetActive(resume);
             confirmPaceButton.gameObject.SetActive(pace);
-            backPaceButton.gameObject.SetActive(choosingRoad && !session.AwaitingPace);
+            backPaceButton.gameObject.SetActive(choosingRoad && !session.AwaitingPace && !encounter);
             campButton.gameObject.SetActive(camp);
+            continueButton.gameObject.SetActive(encounter);
+            ShowDeparture(pace);
             if (!pace)
                 return;
             TintPace(rushButton, draftPace == RoadPace.Rush);
             TintPace(steadyButton, draftPace == RoadPace.Steady);
             TintPace(carefulButton, draftPace == RoadPace.Careful);
-            TintPace(dayButton, draftDay);
-            TintPace(nightButton, !draftDay);
+        }
+
+        void ShowDeparture(bool pace)
+        {
+            var label = confirmPaceButton.GetComponentInChildren<TextMeshProUGUI>();
+            label.richText = true;
+            label.color = Color.white;
+            if (!pace)
+            {
+                label.text = "<color=" + InkHex + ">Take the road</color>";
+                return;
+            }
+
+            PlaceId dest = session.AwaitingPace ? session.LegDestination : pendingDest;
+            float dayHours;
+            float nightHours;
+            session.SplitUntilStop(dest, draftPace, out dayHours, out nightHours);
+            if (dayHours + nightHours <= 0.001f)
+            {
+                label.text = "<color=" + InkHex + ">Take the road</color>";
+                return;
+            }
+
+            label.text = "<color=" + InkHex + ">Take the road</color>\n<color=" + DayHex + ">"
+                + Amount(dayHours) + " h day</color>  <color=" + NightHex + ">"
+                + Amount(nightHours) + " h night</color>";
         }
 
         void EnableRoadChoice()
         {
+            if (session.EncounterPending)
+            {
+                continueButton.interactable = true;
+                return;
+            }
+
             if (session.CampPending)
             {
                 campButton.interactable = true;
@@ -755,10 +779,13 @@ namespace Caravans.Play
             rushButton.interactable = true;
             steadyButton.interactable = true;
             carefulButton.interactable = true;
-            dayButton.interactable = true;
-            nightButton.interactable = true;
             confirmPaceButton.interactable = true;
             backPaceButton.interactable = choosingRoad;
+            if (session.AwaitingPace)
+            {
+                dawnButton.interactable = session.CanWaitUntilDawn();
+                duskButton.interactable = session.CanWaitUntilDusk();
+            }
         }
 
         void RebuildRows()
@@ -842,7 +869,6 @@ namespace Caravans.Play
             pendingDest = dest;
             choosingRoad = true;
             draftPace = session.ChosenPace;
-            draftDay = session.TravelsByDay;
             Redraw();
         }
 
@@ -1019,16 +1045,6 @@ namespace Caravans.Play
                 shifted.y += Mathf.Sin(angle) * 0.008f;
                 PlaceOnMap(npcTokens[i].rectTransform, shifted, 14f);
                 npcTokens[i].color = HouseColor(mark.House);
-            }
-            float height = mapRoot.rect.height;
-            var masses = session.Masses;
-            for (int i = 0; i < weatherDiscs.Length && i < masses.Count; i++)
-            {
-                WeatherMass mass = masses[i];
-                float diameter = Mathf.Max(48f, mass.Radius * 2f * height);
-                PlaceOnMap(weatherDiscs[i], mass.Center, diameter);
-                weatherDiscs[i].GetComponent<Image>().color = WeatherColor(mass.Kind);
-                weatherLabels[i].text = CaravanSession.WeatherName(mass.Kind);
             }
 
             if (fogMaterial != null)
@@ -1233,21 +1249,6 @@ namespace Caravans.Play
                     return new Color(0.55f, 0.38f, 0.68f, 1f);
                 default:
                     return new Color(0.78f, 0.52f, 0.22f, 1f);
-            }
-        }
-
-        static Color WeatherColor(WeatherKind kind)
-        {
-            switch (kind)
-            {
-                case WeatherKind.Heat:
-                    return new Color(0.77f, 0.32f, 0.12f, 0.38f);
-                case WeatherKind.Wind:
-                    return new Color(0.85f, 0.78f, 0.58f, 0.32f);
-                case WeatherKind.Sandstorm:
-                    return new Color(0.62f, 0.42f, 0.22f, 0.5f);
-                default:
-                    return new Color(1f, 1f, 1f, 0f);
             }
         }
 

@@ -67,6 +67,57 @@ namespace Caravans.Play
             }
         }
 
+        public static float DayKit
+        {
+            get { return GameConfig.Travel.dayKit; }
+        }
+
+        public static bool IsDayHour(float hour)
+        {
+            return hour >= EconomyRates.MorningHour && hour < EconomyRates.NightHour;
+        }
+
+        public static void SplitDayNight(float startHour, float span, out float dayHours, out float nightHours)
+        {
+            dayHours = 0f;
+            nightHours = 0f;
+            if (span <= 0.00005f)
+                return;
+            float dayLength = EconomyRates.DayHours;
+            if (dayLength <= 0f)
+                return;
+            float hour = startHour % dayLength;
+            if (hour < 0f)
+                hour += dayLength;
+            float left = span;
+            int guard = 0;
+            while (left > 0.00005f && guard++ < 16)
+            {
+                bool day = IsDayHour(hour);
+                float boundary = day ? EconomyRates.NightHour : NextMorning(hour, dayLength);
+                float step = boundary - hour;
+                if (step <= 0.00005f)
+                    step = dayLength;
+                if (step > left)
+                    step = left;
+                if (day)
+                    dayHours += step;
+                else
+                    nightHours += step;
+                left -= step;
+                hour += step;
+                if (hour >= dayLength - 0.00005f)
+                    hour -= dayLength;
+            }
+        }
+
+        static float NextMorning(float hour, float dayLength)
+        {
+            if (hour < EconomyRates.MorningHour)
+                return EconomyRates.MorningHour;
+            return dayLength + EconomyRates.MorningHour;
+        }
+
         public static float VisionDay
         {
             get { return GameConfig.Weather.visionDay; }

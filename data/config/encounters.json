@@ -1,0 +1,7 @@
+{
+  "baseChance": 0.5,
+  "carefulOffset": -0.15,
+  "rushOffset": 0.15,
+  "floorChance": 0.05,
+  "seed": 4817
+}

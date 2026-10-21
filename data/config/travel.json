@@ -16,5 +16,6 @@
   "steadySpeed": 1,
   "steadyKit": 1,
   "carefulSpeed": 0.5,
-  "carefulKit": 0.75
+  "carefulKit": 0.75,
+  "dayKit": 1.5
 }

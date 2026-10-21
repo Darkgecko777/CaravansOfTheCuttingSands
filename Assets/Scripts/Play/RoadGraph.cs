@@ -139,6 +139,22 @@ namespace Caravans.Play
                 1186, 1788, 1220, 1788, 1234, 1784, 1264, 1768, 1276, 1766, 1294, 1768,
                 1316, 1778, 1324, 1778, 1346, 1790, 1366, 1790, 1394, 1780, 1398, 1782,
                 1416, 1778, 1415, 1778);
+            // Painted dots run from the Ghûl tent to the oasis shore. The last
+            // points stay on the sand around the pool and end at the Ghorath dock.
+            Add(PlaceId.Ghul, PlaceId.Ghorath,
+                1415, 1778, 1454, 1776, 1475, 1813, 1491, 1811, 1506, 1809,
+                1529, 1816, 1551, 1826, 1566, 1828, 1582, 1828, 1598, 1825,
+                1613, 1821, 1629, 1817, 1645, 1814, 1660, 1813, 1677, 1813,
+                1692, 1810, 1708, 1808, 1724, 1805, 1740, 1804, 1763, 1806,
+                1787, 1812, 1802, 1817, 1818, 1820, 1841, 1819, 1871, 1809,
+                1901, 1795, 1923, 1785, 1955, 1763, 1997, 1739, 2028, 1730,
+                2051, 1725, 2066, 1720, 2088, 1710, 2109, 1698, 2127, 1686,
+                2135, 1680, 2148, 1671, 2162, 1663, 2177, 1657, 2192, 1651,
+                2205, 1642, 2218, 1632, 2230, 1622, 2243, 1612, 2237, 1594,
+                2249, 1582, 2264, 1573, 2282, 1567, 2297, 1558, 2318, 1555,
+                2339, 1549, 2351, 1537, 2363, 1525, 2375, 1513, 2399, 1513,
+                2410, 1511);
+
             Add(PlaceId.Southmark, PlaceId.Sorel,
                 932, 1768, 930, 1768, 920, 1790, 906, 1800, 896, 1802, 892, 1808,
                 884, 1810, 884, 1814, 878, 1814, 868, 1822, 850, 1826, 814, 1848,
@@ -172,6 +188,17 @@ namespace Caravans.Play
         public static bool IsSea(PlaceId a, PlaceId b)
         {
             return TryFind(a, b, out Edge edge) && edge.Sea;
+        }
+
+        public static void CopyRoads(List<PlaceId> from, List<PlaceId> to)
+        {
+            from.Clear();
+            to.Clear();
+            for (int i = 0; i < Edges.Count; i++)
+            {
+                from.Add(Edges[i].A);
+                to.Add(Edges[i].B);
+            }
         }
 
         public static float Length(PlaceId a, PlaceId b)

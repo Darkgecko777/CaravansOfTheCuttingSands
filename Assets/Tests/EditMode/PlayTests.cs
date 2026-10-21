@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -175,7 +176,6 @@ namespace Caravans.Play.Tests
             Assert.IsFalse(session.Traveling);
             Assert.AreEqual(TravelScale.WindowHours, session.TravelHours, 0.001f);
             Assert.AreEqual(RoadPace.Steady, session.ChosenPace);
-            Assert.IsTrue(session.TravelsByDay);
         }
 
         [Test]
@@ -224,7 +224,7 @@ namespace Caravans.Play.Tests
         }
 
         [Test]
-        public void AClearDayOnTheRoadSpendsOneDayOfKit()
+        public void AClearCrossingDrinksDayRoadHoursAtTheHigherRate()
         {
             var session = new CaravanSession();
             int day = session.Day;
@@ -234,9 +234,10 @@ namespace Caravans.Play.Tests
             Assert.IsTrue(session.DepartTo(PlaceId.Draven));
             Ride(session);
             float elapsed = (session.Day - day) * EconomyRates.DayHours + (session.Hour - hour);
-            Assert.Greater(elapsed, 20f);
-            Assert.AreEqual(water - elapsed / EconomyRates.DayHours * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.05f);
-            Assert.AreEqual(food - elapsed / EconomyRates.DayHours * EconomyRates.RationsKgPerDay, session.RationKg, 0.05f);
+            Assert.AreEqual(36f, elapsed, 0.05f);
+            float kitHours = 9f * TravelScale.DayKit + 6f + 9f + 6f + 6f * TravelScale.DayKit;
+            Assert.AreEqual(water - kitHours / EconomyRates.DayHours * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.05f);
+            Assert.AreEqual(food - kitHours / EconomyRates.DayHours * EconomyRates.RationsKgPerDay, session.RationKg, 0.05f);
         }
 
         [Test]
@@ -451,14 +452,24 @@ namespace Caravans.Play.Tests
             Ride(session);
         }
 
+        static void Release(CaravanSession session)
+        {
+            if (session.EncounterPending)
+                session.ContinueEncounter();
+        }
+
         static void Ride(CaravanSession session)
         {
             for (int i = 0; i < 4000 && session.Traveling; i++)
             {
+                Release(session);
                 if (session.CampPending)
                     session.MakeCamp();
                 if (session.AwaitingPace)
-                    session.ChooseRoadPace(session.ChosenPace, session.TravelsByDay);
+                {
+                    session.ChooseRoadPace(session.ChosenPace);
+                    Release(session);
+                }
                 session.Tick(0.25f);
             }
 
@@ -496,21 +507,22 @@ namespace Caravans.Play.Tests
         public void CampRestoresTheWindowAfterNineTravelHours()
         {
             var session = new CaravanSession();
-            session.ChooseRoadPace(RoadPace.Steady, false);
-            Assert.IsFalse(session.TravelsByDay);
             float water = session.WaterLitres;
             int day = session.Day;
             float hour = session.Hour;
             Assert.IsTrue(session.DepartTo(PlaceId.Draven));
             for (int i = 0; i < 4000 && !session.CampPending; i++)
+            {
+                Release(session);
                 session.Tick(0.25f);
+            }
 
             Assert.IsTrue(session.CampPending);
             Assert.AreEqual(TravelScale.ReserveHours, session.TravelHours, 0.05f);
             float elapsed = Elapsed(session, day, hour);
             Assert.AreEqual(TravelScale.WindowHours - TravelScale.ReserveHours, elapsed, 0.05f);
             float travelDays = elapsed / EconomyRates.DayHours;
-            Assert.AreEqual(water - travelDays * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.05f);
+            Assert.AreEqual(water - travelDays * TravelScale.DayKit * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.05f);
             float covered = session.TravelDistance / RoadGraph.Length(PlaceId.Kharun, PlaceId.Draven);
             Assert.AreEqual(travelDays, covered, 0.02f);
 
@@ -519,7 +531,8 @@ namespace Caravans.Play.Tests
             Assert.IsTrue(session.AwaitingPace);
             float afterCamp = Elapsed(session, day, hour);
             Assert.AreEqual(elapsed + TravelScale.CampHours, afterCamp, 0.05f);
-            session.ChooseRoadPace(RoadPace.Steady, true);
+            session.ChooseRoadPace(RoadPace.Steady);
+            Release(session);
             Assert.IsFalse(session.AwaitingPace);
             Assert.IsFalse(session.HoldTravel);
         }
@@ -545,19 +558,285 @@ namespace Caravans.Play.Tests
         {
             var session = CaravanSession.AtHouse(HouseId.Zamath);
             float hours = session.TravelHours;
+            session.SplitUntilStop(PlaceId.Neth, RoadPace.Steady, out float day, out float night);
+            Assert.AreEqual(0f, day, 0.001f);
+            Assert.AreEqual(0f, night, 0.001f);
             Assert.IsTrue(session.DepartTo(PlaceId.Neth));
             Assert.IsFalse(session.Traveling);
             Assert.AreEqual(PlaceId.Neth, session.Dock);
             Assert.AreEqual(hours, session.TravelHours, 0.001f);
         }
 
+        [Test]
+        public void TheDepartureSplitFollowsTheClockUntilTheNextStop()
+        {
+            TravelScale.SplitDayNight(14f, 9f, out float walkedDay, out float walkedNight);
+            Assert.AreEqual(4f, walkedDay, 0.001f);
+            Assert.AreEqual(5f, walkedNight, 0.001f);
+
+            var session = new CaravanSession();
+            Assert.IsFalse(session.CanWaitUntilDawn());
+            session.SplitUntilStop(PlaceId.Draven, RoadPace.Steady, out float day, out float night);
+            Assert.AreEqual(9f, day, 0.05f);
+            Assert.AreEqual(0f, night, 0.05f);
+            session.SplitUntilStop(PlaceId.Draven, RoadPace.Rush, out day, out night);
+            Assert.AreEqual(9f, day, 0.05f);
+            Assert.AreEqual(0f, night, 0.05f);
+
+            float kaleth = RoadGraph.Hours(PlaceId.Kharun, PlaceId.Kaleth) / TravelScale.Speed(RoadPace.Rush);
+            Assert.Less(kaleth, TravelScale.WindowHours - TravelScale.ReserveHours);
+            session.SplitUntilStop(PlaceId.Kaleth, RoadPace.Rush, out day, out night);
+            Assert.AreEqual(kaleth, day, 0.05f);
+            Assert.AreEqual(0f, night, 0.05f);
+            session.SplitUntilStop(PlaceId.Kaleth, RoadPace.Steady, out day, out night);
+            Assert.AreEqual(9f, day + night, 0.05f);
+
+            session.AdvanceHours(8f);
+            session.SplitUntilStop(PlaceId.Draven, RoadPace.Steady, out day, out night);
+            Assert.AreEqual(4f, day, 0.05f);
+            Assert.AreEqual(5f, night, 0.05f);
+            session.AdvanceHours(4f);
+            session.SplitUntilStop(PlaceId.Draven, RoadPace.Steady, out day, out night);
+            Assert.AreEqual(0f, day, 0.05f);
+            Assert.AreEqual(9f, night, 0.05f);
+        }
+
+        [Test]
+        public void DayHoursOnTheRoadDrinkMoreThanNightHours()
+        {
+            var session = new CaravanSession();
+            session.AdvanceHours(8f);
+            float water = session.WaterLitres;
+            float food = session.RationKg;
+            session.ChooseRoadPace(RoadPace.Steady);
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            for (int i = 0; i < 4000 && !session.CampPending; i++)
+            {
+                Release(session);
+                session.Tick(0.25f);
+            }
+            Assert.IsTrue(session.CampPending);
+            float kitHours = (4f * TravelScale.DayKit + 5f) / EconomyRates.DayHours;
+            Assert.AreEqual(water - kitHours * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.05f);
+            Assert.AreEqual(food - kitHours * EconomyRates.RationsKgPerDay, session.RationKg, 0.05f);
+        }
+
+        [Test]
+        public void CampCanWaitUntilDawnWithoutSpendingTheTravelStore()
+        {
+            var session = new CaravanSession();
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            for (int i = 0; i < 4000 && !session.CampPending; i++)
+            {
+                Release(session);
+                session.Tick(0.25f);
+            }
+            session.MakeCamp();
+            Assert.AreEqual(21f, session.Hour, 0.05f);
+            float water = session.WaterLitres;
+            float food = session.RationKg;
+            Assert.IsTrue(session.CanWaitUntilDawn());
+            session.WaitUntilDawn();
+            Assert.AreEqual(EconomyRates.MorningHour, session.Hour, 0.05f);
+            Assert.AreEqual(TravelScale.WindowHours, session.TravelHours, 0.001f);
+            float waited = 9f / EconomyRates.DayHours;
+            Assert.AreEqual(water - waited * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.05f);
+            Assert.AreEqual(food - waited * EconomyRates.RationsKgPerDay, session.RationKg, 0.05f);
+            session.SplitUntilStop(PlaceId.Draven, RoadPace.Steady, out float day, out float night);
+            Assert.AreEqual(9f, day, 0.05f);
+            Assert.AreEqual(0f, night, 0.05f);
+            Assert.IsFalse(session.CanWaitUntilDawn());
+
+            water = session.WaterLitres;
+            food = session.RationKg;
+            Assert.IsTrue(session.CanWaitUntilDusk());
+            session.WaitUntilDusk();
+            Assert.AreEqual(EconomyRates.NightHour, session.Hour, 0.05f);
+            Assert.AreEqual(TravelScale.WindowHours, session.TravelHours, 0.001f);
+            waited = 12f / EconomyRates.DayHours;
+            Assert.AreEqual(water - waited * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.05f);
+            Assert.AreEqual(food - waited * EconomyRates.RationsKgPerDay, session.RationKg, 0.05f);
+            session.SplitUntilStop(PlaceId.Draven, RoadPace.Steady, out day, out night);
+            Assert.AreEqual(0f, day, 0.05f);
+            Assert.AreEqual(9f, night, 0.05f);
+            Assert.IsFalse(session.CanWaitUntilDusk());
+        }
+
+        [Test]
+        public void StretchChancesFollowThePace()
+        {
+            Assert.AreEqual(0.35f, EncounterTable.Chance(RoadPace.Careful), 0.0001f);
+            Assert.AreEqual(0.50f, EncounterTable.Chance(RoadPace.Steady), 0.0001f);
+            Assert.AreEqual(0.65f, EncounterTable.Chance(RoadPace.Rush), 0.0001f);
+        }
+
+        [Test]
+        public void TheEncounterChartHasEightyIdsAndStoresDayAndNight()
+        {
+            IReadOnlyList<EncounterRow> rows = EncounterTable.All;
+            Assert.AreEqual(80, rows.Count);
+            var seen = new HashSet<string>();
+            int day = 0;
+            int night = 0;
+            int either = 0;
+            var categories = (EncounterCategory[])System.Enum.GetValues(typeof(EncounterCategory));
+            for (int c = 0; c < categories.Length; c++)
+            {
+                IReadOnlyList<EncounterRow> group = EncounterTable.Rows(categories[c]);
+                Assert.AreEqual(5, group.Count);
+                Assert.AreEqual(DayNight.Day, group[0].When);
+                Assert.AreEqual(DayNight.Night, group[1].When);
+                Assert.AreEqual(DayNight.Either, group[2].When);
+                Assert.AreEqual(DayNight.Day, group[3].When);
+                Assert.AreEqual(DayNight.Night, group[4].When);
+            }
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                Assert.IsTrue(seen.Add(rows[i].Id));
+                if (rows[i].When == DayNight.Day)
+                    day++;
+                else if (rows[i].When == DayNight.Night)
+                    night++;
+                else
+                    either++;
+            }
+
+            Assert.AreEqual(32, day);
+            Assert.AreEqual(32, night);
+            Assert.AreEqual(16, either);
+            Assert.AreEqual("SS-01", EncounterTable.Rows(EncounterCategory.WeatherSandstorm)[0].Id);
+            Assert.AreEqual("WS-01", EncounterTable.Rows(EncounterCategory.WildlifeSea)[0].Id);
+        }
+
+        [Test]
+        public void RoadPoolsFollowTheRouteAndLeaveRivalRowsOut()
+        {
+            List<EncounterCategory> kaleth = EncounterTable.Eligible(PlaceId.Kharun, PlaceId.Kaleth, WeatherKind.Clear);
+            Assert.IsTrue(kaleth.Contains(EncounterCategory.WildlifeDesert));
+            Assert.IsTrue(kaleth.Contains(EncounterCategory.Bandits));
+            Assert.IsTrue(kaleth.Contains(EncounterCategory.Catchall));
+            Assert.IsTrue(kaleth.Contains(EncounterCategory.CityKharun));
+            Assert.IsTrue(kaleth.Contains(EncounterCategory.WeatherClear));
+            Assert.IsFalse(kaleth.Contains(EncounterCategory.WildlifeSea));
+            Assert.IsFalse(kaleth.Contains(EncounterCategory.WildlifeMountain));
+            Assert.AreEqual(5, kaleth.Count);
+
+            List<EncounterCategory> sea = EncounterTable.Eligible(PlaceId.Kaleth, PlaceId.Zamath, WeatherKind.Heat);
+            Assert.IsTrue(sea.Contains(EncounterCategory.WildlifeSea));
+            Assert.IsTrue(sea.Contains(EncounterCategory.CityZamath));
+            Assert.IsTrue(sea.Contains(EncounterCategory.WeatherHeat));
+            Assert.IsFalse(sea.Contains(EncounterCategory.WildlifeMountain));
+            Assert.IsFalse(sea.Contains(EncounterCategory.CityKharun));
+
+            List<EncounterCategory> mountain = EncounterTable.Eligible(PlaceId.Kharun, PlaceId.Draven, WeatherKind.Sandstorm);
+            Assert.IsTrue(mountain.Contains(EncounterCategory.WildlifeMountain));
+            Assert.IsTrue(mountain.Contains(EncounterCategory.CityKharun));
+            Assert.IsTrue(mountain.Contains(EncounterCategory.WeatherSandstorm));
+            Assert.IsFalse(mountain.Contains(EncounterCategory.WeatherClear));
+            Assert.IsFalse(mountain.Contains(EncounterCategory.WildlifeSea));
+
+            List<EncounterCategory> both = EncounterTable.Eligible(PlaceId.Veythar, PlaceId.Ghorath, WeatherKind.Wind);
+            Assert.IsTrue(both.Contains(EncounterCategory.CityVeythar));
+            Assert.IsTrue(both.Contains(EncounterCategory.CityGhorath));
+            Assert.IsTrue(both.Contains(EncounterCategory.WildlifeMountain));
+            Assert.IsTrue(both.Contains(EncounterCategory.WeatherWind));
+
+            var from = new List<PlaceId>();
+            var to = new List<PlaceId>();
+            RoadGraph.CopyRoads(from, to);
+            Assert.AreEqual(from.Count, EncounterTable.Routes.Count);
+            var weather = new[] { WeatherKind.Clear, WeatherKind.Heat, WeatherKind.Wind, WeatherKind.Sandstorm };
+            for (int i = 0; i < from.Count; i++)
+            {
+                Assert.IsTrue(EncounterTable.HasRoute(from[i], to[i]));
+                Assert.IsTrue(RoadGraph.Connects(from[i], to[i]));
+                for (int w = 0; w < weather.Length; w++)
+                {
+                    List<EncounterCategory> pool = EncounterTable.Eligible(from[i], to[i], weather[w]);
+                    Assert.IsFalse(pool.Contains(EncounterCategory.RivalHouses));
+                    Assert.IsFalse(pool.Contains(EncounterCategory.AncientMysteries));
+                }
+            }
+
+            for (int i = 0; i < EncounterTable.Routes.Count; i++)
+                Assert.IsTrue(RoadGraph.Connects(EncounterTable.Routes[i].A, EncounterTable.Routes[i].B));
+        }
+
+        [Test]
+        public void GhulAndGhorathShareAWildlifeSeaRoad()
+        {
+            Assert.IsTrue(RoadGraph.Connects(PlaceId.Ghul, PlaceId.Ghorath));
+            Assert.IsFalse(RoadGraph.IsSea(PlaceId.Ghul, PlaceId.Ghorath));
+            Assert.Greater(RoadGraph.Hours(PlaceId.Ghul, PlaceId.Ghorath), 0f);
+            IReadOnlyList<Vector2> samples = RoadGraph.Samples(PlaceId.Ghul, PlaceId.Ghorath);
+            Assert.AreEqual(RoadGraph.DockPoint(PlaceId.Ghul), samples[0]);
+            Assert.AreEqual(RoadGraph.DockPoint(PlaceId.Ghorath), samples[samples.Count - 1]);
+            List<EncounterCategory> pool = EncounterTable.Eligible(PlaceId.Ghul, PlaceId.Ghorath, WeatherKind.Clear);
+            Assert.IsTrue(pool.Contains(EncounterCategory.WildlifeSea));
+            Assert.IsTrue(pool.Contains(EncounterCategory.CityGhorath));
+            Assert.IsFalse(pool.Contains(EncounterCategory.WildlifeMountain));
+            Assert.IsFalse(pool.Contains(EncounterCategory.CityKharun));
+        }
+
+        [Test]
+        public void AStretchRollsOnceAndContinueChangesNothing()
+        {
+            var session = new CaravanSession();
+            int coin = session.Coin;
+            float travel = session.TravelHours;
+            float water = session.WaterLitres;
+            float food = session.RationKg;
+            float hour = session.Hour;
+            int day = session.Day;
+            Assert.AreEqual(0, session.StretchChecks);
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            Assert.AreEqual(1, session.StretchChecks);
+            if (!session.EncounterPending)
+                session.OpenEncounter("CA-03");
+            string id = session.EncounterId;
+            Assert.IsTrue(session.HoldTravel);
+            session.ContinueEncounter();
+            Assert.IsFalse(session.EncounterPending);
+            Assert.IsFalse(session.HoldTravel);
+            Assert.AreEqual(coin, session.Coin);
+            Assert.AreEqual(travel, session.TravelHours, 0.001f);
+            Assert.AreEqual(water, session.WaterLitres, 0.001f);
+            Assert.AreEqual(food, session.RationKg, 0.001f);
+            Assert.AreEqual(hour, session.Hour, 0.001f);
+            Assert.AreEqual(day, session.Day);
+            Assert.IsFalse(string.IsNullOrEmpty(id));
+
+            for (int i = 0; i < 4000 && !session.CampPending; i++)
+            {
+                Release(session);
+                session.Tick(0.25f);
+            }
+
+            Assert.IsTrue(session.CampPending);
+            Assert.AreEqual(1, session.StretchChecks);
+            session.MakeCamp();
+            Assert.AreEqual(1, session.StretchChecks);
+            session.ChooseRoadPace(RoadPace.Steady);
+            Assert.AreEqual(2, session.StretchChecks);
+
+            var sea = CaravanSession.AtHouse(HouseId.Zamath);
+            Assert.IsTrue(sea.DepartTo(PlaceId.Neth));
+            Assert.AreEqual(0, sea.StretchChecks);
+            Assert.IsFalse(sea.EncounterPending);
+            Assert.AreEqual(PlaceId.Neth, sea.Dock);
+        }
+
         static float DistanceUntilCamp(RoadPace pace)
         {
             var session = new CaravanSession();
-            session.ChooseRoadPace(pace, true);
+            session.ChooseRoadPace(pace);
             Assert.IsTrue(session.DepartTo(PlaceId.Draven));
             for (int i = 0; i < 4000 && !session.CampPending; i++)
+            {
+                Release(session);
                 session.Tick(0.25f);
+            }
             Assert.IsTrue(session.CampPending);
             return session.TravelDistance;
         }
@@ -566,10 +845,13 @@ namespace Caravans.Play.Tests
         {
             var session = new CaravanSession();
             float water = session.WaterLitres;
-            session.ChooseRoadPace(pace, true);
+            session.ChooseRoadPace(pace);
             Assert.IsTrue(session.DepartTo(PlaceId.Draven));
             for (int i = 0; i < 4000 && !session.CampPending; i++)
+            {
+                Release(session);
                 session.Tick(0.25f);
+            }
             Assert.IsTrue(session.CampPending);
             return water - session.WaterLitres;
         }

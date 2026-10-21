@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+
+[assembly: InternalsVisibleTo("Caravans.Play.EditModeTests")]
 
 namespace Caravans.Play
 {
@@ -97,14 +100,22 @@ namespace Caravans.Play
         public int Pace { get; private set; }
         public bool HoldTravel { get; private set; }
         public RoadPace ChosenPace { get; private set; }
-        public bool TravelsByDay { get; private set; }
         public bool CampPending { get; private set; }
         public bool AwaitingPace { get; private set; }
+        public bool EncounterPending { get; private set; }
+        public string EncounterId { get; private set; }
+        public int StretchChecks { get; private set; }
         public WeatherKind LegWeather { get; private set; }
         public float LegScale { get; private set; }
         public HouseId? House { get; private set; }
+        public PlaceId LegDestination
+        {
+            get { return travelTo; }
+        }
 
         float kitFactor = 1f;
+        bool roadDrink;
+        System.Random encounterRandom;
 
         public IReadOnlyList<WeatherMass> Masses
         {
@@ -501,20 +512,63 @@ namespace Caravans.Play
             return BeginTravel(destination);
         }
 
-        public void ChooseRoadPace(RoadPace pace, bool byDay)
+        public void ChooseRoadPace(RoadPace pace)
         {
             ChosenPace = pace;
-            // Day or night is stored for a later encounter pass. No stretch reads it yet.
-            TravelsByDay = byDay;
             if (AwaitingPace)
             {
                 AwaitingPace = false;
                 HoldTravel = false;
                 if (Pace <= 0)
                     Pace = 1;
+                OpenStretch();
             }
 
             Touch();
+        }
+
+        public void ContinueEncounter()
+        {
+            if (!EncounterPending)
+                return;
+            EncounterPending = false;
+            EncounterId = null;
+            if (!CampPending)
+                HoldTravel = false;
+            Touch();
+        }
+
+        internal void OpenEncounter(string id)
+        {
+            EncounterId = id;
+            EncounterPending = true;
+            HoldTravel = true;
+            Touch();
+        }
+
+        public void SplitUntilStop(PlaceId destination, RoadPace pace, out float dayHours, out float nightHours)
+        {
+            TravelScale.SplitDayNight(Hour, ClockHoursUntilStop(destination, pace), out dayHours, out nightHours);
+        }
+
+        public bool CanWaitUntilDawn()
+        {
+            return CanWaitUntil(EconomyRates.MorningHour);
+        }
+
+        public bool CanWaitUntilDusk()
+        {
+            return CanWaitUntil(EconomyRates.NightHour);
+        }
+
+        public void WaitUntilDawn()
+        {
+            WaitUntil(EconomyRates.MorningHour);
+        }
+
+        public void WaitUntilDusk()
+        {
+            WaitUntil(EconomyRates.NightHour);
         }
 
         public void ChoosePace(int pace)
@@ -565,13 +619,13 @@ namespace Caravans.Play
             if (hours > room + 0.00001f)
             {
                 TravelDistance += DistanceForHours(room);
-                SpendWindow(room, TravelScale.Kit(ChosenPace));
+                SpendWindow(room, TravelScale.Kit(ChosenPace), true);
                 OpenCamp();
                 return;
             }
 
             TravelDistance = next;
-            SpendWindow(hours, TravelScale.Kit(ChosenPace));
+            SpendWindow(hours, TravelScale.Kit(ChosenPace), true);
             if (TravelDistance >= edgeLength - 0.000001f)
                 Arrive(travelTo);
         }
@@ -606,7 +660,7 @@ namespace Caravans.Play
         {
             if (!CanWait())
                 return;
-            SpendWindow(1f, 1f);
+            SpendWindow(1f, 1f, false);
             Touch();
         }
 
@@ -714,21 +768,6 @@ namespace Caravans.Play
             return EconomyCatalog.HouseName(house);
         }
 
-        public static string WeatherName(WeatherKind kind)
-        {
-            switch (kind)
-            {
-                case WeatherKind.Heat:
-                    return "Heat";
-                case WeatherKind.Wind:
-                    return "Wind";
-                case WeatherKind.Sandstorm:
-                    return "Sandstorm";
-                default:
-                    return "Clear";
-            }
-        }
-
         bool BeginTravel(PlaceId destination)
         {
             if (!RoadGraph.Connects(Dock, destination))
@@ -745,11 +784,37 @@ namespace Caravans.Play
             LegScale = TravelScale.TimeScale(LegWeather);
             Pace = 1;
             HoldTravel = false;
-            Touch();
-
             if (edgeLength <= 0.000001f)
+            {
                 Arrive(destination);
+                return true;
+            }
+
+            OpenStretch();
+            Touch();
             return true;
+        }
+
+        void OpenStretch()
+        {
+            StretchChecks++;
+            if (encounterRandom == null)
+                encounterRandom = new System.Random(GameConfig.Encounters.seed);
+            float chance = EncounterTable.Chance(ChosenPace);
+            if (encounterRandom.NextDouble() >= chance)
+            {
+                EncounterPending = false;
+                EncounterId = null;
+                return;
+            }
+
+            List<EncounterCategory> categories = EncounterTable.Eligible(travelFrom, travelTo, LegWeather);
+            EncounterCategory category = categories[encounterRandom.Next(categories.Count)];
+            IReadOnlyList<EncounterRow> found = EncounterTable.Rows(category);
+            EncounterRow row = found[encounterRandom.Next(found.Count)];
+            EncounterId = row.Id;
+            EncounterPending = true;
+            HoldTravel = true;
         }
 
         void Arrive(PlaceId place)
@@ -773,14 +838,58 @@ namespace Caravans.Play
             Touch();
         }
 
-        void SpendWindow(float hours, float kit)
+        void SpendWindow(float hours, float kit, bool onRoad)
         {
             if (hours <= 0f)
                 return;
             kitFactor = kit;
+            roadDrink = onRoad;
             AdvanceClock(hours);
             kitFactor = 1f;
+            roadDrink = false;
             TravelHours -= hours;
+        }
+
+        float ClockHoursUntilStop(PlaceId destination, RoadPace pace)
+        {
+            float spendable = TravelHours - TravelScale.ReserveHours;
+            if (spendable < 0f)
+                spendable = 0f;
+            float speed = Mathf.Max(0.01f, TravelScale.Speed(pace));
+            float leg;
+            if (Traveling && destination == travelTo && edgeLength > 0.000001f)
+            {
+                float remaining = (edgeLength - TravelDistance) / edgeLength;
+                if (remaining < 0f)
+                    remaining = 0f;
+                leg = RoadGraph.Hours(travelFrom, travelTo) * remaining * Mathf.Max(0.01f, LegScale) / speed;
+            }
+            else if (RoadGraph.Connects(Dock, destination))
+            {
+                float scale = TravelScale.TimeScale(WeatherOn(Dock, destination));
+                leg = RoadGraph.Hours(Dock, destination) * Mathf.Max(0.01f, scale) / speed;
+            }
+            else
+            {
+                leg = 0f;
+            }
+
+            return leg < spendable ? leg : spendable;
+        }
+
+        bool CanWaitUntil(int mark)
+        {
+            return AwaitingPace && !CampPending && HoursUntil(mark) < EconomyRates.DayHours - 0.001f;
+        }
+
+        void WaitUntil(int mark)
+        {
+            if (!CanWaitUntil(mark))
+                return;
+            kitFactor = 1f;
+            roadDrink = false;
+            AdvanceClock(HoursUntil(mark));
+            Touch();
         }
 
         float HoursForDistance(float distance)
@@ -857,7 +966,10 @@ namespace Caravans.Play
             float day = EconomyRates.DayHours;
             if (hours <= 0f || day <= 0f)
                 return;
-            float days = hours / day * kitFactor;
+            float scale = kitFactor;
+            if (roadDrink && TravelScale.IsDayHour(Hour))
+                scale *= TravelScale.DayKit;
+            float days = hours / day * scale;
             WaterLitres = Mathf.Max(0f, WaterLitres - days * EconomyRates.WaterLitresPerDay);
             RationKg = Mathf.Max(0f, RationKg - days * EconomyRates.RationsKgPerDay);
         }
@@ -1464,9 +1576,12 @@ namespace Caravans.Play
             Pace = 1;
             HoldTravel = false;
             ChosenPace = RoadPace.Steady;
-            TravelsByDay = true;
             CampPending = false;
             AwaitingPace = false;
+            EncounterPending = false;
+            EncounterId = null;
+            StretchChecks = 0;
+            encounterRandom = new System.Random(GameConfig.Encounters.seed);
             kitFactor = 1f;
             LegWeather = WeatherKind.Clear;
             LegScale = 1f;

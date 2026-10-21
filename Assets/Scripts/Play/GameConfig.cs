@@ -13,6 +13,7 @@ namespace Caravans.Play
         static WeatherFile weather;
         static TravelFile travel;
         static RivalFile rivals;
+        static EncounterFile encounters;
         static Recipe[] workshops;
         static AbundanceTable abundance;
 
@@ -39,6 +40,11 @@ namespace Caravans.Play
         public static RivalFile Rivals
         {
             get { EnsureLoaded(); return rivals; }
+        }
+
+        public static EncounterFile Encounters
+        {
+            get { EnsureLoaded(); return encounters; }
         }
 
         public static Recipe[] Workshops
@@ -79,8 +85,11 @@ namespace Caravans.Play
                 "startingCoin", "wagonSpace", "wagonWeight",
                 "dayHours", "morningHour", "nightHour", "realSeconds", "seaHourFloor",
                 "travelWindowHours", "reserveHours", "townRestHours", "campHours",
-                "rushSpeed", "rushKit", "steadySpeed", "steadyKit", "carefulSpeed", "carefulKit");
+                "rushSpeed", "rushKit", "steadySpeed", "steadyKit", "carefulSpeed", "carefulKit",
+                "dayKit");
             rivals = Read<RivalFile>("rivals.json", "hopLimit", "seed");
+            encounters = Read<EncounterFile>("encounters.json",
+                "baseChance", "carefulOffset", "rushOffset", "floorChance", "seed");
             workshops = ReadWorkshops();
             abundance = ReadAbundance();
             loaded = true;
@@ -276,12 +285,22 @@ namespace Caravans.Play
         public float steadyKit;
         public float carefulSpeed;
         public float carefulKit;
+        public float dayKit;
     }
 
     [Serializable]
     public class RivalFile
     {
         public int hopLimit;
+        public int seed;
+    }
+
+    public class EncounterFile
+    {
+        public float baseChance;
+        public float carefulOffset;
+        public float rushOffset;
+        public float floorChance;
         public int seed;
     }
 

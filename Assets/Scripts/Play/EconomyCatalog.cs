@@ -562,6 +562,12 @@ namespace Caravans.Play
             throw new InvalidOperationException("Unknown good: " + key);
         }
 
+        public static PlaceId ParsePlace(string name)
+        {
+            EnsureLoaded();
+            return RequirePlace(name);
+        }
+
         static PlaceId RequirePlace(string name)
         {
             string key = name.Trim();
