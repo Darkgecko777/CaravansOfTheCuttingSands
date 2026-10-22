@@ -6,6 +6,14 @@ using UnityEngine;
 
 namespace Caravans.Play
 {
+    public enum DemandBand
+    {
+        None,
+        High,
+        Mid,
+        Low
+    }
+
     public static class EconomyCatalog
     {
         static readonly string[] PlaceLabels =
@@ -143,7 +151,21 @@ namespace Caravans.Play
         public static int Space(GoodId good)
         {
             EnsureLoaded();
-            return space[(int)good];
+            // Each unit occupies one wagon slot. The pack column stays on the sheet.
+            return space[(int)good] > 0 ? 1 : 0;
+        }
+
+        public static DemandBand DemandOf(PlaceId place, GoodId good, int stock)
+        {
+            if (!Buys(place, good))
+                return DemandBand.None;
+            float unit = DayUnit(place, good);
+            float cover = stock <= 0 ? 0f : stock / unit;
+            if (cover >= EconomyRates.FullCoverDays)
+                return DemandBand.Low;
+            if (cover >= EconomyRates.OrdinaryCoverDays)
+                return DemandBand.Mid;
+            return DemandBand.High;
         }
 
         public static float Eat(PlaceId place, GoodId good)

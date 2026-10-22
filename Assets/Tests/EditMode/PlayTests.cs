@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -663,6 +664,24 @@ namespace Caravans.Play.Tests
         }
 
         [Test]
+        public void TownCanWaitUntilDuskWithoutSpendingTheTravelStore()
+        {
+            var session = new CaravanSession();
+            Assert.IsFalse(session.CanWaitUntilDawn());
+            Assert.IsTrue(session.CanWaitUntilDusk());
+            float travel = session.TravelHours;
+            float water = session.WaterLitres;
+            session.WaitUntilDusk();
+            Assert.IsFalse(session.Traveling);
+            Assert.AreEqual(EconomyRates.NightHour, session.Hour, 0.001f);
+            Assert.AreEqual(travel, session.TravelHours, 0.001f);
+            float waited = 12f / EconomyRates.DayHours;
+            Assert.AreEqual(water - waited * EconomyRates.WaterLitresPerDay, session.WaterLitres, 0.05f);
+            Assert.IsFalse(session.CanWaitUntilDusk());
+            Assert.IsTrue(session.CanWaitUntilDawn());
+        }
+
+        [Test]
         public void StretchChancesFollowThePace()
         {
             Assert.AreEqual(0.35f, EncounterTable.Chance(RoadPace.Careful), 0.0001f);
@@ -780,21 +799,39 @@ namespace Caravans.Play.Tests
         }
 
         [Test]
-        public void AStretchRollsOnceAndContinueChangesNothing()
+        public void ALegChecksOnceAndTheCardWaitsForItsHour()
         {
             var session = new CaravanSession();
+            Assert.AreEqual(0, session.StretchChecks);
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            Assert.AreEqual(1, session.StretchChecks);
+            Assert.IsFalse(session.EncounterPending);
+            Assert.IsFalse(session.HoldTravel);
+            Assert.AreEqual(0f, session.TravelDistance, 0.001f);
+            Assert.AreEqual(0f, session.LegTravelHours, 0.001f);
+
+            if (session.EncounterHour >= 0f)
+            {
+                Assert.GreaterOrEqual(session.EncounterHour, 1f);
+                Assert.LessOrEqual(session.EncounterHour, 6f);
+                for (int i = 0; i < 4000 && !session.EncounterPending; i++)
+                    session.Tick(0.25f);
+                Assert.IsTrue(session.EncounterPending);
+                Assert.IsTrue(session.HoldTravel);
+                Assert.AreEqual(session.EncounterHour, session.LegTravelHours, 0.05f);
+                Assert.Greater(session.TravelDistance, 0f);
+            }
+
+            if (!session.EncounterPending)
+                session.OpenEncounter("CA-03");
+            string id = session.EncounterId;
             int coin = session.Coin;
             float travel = session.TravelHours;
             float water = session.WaterLitres;
             float food = session.RationKg;
             float hour = session.Hour;
             int day = session.Day;
-            Assert.AreEqual(0, session.StretchChecks);
-            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
-            Assert.AreEqual(1, session.StretchChecks);
-            if (!session.EncounterPending)
-                session.OpenEncounter("CA-03");
-            string id = session.EncounterId;
+            float distance = session.TravelDistance;
             Assert.IsTrue(session.HoldTravel);
             session.ContinueEncounter();
             Assert.IsFalse(session.EncounterPending);
@@ -805,6 +842,7 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(food, session.RationKg, 0.001f);
             Assert.AreEqual(hour, session.Hour, 0.001f);
             Assert.AreEqual(day, session.Day);
+            Assert.AreEqual(distance, session.TravelDistance, 0.001f);
             Assert.IsFalse(string.IsNullOrEmpty(id));
 
             for (int i = 0; i < 4000 && !session.CampPending; i++)
@@ -818,13 +856,122 @@ namespace Caravans.Play.Tests
             session.MakeCamp();
             Assert.AreEqual(1, session.StretchChecks);
             session.ChooseRoadPace(RoadPace.Steady);
-            Assert.AreEqual(2, session.StretchChecks);
+            Assert.AreEqual(1, session.StretchChecks);
+            Assert.IsFalse(session.EncounterPending);
 
             var sea = CaravanSession.AtHouse(HouseId.Zamath);
             Assert.IsTrue(sea.DepartTo(PlaceId.Neth));
             Assert.AreEqual(0, sea.StretchChecks);
             Assert.IsFalse(sea.EncounterPending);
+            Assert.AreEqual(-1f, sea.EncounterHour, 0.001f);
             Assert.AreEqual(PlaceId.Neth, sea.Dock);
+        }
+
+        [Test]
+        public void StarterWagonHoldsEightSlotsAndWeightTwenty()
+        {
+            Assert.AreEqual(8, EconomyRates.WagonSpace);
+            Assert.AreEqual(20, EconomyRates.WagonWeight);
+            Assert.AreEqual(1, EconomyCatalog.Space(GoodId.LivingLumber));
+            Assert.AreEqual(EconomyCatalog.Space(GoodId.Water), EconomyCatalog.Space(GoodId.SeaWater));
+
+            var heavy = new CaravanSession();
+            heavy.SetShelf(PlaceId.Kharun, GoodId.TitansHeartRock, 12);
+            for (int i = 0; i < 4; i++)
+                Assert.IsTrue(heavy.TryBuy(GoodId.TitansHeartRock));
+            Assert.AreEqual(4, heavy.CargoOf(GoodId.TitansHeartRock));
+            Assert.AreEqual(4, heavy.CargoSpace());
+            Assert.AreEqual(20, heavy.CargoWeight());
+            Assert.Less(heavy.CargoSpace(), EconomyRates.WagonSpace);
+            Assert.GreaterOrEqual(heavy.Coin, heavy.BuyCost(PlaceId.Kharun, GoodId.TitansHeartRock));
+            Assert.Greater(heavy.StockOf(PlaceId.Kharun, GoodId.TitansHeartRock), 0);
+            Assert.IsFalse(heavy.CanBuy(GoodId.TitansHeartRock));
+            Assert.IsFalse(heavy.TryBuy(GoodId.TitansHeartRock));
+            Assert.AreEqual(4, heavy.CargoOf(GoodId.TitansHeartRock));
+
+            var light = new CaravanSession();
+            light.SetShelf(PlaceId.Kharun, GoodId.MorRoot, 20);
+            for (int i = 0; i < 8; i++)
+                Assert.IsTrue(light.TryBuy(GoodId.MorRoot));
+            Assert.AreEqual(8, light.CargoSpace());
+            Assert.LessOrEqual(light.CargoWeight(), EconomyRates.WagonWeight);
+            Assert.GreaterOrEqual(light.Coin, light.BuyCost(PlaceId.Kharun, GoodId.MorRoot));
+            Assert.Greater(light.StockOf(PlaceId.Kharun, GoodId.MorRoot), 0);
+            Assert.IsFalse(light.CanBuy(GoodId.MorRoot));
+            Assert.IsFalse(light.TryBuy(GoodId.MorRoot));
+
+            var mixed = new CaravanSession();
+            mixed.SetShelf(PlaceId.Kharun, GoodId.MorRoot, 5);
+            mixed.SetShelf(PlaceId.Kharun, GoodId.PalestoneBricks, 5);
+            Assert.IsTrue(mixed.TryBuy(GoodId.MorRoot));
+            Assert.IsTrue(mixed.TryBuy(GoodId.PalestoneBricks));
+            Assert.AreEqual(GoodId.MorRoot, mixed.CargoGoodAt(0));
+            Assert.IsTrue(mixed.TrySellStack(0));
+            Assert.AreEqual(0, mixed.CargoOf(GoodId.MorRoot));
+            Assert.AreEqual(GoodId.PalestoneBricks, mixed.CargoGoodAt(0));
+
+            var notes = new CaravanSession();
+            notes.SetShelf(PlaceId.Kharun, GoodId.FrostIron, 0);
+            notes.NoteShownBuy(GoodId.FrostIron);
+            Assert.IsFalse(notes.HasLoggedBuy(GoodId.FrostIron));
+            notes.SetShelf(PlaceId.Kharun, GoodId.FrostIron, 1);
+            notes.NoteShownBuy(GoodId.FrostIron);
+            Assert.AreEqual(notes.BuyCost(PlaceId.Kharun, GoodId.FrostIron), notes.LoggedBuy(GoodId.FrostIron));
+
+            var dry = CaravanSession.AtHouse(HouseId.Ghorath);
+            dry.SetShelf(PlaceId.Ghorath, GoodId.Water, 4);
+            Assert.IsTrue(dry.TryBuy(GoodId.Water));
+            dry.NoteShownSale(0);
+            Assert.IsFalse(dry.HasLoggedSale(GoodId.Water));
+        }
+
+        [Test]
+        public void DemandBandsFollowTheShelfKnees()
+        {
+            Assert.AreEqual(1f, EconomyCatalog.DayUnit(PlaceId.Kharun, GoodId.Water), 0.001f);
+            int mid = EconomyRates.OrdinaryCoverDays;
+            int low = EconomyRates.FullCoverDays;
+            Assert.AreEqual(DemandBand.High, EconomyCatalog.DemandOf(PlaceId.Kharun, GoodId.Water, 0));
+            Assert.AreEqual(DemandBand.High, EconomyCatalog.DemandOf(PlaceId.Kharun, GoodId.Water, mid - 1));
+            Assert.AreEqual(DemandBand.Mid, EconomyCatalog.DemandOf(PlaceId.Kharun, GoodId.Water, mid));
+            Assert.AreEqual(DemandBand.Mid, EconomyCatalog.DemandOf(PlaceId.Kharun, GoodId.Water, low - 1));
+            Assert.AreEqual(DemandBand.Low, EconomyCatalog.DemandOf(PlaceId.Kharun, GoodId.Water, low));
+            Assert.AreEqual(DemandBand.None, EconomyCatalog.DemandOf(PlaceId.Ghorath, GoodId.Water, 0));
+            Assert.AreEqual(DemandBand.None, EconomyCatalog.DemandOf(PlaceId.Zamath, GoodId.SeaWater, 0));
+            Assert.AreEqual(DemandBand.High, EconomyCatalog.DemandOf(PlaceId.Kharun, GoodId.SeaWater, 0));
+            Assert.AreEqual(DemandBand.None, EconomyCatalog.DemandOf(PlaceId.Kharun, GoodId.Rations, 0));
+        }
+
+        [Test]
+        public void MarketSoundsHaveAWavForEveryBuyAndTheSale()
+        {
+            string folder = Path.Combine(Application.dataPath, "Resources", "Audio");
+            foreach (GoodId good in System.Enum.GetValues(typeof(GoodId)))
+            {
+                string resource = MarketSounds.BuyResource(good);
+                if (good == GoodId.Rations)
+                {
+                    Assert.IsNull(resource);
+                    continue;
+                }
+
+                Assert.IsFalse(string.IsNullOrEmpty(resource));
+                Assert.IsTrue(resource.StartsWith("Audio/"));
+                string file = Path.Combine(folder, resource.Substring("Audio/".Length) + ".wav");
+                Assert.IsTrue(File.Exists(file), file);
+            }
+
+            Assert.AreEqual("Audio/ore-market-to-caravan-ui", MarketSounds.BuyResource(GoodId.Shimmersteel));
+            Assert.AreEqual("Audio/sale-scrubstone", MarketSounds.SaleResource);
+            Assert.IsTrue(File.Exists(Path.Combine(folder, "sale-scrubstone.wav")));
+        }
+
+        [Test]
+        public void VisionRadiiAreHalfTheFirstSight()
+        {
+            Assert.AreEqual(0.17f, TravelScale.VisionDay, 0.0001f);
+            Assert.AreEqual(0.09f, TravelScale.VisionNight, 0.0001f);
+            Assert.AreEqual(0.07f, TravelScale.VisionSandstorm, 0.0001f);
         }
 
         static float DistanceUntilCamp(RoadPace pace)

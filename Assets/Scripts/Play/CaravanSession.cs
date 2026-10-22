@@ -105,6 +105,8 @@ namespace Caravans.Play
         public bool EncounterPending { get; private set; }
         public string EncounterId { get; private set; }
         public int StretchChecks { get; private set; }
+        public float LegTravelHours { get; private set; }
+        public float EncounterHour { get; private set; }
         public WeatherKind LegWeather { get; private set; }
         public float LegScale { get; private set; }
         public HouseId? House { get; private set; }
@@ -115,6 +117,7 @@ namespace Caravans.Play
 
         float kitFactor = 1f;
         bool roadDrink;
+        bool encounterArmed;
         System.Random encounterRandom;
 
         public IReadOnlyList<WeatherMass> Masses
@@ -195,6 +198,23 @@ namespace Caravans.Play
             return used;
         }
 
+        public int CargoCount
+        {
+            get { return stacks.Count; }
+        }
+
+        public GoodId CargoGoodAt(int index)
+        {
+            return stacks[index].Good;
+        }
+
+        public int SellValueAt(int index)
+        {
+            CargoUnit unit = stacks[index];
+            int gross = Gross(Dock, unit.Good, unit.Integrity);
+            return Mathf.Max(0, gross - CutCoin(gross, TariffPercent(Dock)));
+        }
+
         public float IntegrityOf(GoodId good)
         {
             int index = WorstStack(good);
@@ -265,7 +285,7 @@ namespace Caravans.Play
 
         public void NoteMarketShown(bool selling)
         {
-            if (Traveling || CampPending || AwaitingPace)
+            if (SkipMarketNote())
                 return;
 
             for (int i = 0; i < WorldIds.GoodCount; i++)
@@ -277,29 +297,63 @@ namespace Caravans.Play
                 {
                     if (CargoOf(good) <= 0)
                         continue;
-                    int price = SellValue(Dock, good);
-                    LoggedPrice mark = loggedSale[i];
-                    if (mark.Seen && price <= mark.Coin)
-                        continue;
-                    mark.Seen = true;
-                    mark.Coin = price;
-                    mark.Place = Dock;
-                    loggedSale[i] = mark;
+                    RememberSale(good, SellValue(Dock, good));
                 }
                 else
                 {
                     if (StockOf(Dock, good) <= 0)
                         continue;
-                    int price = BuyCost(Dock, good);
-                    LoggedPrice mark = loggedBuy[i];
-                    if (mark.Seen && price >= mark.Coin)
-                        continue;
-                    mark.Seen = true;
-                    mark.Coin = price;
-                    mark.Place = Dock;
-                    loggedBuy[i] = mark;
+                    RememberBuy(good, BuyCost(Dock, good));
                 }
             }
+        }
+
+        public void NoteShownBuy(GoodId good)
+        {
+            if (SkipMarketNote() || good == GoodId.Rations)
+                return;
+            if (StockOf(Dock, good) <= 0)
+                return;
+            RememberBuy(good, BuyCost(Dock, good));
+        }
+
+        public void NoteShownSale(int index)
+        {
+            if (SkipMarketNote() || index < 0 || index >= stacks.Count)
+                return;
+            GoodId good = stacks[index].Good;
+            if (good == GoodId.Rations || !EconomyCatalog.Buys(Dock, good))
+                return;
+            RememberSale(good, SellValueAt(index));
+        }
+
+        bool SkipMarketNote()
+        {
+            return Traveling || CampPending || AwaitingPace;
+        }
+
+        void RememberBuy(GoodId good, int price)
+        {
+            int i = (int)good;
+            LoggedPrice seen = loggedBuy[i];
+            if (seen.Seen && price >= seen.Coin)
+                return;
+            seen.Seen = true;
+            seen.Coin = price;
+            seen.Place = Dock;
+            loggedBuy[i] = seen;
+        }
+
+        void RememberSale(GoodId good, int price)
+        {
+            int i = (int)good;
+            LoggedPrice seen = loggedSale[i];
+            if (seen.Seen && price <= seen.Coin)
+                return;
+            seen.Seen = true;
+            seen.Coin = price;
+            seen.Place = Dock;
+            loggedSale[i] = seen;
         }
 
         public int TariffPercent(PlaceId place)
@@ -378,20 +432,27 @@ namespace Caravans.Play
             return 1 + npc.Path.Count;
         }
 
-        public bool TryBuy(GoodId good)
+        public bool CanBuy(GoodId good)
         {
             if (Traveling || good == GoodId.Rations)
                 return false;
-
             int stock = StockOf(Dock, good);
-            int price = BuyCost(Dock, good);
-            if (stock <= 0 || Coin < price)
+            if (stock <= 0 || Coin < BuyCost(Dock, good))
                 return false;
             if (CargoSpace() + EconomyCatalog.Space(good) > EconomyRates.WagonSpace)
                 return false;
             if (CargoWeight() + EconomyCatalog.Weight(good) > EconomyRates.WagonWeight)
                 return false;
+            return true;
+        }
 
+        public bool TryBuy(GoodId good)
+        {
+            if (!CanBuy(good))
+                return false;
+
+            int stock = StockOf(Dock, good);
+            int price = BuyCost(Dock, good);
             PutStock(Dock, good, stock - 1);
             stacks.Add(new CargoUnit
             {
@@ -446,15 +507,40 @@ namespace Caravans.Play
             return true;
         }
 
-        public bool TrySell(GoodId good)
+        public bool CanSell(GoodId good)
         {
             if (Traveling || good == GoodId.Rations || !EconomyCatalog.Buys(Dock, good))
                 return false;
+            return WorstStack(good) >= 0;
+        }
 
-            int index = WorstStack(good);
-            if (index < 0)
+        public bool CanSellStack(int index)
+        {
+            if (Traveling || index < 0 || index >= stacks.Count)
                 return false;
+            GoodId good = stacks[index].Good;
+            return good != GoodId.Rations && EconomyCatalog.Buys(Dock, good);
+        }
 
+        public bool TrySell(GoodId good)
+        {
+            if (!CanSell(good))
+                return false;
+            SellUnit(WorstStack(good));
+            return true;
+        }
+
+        public bool TrySellStack(int index)
+        {
+            if (!CanSellStack(index))
+                return false;
+            SellUnit(index);
+            return true;
+        }
+
+        void SellUnit(int index)
+        {
+            GoodId good = stacks[index].Good;
             int gross = Gross(Dock, good, stacks[index].Integrity);
             int net = Mathf.Max(0, gross - CutCoin(gross, TariffPercent(Dock)));
             stacks.RemoveAt(index);
@@ -468,7 +554,6 @@ namespace Caravans.Play
             }
 
             Touch();
-            return true;
         }
 
         public void ApplyIntegrityHit(GoodId good, float loss)
@@ -521,7 +606,6 @@ namespace Caravans.Play
                 HoldTravel = false;
                 if (Pace <= 0)
                     Pace = 1;
-                OpenStretch();
             }
 
             Touch();
@@ -616,18 +700,55 @@ namespace Caravans.Play
                 return;
             }
 
+            float untilEvent = HoursUntilEncounter();
+            if (untilEvent <= hours + 0.00001f && untilEvent <= room + 0.00001f)
+            {
+                MoveRoadHours(untilEvent);
+                OpenScheduledEncounter();
+                return;
+            }
+
             if (hours > room + 0.00001f)
             {
-                TravelDistance += DistanceForHours(room);
-                SpendWindow(room, TravelScale.Kit(ChosenPace), true);
+                MoveRoadHours(room);
                 OpenCamp();
                 return;
             }
 
             TravelDistance = next;
             SpendWindow(hours, TravelScale.Kit(ChosenPace), true);
+            LegTravelHours += hours;
             if (TravelDistance >= edgeLength - 0.000001f)
                 Arrive(travelTo);
+        }
+
+        float HoursUntilEncounter()
+        {
+            if (!encounterArmed)
+                return float.PositiveInfinity;
+            float left = EncounterHour - LegTravelHours;
+            if (left < 0f)
+                left = 0f;
+            return left;
+        }
+
+        void MoveRoadHours(float hours)
+        {
+            if (hours <= 0.00001f)
+                return;
+            TravelDistance += DistanceForHours(hours);
+            if (TravelDistance > edgeLength)
+                TravelDistance = edgeLength;
+            SpendWindow(hours, TravelScale.Kit(ChosenPace), true);
+            LegTravelHours += hours;
+        }
+
+        void OpenScheduledEncounter()
+        {
+            encounterArmed = false;
+            EncounterPending = true;
+            HoldTravel = true;
+            Touch();
         }
 
         public void MakeCamp()
@@ -784,18 +905,20 @@ namespace Caravans.Play
             LegScale = TravelScale.TimeScale(LegWeather);
             Pace = 1;
             HoldTravel = false;
+            LegTravelHours = 0f;
+            ClearEncounter();
             if (edgeLength <= 0.000001f)
             {
                 Arrive(destination);
                 return true;
             }
 
-            OpenStretch();
+            CheckLeg();
             Touch();
             return true;
         }
 
-        void OpenStretch()
+        void CheckLeg()
         {
             StretchChecks++;
             if (encounterRandom == null)
@@ -803,8 +926,7 @@ namespace Caravans.Play
             float chance = EncounterTable.Chance(ChosenPace);
             if (encounterRandom.NextDouble() >= chance)
             {
-                EncounterPending = false;
-                EncounterId = null;
+                ClearEncounter();
                 return;
             }
 
@@ -812,9 +934,25 @@ namespace Caravans.Play
             EncounterCategory category = categories[encounterRandom.Next(categories.Count)];
             IReadOnlyList<EncounterRow> found = EncounterTable.Rows(category);
             EncounterRow row = found[encounterRandom.Next(found.Count)];
+            int min = GameConfig.Encounters.fireHourMin;
+            int max = GameConfig.Encounters.fireHourMax;
+            if (min < 1)
+                min = 1;
+            if (max < min)
+                max = min;
             EncounterId = row.Id;
-            EncounterPending = true;
-            HoldTravel = true;
+            EncounterHour = encounterRandom.Next(min, max + 1);
+            encounterArmed = true;
+            EncounterPending = false;
+            HoldTravel = false;
+        }
+
+        void ClearEncounter()
+        {
+            encounterArmed = false;
+            EncounterPending = false;
+            EncounterId = null;
+            EncounterHour = -1f;
         }
 
         void Arrive(PlaceId place)
@@ -826,6 +964,8 @@ namespace Caravans.Play
             AwaitingPace = false;
             Pace = 1;
             TravelDistance = 0f;
+            LegTravelHours = 0f;
+            ClearEncounter();
             Touch();
         }
 
@@ -877,9 +1017,14 @@ namespace Caravans.Play
             return leg < spendable ? leg : spendable;
         }
 
+        // In town the inn can wait out the clock. On the road the same wait is only after camp.
         bool CanWaitUntil(int mark)
         {
-            return AwaitingPace && !CampPending && HoursUntil(mark) < EconomyRates.DayHours - 0.001f;
+            if (CampPending)
+                return false;
+            if (Traveling && !AwaitingPace)
+                return false;
+            return HoursUntil(mark) < EconomyRates.DayHours - 0.001f;
         }
 
         void WaitUntil(int mark)
@@ -1580,6 +1725,9 @@ namespace Caravans.Play
             AwaitingPace = false;
             EncounterPending = false;
             EncounterId = null;
+            EncounterHour = -1f;
+            encounterArmed = false;
+            LegTravelHours = 0f;
             StretchChecks = 0;
             encounterRandom = new System.Random(GameConfig.Encounters.seed);
             kitFactor = 1f;

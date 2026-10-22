@@ -2,7 +2,7 @@
   "heatStretch": 1.15,
   "windStretch": 1.15,
   "sandstormStretch": 1.4,
-  "visionDay": 0.34,
-  "visionNight": 0.18,
-  "visionSandstorm": 0.14
+  "visionDay": 0.17,
+  "visionNight": 0.09,
+  "visionSandstorm": 0.07
 }

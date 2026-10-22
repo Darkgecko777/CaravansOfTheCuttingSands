@@ -89,7 +89,8 @@ namespace Caravans.Play
                 "dayKit");
             rivals = Read<RivalFile>("rivals.json", "hopLimit", "seed");
             encounters = Read<EncounterFile>("encounters.json",
-                "baseChance", "carefulOffset", "rushOffset", "floorChance", "seed");
+                "baseChance", "carefulOffset", "rushOffset", "floorChance",
+                "fireHourMin", "fireHourMax", "seed");
             workshops = ReadWorkshops();
             abundance = ReadAbundance();
             loaded = true;
@@ -295,12 +296,15 @@ namespace Caravans.Play
         public int seed;
     }
 
+    [Serializable]
     public class EncounterFile
     {
         public float baseChance;
         public float carefulOffset;
         public float rushOffset;
         public float floorChance;
+        public int fireHourMin;
+        public int fireHourMax;
         public int seed;
     }
 

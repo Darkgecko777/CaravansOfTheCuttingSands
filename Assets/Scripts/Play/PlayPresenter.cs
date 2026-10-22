@@ -15,6 +15,18 @@ namespace Caravans.Play
         const float ViewBarHeight = 64f;
         const float BannerHeight = 84f;
         const float TabHeight = 76f;
+        const float MarketStrip = 48f;
+        const float WagonPanelWidth = 520f;
+        const float FrameGap = 20f;
+        const float FrameHeader = 52f;
+        const float WeightLine = 36f;
+        const float ShopCellW = 158f;
+        const float ShopCellH = 120f;
+        const float WagonCellW = 236f;
+        const float WagonCellH = 140f;
+        const float GatesPanelRight = 448f;
+        const int ShopColumns = 8;
+        const int WagonColumns = 2;
 
         static readonly Color Ink = new Color(0.95f, 0.89f, 0.78f, 1f);
         static readonly Color Quiet = new Color(0.78f, 0.7f, 0.58f, 1f);
@@ -25,14 +37,22 @@ namespace Caravans.Play
         static readonly Color ButtonDown = new Color(0.3f, 0.2f, 0.14f, 1f);
         static readonly Color ButtonOff = new Color(0.24f, 0.19f, 0.16f, 0.85f);
         static readonly Color Field = new Color(0.28f, 0.21f, 0.16f, 1f);
+        static readonly Color DemandHigh = new Color(0.70f, 0.24f, 0.18f, 1f);
+        static readonly Color DemandMid = new Color(0.62f, 0.48f, 0.26f, 1f);
+        static readonly Color DemandLow = new Color(0.34f, 0.46f, 0.30f, 1f);
+        static readonly Color RimQuiet = new Color(0.16f, 0.12f, 0.10f, 1f);
+        static readonly Color FaceDim = new Color(0.18f, 0.14f, 0.11f, 1f);
+        static readonly Color WagonGround = new Color(0.32f, 0.23f, 0.16f, 1f);
         const string InkHex = "#F2E3C7";
         const string DayHex = "#E6C36A";
         const string NightHex = "#8EBFEE";
 
         readonly List<Button> buttons = new List<Button>();
         readonly List<GameObject> raised = new List<GameObject>();
-        readonly Dictionary<GoodId, Button> tradeButtons = new Dictionary<GoodId, Button>();
         readonly List<Button> neighborRoads = new List<Button>();
+        readonly List<PlaceId> neighborDests = new List<PlaceId>();
+        readonly List<Button> sortChoices = new List<Button>();
+        readonly List<ShopSort> sortChoiceKinds = new List<ShopSort>();
         readonly List<Image> npcTokens = new List<Image>();
 
         CaravanSession session;
@@ -42,20 +62,35 @@ namespace Caravans.Play
         int drawn = -1;
 
         enum Page { None, Market, Plaza, House }
+        enum PlazaSpot { Inn, Gates, Tavern, Stables }
+        enum ShopSort { Catalog, Name, PriceHigh, PriceLow, Demand }
 
         Page page = Page.None;
-        bool selling;
+        PlazaSpot plazaSpot = PlazaSpot.Gates;
+        ShopSort shopSort = ShopSort.Catalog;
+        bool sortMenuOpen;
+        bool shopSelected;
+        GoodId pickedGood;
+        int wagonPick = -1;
         bool optionsOpen;
         bool lookingAtMap;
         bool logbookOpen;
         bool choosingRoad;
+        bool roadLit;
         PlaceId pendingDest;
         RoadPace draftPace = RoadPace.Steady;
         string listenLine = string.Empty;
 
         RectTransform dock;
         RectTransform travel;
+        RectTransform mapFrame;
         RectTransform mapRoot;
+        RectTransform mapSheet;
+        RectTransform mapRoads;
+        RectTransform routeRoot;
+        Image routeMark;
+        readonly List<Image> routeSegments = new List<Image>();
+        Sprite ring;
         RawImage mapImage;
         RawImage fogImage;
         Material fogMaterial;
@@ -85,25 +120,42 @@ namespace Caravans.Play
         TextMeshProUGUI listenText;
         TextMeshProUGUI legText;
         TextMeshProUGUI housePageText;
-        RectTransform pinnedHost;
-        RectTransform rowHost;
-        RectTransform scrollRoot;
-        RectTransform plazaColumn;
-        TextMeshProUGUI emptySell;
+        RectTransform shopHost;
+        RectTransform wagonHost;
+        GridLayoutGroup shopGrid;
+        GridLayoutGroup wagonGrid;
+        RectTransform sortMenu;
+        TextMeshProUGUI detailText;
+        TextMeshProUGUI weightText;
+        RectTransform gatesColumn;
+        GameObject innSpot;
+        GameObject gatesSpot;
+        GameObject tavernSpot;
+        GameObject stablesSpot;
         PlaceId roadsDock;
         bool roadsReady;
         Button marketTab;
         Button plazaTab;
         Button houseTab;
-        Button buyTab;
-        Button sellTab;
-        Button roadButton;
-        Button waitButton;
+        Button buyButton;
+        Button sellButton;
+        Button sortButton;
+        Button innTab;
+        Button gatesTab;
+        Button tavernTab;
+        Button stablesTab;
+        Button innWaitButton;
+        Button innDawnButton;
+        Button innDuskButton;
         Button restButton;
         Button waterButton;
         Button foodButton;
         Button listenButton;
-        Button lookButton;
+        Button gatesCareful;
+        Button gatesSteady;
+        Button gatesRush;
+        Button embarkButton;
+        TextMeshProUGUI nextCampText;
         Button backButton;
         Button gearButton;
         Button logbookButton;
@@ -125,7 +177,9 @@ namespace Caravans.Play
             EnsureEventSystem();
             quad = MakeSprite(false);
             disc = MakeSprite(true);
+            ring = MakeRing();
             font = MakeFont();
+            MarketSounds.Bind(gameObject);
             Build();
             Redraw();
         }
@@ -230,6 +284,133 @@ namespace Caravans.Play
         {
             var page = Child(body, "Market");
             Stretch(page);
+
+            var strip = Child(page, "Detail");
+            TopStrip(strip, MarketStrip);
+            detailText = Body(strip, 22, TextAlignmentOptions.MidlineLeft);
+            Stretch(detailText.rectTransform, 16f);
+
+            var shop = ImageOn(Child(page, "ShopFrame"), Panel, false);
+            shop.rectTransform.anchorMin = Vector2.zero;
+            shop.rectTransform.anchorMax = Vector2.one;
+            shop.rectTransform.offsetMin = new Vector2(12f, 8f);
+            shop.rectTransform.offsetMax = new Vector2(-(WagonPanelWidth + FrameGap + 12f), -MarketStrip);
+
+            var shopHead = Child(shop.rectTransform, "Head");
+            TopStrip(shopHead, FrameHeader);
+            var shopRow = shopHead.gameObject.AddComponent<HorizontalLayoutGroup>();
+            shopRow.spacing = 8f;
+            shopRow.padding = new RectOffset(8, 8, 6, 6);
+            shopRow.childAlignment = TextAnchor.MiddleLeft;
+            shopRow.childControlWidth = true;
+            shopRow.childControlHeight = true;
+            shopRow.childForceExpandWidth = false;
+            shopRow.childForceExpandHeight = true;
+            sortButton = Tab(shopHead, "Sort", ToggleSortMenu);
+            var sortFit = sortButton.GetComponent<LayoutElement>();
+            sortFit.preferredWidth = 150f;
+            sortFit.preferredHeight = 40f;
+            var shopSpacer = Child(shopHead, "Spacer");
+            var shopSpace = shopSpacer.gameObject.AddComponent<LayoutElement>();
+            shopSpace.flexibleWidth = 1f;
+            buyButton = Tab(shopHead, "Buy", PressBuy);
+            var buyFit = buyButton.GetComponent<LayoutElement>();
+            buyFit.preferredWidth = 160f;
+            buyFit.preferredHeight = 40f;
+
+            shopHost = Child(shop.rectTransform, "Cells");
+            shopHost.anchorMin = Vector2.zero;
+            shopHost.anchorMax = Vector2.one;
+            shopHost.offsetMin = new Vector2(8f, 8f);
+            shopHost.offsetMax = new Vector2(-8f, -FrameHeader);
+            shopGrid = shopHost.gameObject.AddComponent<GridLayoutGroup>();
+            shopGrid.cellSize = new Vector2(ShopCellW, ShopCellH);
+            shopGrid.spacing = new Vector2(6f, 6f);
+            shopGrid.padding = new RectOffset(4, 4, 4, 4);
+            shopGrid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+            shopGrid.startAxis = GridLayoutGroup.Axis.Horizontal;
+            shopGrid.childAlignment = TextAnchor.UpperCenter;
+            shopGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            shopGrid.constraintCount = ShopColumns;
+
+            sortMenu = ImageOn(Child(shop.rectTransform, "SortMenu"), Bar, true).rectTransform;
+            sortMenu.anchorMin = new Vector2(0f, 1f);
+            sortMenu.anchorMax = new Vector2(0f, 1f);
+            sortMenu.pivot = new Vector2(0f, 1f);
+            sortMenu.anchoredPosition = new Vector2(8f, -FrameHeader);
+            sortMenu.sizeDelta = new Vector2(280f, 188f);
+            var menuColumn = sortMenu.gameObject.AddComponent<VerticalLayoutGroup>();
+            menuColumn.spacing = 4f;
+            menuColumn.padding = new RectOffset(8, 8, 8, 8);
+            menuColumn.childAlignment = TextAnchor.UpperCenter;
+            menuColumn.childControlWidth = true;
+            menuColumn.childControlHeight = true;
+            menuColumn.childForceExpandWidth = true;
+            menuColumn.childForceExpandHeight = false;
+            AddSortChoice(sortMenu, "Name", ShopSort.Name);
+            AddSortChoice(sortMenu, "Price, high to low", ShopSort.PriceHigh);
+            AddSortChoice(sortMenu, "Price, low to high", ShopSort.PriceLow);
+            AddSortChoice(sortMenu, "Demand", ShopSort.Demand);
+            RaiseCanvas(sortMenu.gameObject, 8);
+            sortMenu.gameObject.SetActive(false);
+
+            var wagon = ImageOn(Child(page, "WagonFrame"), WagonGround, false);
+            wagon.rectTransform.anchorMin = new Vector2(1f, 0f);
+            wagon.rectTransform.anchorMax = Vector2.one;
+            wagon.rectTransform.offsetMin = new Vector2(-(WagonPanelWidth + 12f), 8f);
+            wagon.rectTransform.offsetMax = new Vector2(-12f, -MarketStrip);
+
+            var wagonHead = Child(wagon.rectTransform, "Head");
+            TopStrip(wagonHead, FrameHeader);
+            var wagonRow = wagonHead.gameObject.AddComponent<HorizontalLayoutGroup>();
+            wagonRow.padding = new RectOffset(8, 8, 6, 6);
+            wagonRow.childAlignment = TextAnchor.MiddleRight;
+            wagonRow.childControlWidth = true;
+            wagonRow.childControlHeight = true;
+            wagonRow.childForceExpandWidth = false;
+            wagonRow.childForceExpandHeight = true;
+            var wagonSpacer = Child(wagonHead, "Spacer");
+            wagonSpacer.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
+            sellButton = Tab(wagonHead, "Sell", PressSell);
+            var sellFit = sellButton.GetComponent<LayoutElement>();
+            sellFit.preferredWidth = 160f;
+            sellFit.preferredHeight = 40f;
+
+            var weightBar = Child(wagon.rectTransform, "Weight");
+            BottomStrip(weightBar, WeightLine);
+            weightText = Body(weightBar, 20, TextAlignmentOptions.Center);
+            Stretch(weightText.rectTransform, 4f);
+
+            wagonHost = Child(wagon.rectTransform, "Slots");
+            wagonHost.anchorMin = Vector2.zero;
+            wagonHost.anchorMax = Vector2.one;
+            wagonHost.offsetMin = new Vector2(8f, WeightLine);
+            wagonHost.offsetMax = new Vector2(-8f, -FrameHeader);
+            wagonGrid = wagonHost.gameObject.AddComponent<GridLayoutGroup>();
+            wagonGrid.cellSize = new Vector2(WagonCellW, WagonCellH);
+            wagonGrid.spacing = new Vector2(8f, 8f);
+            wagonGrid.padding = new RectOffset(4, 4, 4, 4);
+            wagonGrid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+            wagonGrid.startAxis = GridLayoutGroup.Axis.Horizontal;
+            wagonGrid.childAlignment = TextAnchor.UpperCenter;
+            wagonGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            wagonGrid.constraintCount = WagonColumns;
+            return page.gameObject;
+        }
+
+        void AddSortChoice(RectTransform menu, string label, ShopSort sort)
+        {
+            ShopSort captured = sort;
+            Button button = Tab(menu, label, () => ChooseSort(captured));
+            button.GetComponent<LayoutElement>().preferredHeight = 40f;
+            sortChoices.Add(button);
+            sortChoiceKinds.Add(sort);
+        }
+
+        GameObject BuildPlaza(RectTransform body)
+        {
+            var page = Child(body, "Plaza");
+            Stretch(page);
             var sub = Child(page, "SubTabs");
             TopStrip(sub, 64f);
             var layout = sub.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -240,82 +421,118 @@ namespace Caravans.Play
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = true;
             layout.childAlignment = TextAnchor.MiddleLeft;
-            buyTab = Tab(sub, "Buy", () => { selling = false; Redraw(); });
-            sellTab = Tab(sub, "Sell", () => OpenSell());
-            buyTab.GetComponent<LayoutElement>().preferredWidth = 160f;
-            sellTab.GetComponent<LayoutElement>().preferredWidth = 160f;
+            innTab = Tab(sub, "Inn", OpenInn);
+            gatesTab = Tab(sub, "Gates", OpenGates);
+            tavernTab = Tab(sub, "Tavern", OpenTavern);
+            stablesTab = Tab(sub, "Stables", OpenStables);
+            innTab.GetComponent<LayoutElement>().preferredWidth = 160f;
+            gatesTab.GetComponent<LayoutElement>().preferredWidth = 160f;
+            tavernTab.GetComponent<LayoutElement>().preferredWidth = 170f;
+            stablesTab.GetComponent<LayoutElement>().preferredWidth = 180f;
 
-            pinnedHost = Child(page, "Pinned");
-            pinnedHost.anchorMin = new Vector2(0f, 1f);
-            pinnedHost.anchorMax = new Vector2(0.66f, 1f);
-            pinnedHost.pivot = new Vector2(0.5f, 1f);
-            pinnedHost.anchoredPosition = new Vector2(0f, -64f);
-            pinnedHost.sizeDelta = new Vector2(0f, 0f);
-            var pinnedRows = pinnedHost.gameObject.AddComponent<VerticalLayoutGroup>();
-            pinnedRows.spacing = 8f;
-            pinnedRows.padding = new RectOffset(12, 12, 8, 8);
-            pinnedRows.childControlWidth = true;
-            pinnedRows.childControlHeight = true;
-            pinnedRows.childForceExpandWidth = true;
-            pinnedRows.childForceExpandHeight = false;
+            var inn = Spot(page, "Inn");
+            innSpot = inn.gameObject;
+            var innColumn = SpotColumn(inn);
+            restButton = StackButton(innColumn, "Rest", () => session.TryRest());
+            innWaitButton = StackButton(innColumn, "Wait an hour", () => session.WaitOneHour());
+            innDawnButton = StackButton(innColumn, "Wait until dawn", () => session.WaitUntilDawn());
+            innDuskButton = StackButton(innColumn, "Wait until dusk", () => session.WaitUntilDusk());
+            waterButton = StackButton(innColumn, "Fill water", () => session.TryFillWater());
+            foodButton = StackButton(innColumn, "Fill food", () => session.TryFillFood());
 
-            scrollRoot = Child(page, "Scroll");
-            scrollRoot.anchorMin = Vector2.zero;
-            scrollRoot.anchorMax = new Vector2(0.66f, 1f);
-            scrollRoot.offsetMin = new Vector2(12f, 8f);
-            scrollRoot.offsetMax = new Vector2(0f, -64f);
-            var scroll = scrollRoot.gameObject.AddComponent<ScrollRect>();
-            scroll.horizontal = false;
-            scroll.vertical = true;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
-            scroll.scrollSensitivity = 28f;
+            var gates = Spot(page, "Gates");
+            gatesSpot = gates.gameObject;
+            gatesColumn = Child(gates, "Column");
+            gatesColumn.anchorMin = new Vector2(0f, 0f);
+            gatesColumn.anchorMax = new Vector2(0f, 1f);
+            gatesColumn.pivot = new Vector2(0f, 0.5f);
+            gatesColumn.offsetMin = new Vector2(12f, 12f);
+            gatesColumn.offsetMax = new Vector2(GatesPanelRight, -12f);
+            ImageOn(gatesColumn, Panel, true);
+            var gatesLayout = gatesColumn.gameObject.AddComponent<VerticalLayoutGroup>();
+            gatesLayout.spacing = 12f;
+            gatesLayout.padding = new RectOffset(16, 16, 16, 16);
+            gatesLayout.childAlignment = TextAnchor.UpperCenter;
+            gatesLayout.childControlWidth = true;
+            gatesLayout.childControlHeight = true;
+            gatesLayout.childForceExpandWidth = true;
+            gatesLayout.childForceExpandHeight = false;
+            outlookText = Body(gatesColumn, 20, TextAlignmentOptions.Center);
+            outlookText.color = Quiet;
+            var fit = outlookText.gameObject.AddComponent<LayoutElement>();
+            fit.preferredHeight = 90f;
+            var spacer = Child(gatesColumn, "Spacer");
+            spacer.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1f;
+            var embarkPanel = Child(gatesColumn, "EmbarkPanel");
+            ImageOn(embarkPanel, Bar, true);
+            embarkPanel.gameObject.AddComponent<LayoutElement>().preferredHeight = 228f;
+            var embarkLayout = embarkPanel.gameObject.AddComponent<VerticalLayoutGroup>();
+            embarkLayout.spacing = 10f;
+            embarkLayout.padding = new RectOffset(12, 12, 12, 12);
+            embarkLayout.childAlignment = TextAnchor.UpperCenter;
+            embarkLayout.childControlWidth = true;
+            embarkLayout.childControlHeight = true;
+            embarkLayout.childForceExpandWidth = true;
+            embarkLayout.childForceExpandHeight = false;
+            var speeds = Child(embarkPanel, "Speeds");
+            speeds.gameObject.AddComponent<LayoutElement>().preferredHeight = 56f;
+            var speedRow = speeds.gameObject.AddComponent<HorizontalLayoutGroup>();
+            speedRow.spacing = 8f;
+            speedRow.childAlignment = TextAnchor.MiddleCenter;
+            speedRow.childControlWidth = true;
+            speedRow.childControlHeight = true;
+            speedRow.childForceExpandWidth = true;
+            speedRow.childForceExpandHeight = true;
+            gatesCareful = Tab(speeds, "Careful", () => PickPace(RoadPace.Careful));
+            gatesSteady = Tab(speeds, "Steady", () => PickPace(RoadPace.Steady));
+            gatesRush = Tab(speeds, "Rush", () => PickPace(RoadPace.Rush));
+            gatesCareful.GetComponent<LayoutElement>().flexibleWidth = 1f;
+            gatesSteady.GetComponent<LayoutElement>().flexibleWidth = 1f;
+            gatesRush.GetComponent<LayoutElement>().flexibleWidth = 1f;
+            nextCampText = Body(embarkPanel, 20, TextAlignmentOptions.Center);
+            nextCampText.richText = true;
+            nextCampText.gameObject.AddComponent<LayoutElement>().preferredHeight = 72f;
+            embarkButton = StackButton(embarkPanel, "Embark", Embark);
 
-            var viewport = Child(scrollRoot, "Viewport");
-            Stretch(viewport);
-            var viewportImage = viewport.gameObject.AddComponent<Image>();
-            viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
-            viewportImage.raycastTarget = true;
-            var mask = viewport.gameObject.AddComponent<Mask>();
-            mask.showMaskGraphic = false;
-            scroll.viewport = viewport;
+            var tavern = Spot(page, "Tavern");
+            tavernSpot = tavern.gameObject;
+            var tavernColumn = SpotColumn(tavern);
+            listenButton = StackButton(tavernColumn, "Listen", () =>
+            {
+                listenLine = "Socialize is not in this slice.";
+                Redraw();
+            });
+            listenText = Body(tavernColumn, 20, TextAlignmentOptions.Center);
+            listenText.color = Ink;
+            var listenFit = listenText.gameObject.AddComponent<LayoutElement>();
+            listenFit.preferredHeight = 48f;
 
-            rowHost = Child(viewport, "Rows");
-            rowHost.anchorMin = new Vector2(0f, 1f);
-            rowHost.anchorMax = new Vector2(1f, 1f);
-            rowHost.pivot = new Vector2(0.5f, 1f);
-            rowHost.anchoredPosition = Vector2.zero;
-            rowHost.sizeDelta = new Vector2(0f, 0f);
-            var rows = rowHost.gameObject.AddComponent<VerticalLayoutGroup>();
-            rows.spacing = 8f;
-            rows.padding = new RectOffset(12, 12, 8, 8);
-            rows.childControlWidth = true;
-            rows.childControlHeight = true;
-            rows.childForceExpandWidth = true;
-            rows.childForceExpandHeight = false;
-            var fitter = rowHost.gameObject.AddComponent<ContentSizeFitter>();
-            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            scroll.content = rowHost;
-            emptySell = Body(page, 22, TextAlignmentOptions.Center);
-            var emptyRt = emptySell.rectTransform;
-            emptyRt.anchorMin = Vector2.zero;
-            emptyRt.anchorMax = new Vector2(0.66f, 1f);
-            emptyRt.offsetMin = new Vector2(24f, 24f);
-            emptyRt.offsetMax = new Vector2(-12f, -72f);
-            emptySell.text = "The wagon is empty.";
+            var stables = Spot(page, "Stables");
+            stablesSpot = stables.gameObject;
+            var stablesColumn = SpotColumn(stables);
+            var stablesText = Body(stablesColumn, 24, TextAlignmentOptions.Center);
+            stablesText.text = "Mount upgrades are not in this slice.";
+            var stablesFit = stablesText.gameObject.AddComponent<LayoutElement>();
+            stablesFit.preferredHeight = 80f;
             return page.gameObject;
         }
 
-        GameObject BuildPlaza(RectTransform body)
+        RectTransform Spot(RectTransform page, string name)
         {
-            var page = Child(body, "Plaza");
-            Stretch(page);
-            var column = Child(page, "Column");
-            plazaColumn = column;
+            var spot = Child(page, name);
+            Stretch(spot);
+            spot.offsetMax = new Vector2(0f, -64f);
+            return spot;
+        }
+
+        RectTransform SpotColumn(RectTransform spot)
+        {
+            var column = Child(spot, "Column");
             column.anchorMin = new Vector2(0.5f, 0f);
             column.anchorMax = new Vector2(0.5f, 1f);
             column.pivot = new Vector2(0.5f, 0.5f);
-            column.sizeDelta = new Vector2(520f, 0f);
+            column.offsetMin = new Vector2(-260f, 0f);
+            column.offsetMax = new Vector2(260f, 0f);
             var layout = column.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.spacing = 12f;
             layout.padding = new RectOffset(0, 0, 28, 28);
@@ -324,30 +541,35 @@ namespace Caravans.Play
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
-            roadButton = StackButton(column, "Take the road", () => { });
-            waitButton = StackButton(column, "Wait an hour", () => session.WaitOneHour());
-            restButton = StackButton(column, "Rest", () => session.TryRest());
-            waterButton = StackButton(column, "Fill water", () => session.TryFillWater());
-            foodButton = StackButton(column, "Fill food", () => session.TryFillFood());
-            listenButton = StackButton(column, "Listen", () =>
-            {
-                listenLine = "Socialize is not in this slice.";
-                Redraw();
-            });
-            lookButton = StackButton(column, "Look at the map", () =>
-            {
-                lookingAtMap = true;
-                Redraw();
-            });
-            outlookText = Body(column, 20, TextAlignmentOptions.Center);
-            outlookText.color = Quiet;
-            var fit = outlookText.gameObject.AddComponent<LayoutElement>();
-            fit.preferredHeight = 90f;
-            listenText = Body(column, 20, TextAlignmentOptions.Center);
-            listenText.color = Ink;
-            var listenFit = listenText.gameObject.AddComponent<LayoutElement>();
-            listenFit.preferredHeight = 48f;
-            return page.gameObject;
+            return column;
+        }
+
+        void OpenInn()
+        {
+            page = Page.Plaza;
+            plazaSpot = PlazaSpot.Inn;
+            Redraw();
+        }
+
+        void OpenGates()
+        {
+            page = Page.Plaza;
+            plazaSpot = PlazaSpot.Gates;
+            Redraw();
+        }
+
+        void OpenTavern()
+        {
+            page = Page.Plaza;
+            plazaSpot = PlazaSpot.Tavern;
+            Redraw();
+        }
+
+        void OpenStables()
+        {
+            page = Page.Plaza;
+            plazaSpot = PlazaSpot.Stables;
+            Redraw();
         }
 
         GameObject BuildHousePage(RectTransform body)
@@ -362,19 +584,26 @@ namespace Caravans.Play
 
         void BuildTravel()
         {
-            var frame = Child(travel, "MapFrame");
-            Stretch(frame, 12f);
-            mapRoot = Child(frame, "Map");
+            mapFrame = Child(travel, "MapFrame");
+            Stretch(mapFrame, 12f);
+            mapRoot = Child(mapFrame, "Map");
             Stretch(mapRoot);
             var fit = mapRoot.gameObject.AddComponent<AspectRatioFitter>();
             fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
             fit.aspectRatio = RoadPath.Aspect;
+            mapRoot.gameObject.AddComponent<RectMask2D>();
 
-            mapImage = mapRoot.gameObject.AddComponent<RawImage>();
+            mapSheet = Child(mapRoot, "Sheet");
+            mapSheet.anchorMin = new Vector2(0.5f, 0.5f);
+            mapSheet.anchorMax = new Vector2(0.5f, 0.5f);
+            mapSheet.pivot = new Vector2(0.5f, 0.5f);
+            mapSheet.anchoredPosition = Vector2.zero;
+
+            mapImage = mapSheet.gameObject.AddComponent<RawImage>();
             mapImage.color = new Color(0.72f, 0.61f, 0.42f, 1f);
-            mapImage.raycastTarget = false;
+            mapImage.raycastTarget = true;
 
-            var fogGo = Child(mapRoot, "Fog");
+            var fogGo = Child(mapSheet, "Fog");
             Stretch(fogGo);
             fogImage = fogGo.gameObject.AddComponent<RawImage>();
             fogImage.texture = quad.texture;
@@ -392,18 +621,42 @@ namespace Caravans.Play
                 Debug.LogWarning("Vision fog shader was not found. The map stays unshaded.");
             }
 
-            var tokenImage = ImageOn(Child(mapRoot, "Caravan"), new Color(0.93f, 0.82f, 0.55f, 1f), false);
+            routeRoot = Child(mapSheet, "Route");
+            Stretch(routeRoot);
+            routeRoot.SetSiblingIndex(fogGo.GetSiblingIndex());
+            routeMark = ImageOn(Child(routeRoot, "Destination"), new Color(0.93f, 0.78f, 0.35f, 0.95f), false);
+            routeMark.sprite = ring;
+            routeMark.rectTransform.sizeDelta = new Vector2(72f, 72f);
+            routeRoot.gameObject.SetActive(false);
+
+            var tokenImage = ImageOn(Child(mapSheet, "Caravan"), new Color(0.93f, 0.82f, 0.55f, 1f), false);
             tokenImage.sprite = disc;
             token = tokenImage.rectTransform;
             token.sizeDelta = new Vector2(22f, 22f);
 
             for (int i = 0; i < 9; i++)
             {
-                var npcImage = ImageOn(Child(mapRoot, "Npc" + i), Color.white, false);
+                var npcImage = ImageOn(Child(mapSheet, "Npc" + i), Color.white, false);
                 npcImage.sprite = disc;
                 npcImage.rectTransform.sizeDelta = new Vector2(14f, 14f);
                 npcTokens.Add(npcImage);
             }
+
+            mapRoads = Child(travel, "MapRoads");
+            mapRoads.anchorMin = new Vector2(0f, 0f);
+            mapRoads.anchorMax = new Vector2(0f, 1f);
+            mapRoads.pivot = new Vector2(0f, 0.5f);
+            mapRoads.offsetMin = new Vector2(24f, 96f);
+            mapRoads.offsetMax = new Vector2(444f, -52f);
+            var roadLayout = mapRoads.gameObject.AddComponent<VerticalLayoutGroup>();
+            roadLayout.spacing = 12f;
+            roadLayout.padding = new RectOffset(0, 0, 8, 8);
+            roadLayout.childAlignment = TextAnchor.UpperCenter;
+            roadLayout.childControlWidth = true;
+            roadLayout.childControlHeight = true;
+            roadLayout.childForceExpandWidth = true;
+            roadLayout.childForceExpandHeight = false;
+            mapRoads.gameObject.SetActive(false);
 
             var legBar = ImageOn(Child(travel, "Leg"), new Color(0.1f, 0.07f, 0.05f, 0.82f), false);
             TopStrip(legBar.rectTransform, 40f);
@@ -621,6 +874,8 @@ namespace Caravans.Play
                 return;
             PlaceId dest = pendingDest;
             choosingRoad = false;
+            roadLit = false;
+            lookingAtMap = false;
             session.DepartTo(dest);
         }
 
@@ -665,11 +920,14 @@ namespace Caravans.Play
         {
             drawn = session.Revision;
             ClearRaised();
+            bool gatesMap = !session.Traveling && page == Page.Plaza && plazaSpot == PlazaSpot.Gates;
             dock.gameObject.SetActive(!session.Traveling && !lookingAtMap);
-            travel.gameObject.SetActive(session.Traveling || lookingAtMap);
+            travel.gameObject.SetActive(session.Traveling || lookingAtMap || gatesMap);
+            FitMapFrame();
             marketPage.SetActive(page == Page.Market);
             plazaPage.SetActive(page == Page.Plaza);
             housePage.SetActive(page == Page.House);
+            ShowPlazaSpot();
             houseTab.gameObject.SetActive(EconomyCatalog.IsCity(session.Dock));
             paceBar.SetActive(session.Traveling && !session.CampPending && !session.AwaitingPace && !session.EncounterPending);
             backButton.gameObject.SetActive(lookingAtMap && !session.Traveling);
@@ -677,21 +935,22 @@ namespace Caravans.Play
             cardRoot.gameObject.SetActive(roadChoice);
             optionsRoot.gameObject.SetActive(optionsOpen);
             logbookRoot.gameObject.SetActive(logbookOpen);
-            dimmer.gameObject.SetActive(roadChoice && !optionsOpen);
+            dimmer.gameObject.SetActive(roadChoice && !optionsOpen && !choosingRoad);
             ShowRoadChoice(roadChoice);
 
             bannerName.text = CaravanSession.PlaceName(session.Dock);
             bannerTag.text = session.PatronLine();
             outlookText.text = session.OutlookLine();
+            nextCampText.text = NextCampLine();
             listenText.text = listenLine;
             waterButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill water", GoodId.Water, session.WaterLitres, EconomyRates.CanteenLitres);
             foodButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill food", GoodId.Rations, session.RationKg, EconomyRates.RationBagKg);
 
-            RebuildRows();
-            if (MarketInFront())
-                session.NoteMarketShown(selling);
+            RebuildMarket();
+            NoteSelection();
             RebuildLogbook();
             SyncRoads();
+            PlaceRoadButtons();
             if (roadChoice && !optionsOpen)
             {
                 LockButtons();
@@ -788,34 +1047,315 @@ namespace Caravans.Play
             }
         }
 
-        void RebuildRows()
+        void RebuildMarket()
         {
-            tradeButtons.Clear();
-            ClearChildren(pinnedHost);
-            ClearChildren(rowHost);
+            if (wagonPick >= session.CargoCount)
+                wagonPick = -1;
+            ClearChildren(shopHost);
+            ClearChildren(wagonHost);
             buttons.RemoveAll(button => button == null);
 
-            bool any = false;
+            if (page != Page.Market || logbookOpen || optionsOpen || choosingRoad
+                || session.CampPending || session.AwaitingPace || session.EncounterPending)
+                sortMenuOpen = false;
+
+            List<GoodId> goods = OrderShop();
+            for (int i = 0; i < goods.Count; i++)
+            {
+                GoodId captured = goods[i];
+                int stock = session.StockOf(session.Dock, captured);
+                DemandBand band = EconomyCatalog.DemandOf(session.Dock, captured, stock);
+                MakeSquare(shopHost, captured.ToString(), CaravanSession.GoodName(captured), stock.ToString(),
+                    shopSelected && pickedGood == captured, band, stock <= 0, () => SelectShop(captured));
+            }
+
+            int slots = EconomyRates.WagonSpace;
+            for (int i = 0; i < session.CargoCount && i < slots; i++)
+            {
+                int captured = i;
+                GoodId good = session.CargoGoodAt(i);
+                int stock = session.StockOf(session.Dock, good);
+                DemandBand band = EconomyCatalog.DemandOf(session.Dock, good, stock);
+                MakeSquare(wagonHost, "Slot" + i, CaravanSession.GoodName(good), null,
+                    wagonPick == i, band, false, () => SelectWagon(captured));
+            }
+
+            for (int i = session.CargoCount; i < slots; i++)
+                MakeSquare(wagonHost, "Empty" + i, null, null, false, DemandBand.None, true, null);
+
+            weightText.text = "Weight " + session.CargoWeight() + "/" + EconomyRates.WagonWeight;
+            detailText.text = DetailLine();
+            sortMenu.gameObject.SetActive(sortMenuOpen);
+            for (int i = 0; i < sortChoices.Count; i++)
+                TintPace(sortChoices[i], sortChoiceKinds[i] == shopSort);
+            FitGrids(goods.Count, slots);
+        }
+
+        List<GoodId> OrderShop()
+        {
+            var goods = new List<GoodId>();
             for (int i = 0; i < WorldIds.GoodCount; i++)
             {
                 GoodId good = (GoodId)i;
-                if (good == GoodId.Rations)
-                    continue;
-                int count = selling ? session.CargoOf(good) : session.StockOf(session.Dock, good);
-                if (count <= 0)
-                    continue;
-                any = true;
-                tradeButtons[good] = MakeRow(rowHost, good, count);
+                if (good != GoodId.Rations)
+                    goods.Add(good);
             }
 
-            if (pinnedHost != null)
-                pinnedHost.gameObject.SetActive(false);
-            if (scrollRoot != null)
-                scrollRoot.offsetMax = new Vector2(0f, -64f);
+            if (shopSort != ShopSort.Catalog)
+                goods.Sort(CompareShop);
+            return goods;
+        }
 
-            emptySell.gameObject.SetActive(page == Page.Market && selling && !any);
-            bool showRows = !(page == Page.Market && selling && !any);
-            scrollRoot.gameObject.SetActive(showRows);
+        int CompareShop(GoodId a, GoodId b)
+        {
+            int order = 0;
+            if (shopSort == ShopSort.Name)
+                order = string.Compare(CaravanSession.GoodName(a), CaravanSession.GoodName(b), System.StringComparison.OrdinalIgnoreCase);
+            else if (shopSort == ShopSort.PriceHigh)
+                order = session.BuyCost(session.Dock, b).CompareTo(session.BuyCost(session.Dock, a));
+            else if (shopSort == ShopSort.PriceLow)
+                order = session.BuyCost(session.Dock, a).CompareTo(session.BuyCost(session.Dock, b));
+            else if (shopSort == ShopSort.Demand)
+                order = DemandRank(a).CompareTo(DemandRank(b));
+            if (order != 0)
+                return order;
+            return ((int)a).CompareTo((int)b);
+        }
+
+        int DemandRank(GoodId good)
+        {
+            switch (EconomyCatalog.DemandOf(session.Dock, good, session.StockOf(session.Dock, good)))
+            {
+                case DemandBand.High:
+                    return 0;
+                case DemandBand.Mid:
+                    return 1;
+                case DemandBand.Low:
+                    return 2;
+                default:
+                    return 3;
+            }
+        }
+
+        void ToggleSortMenu()
+        {
+            sortMenuOpen = !sortMenuOpen;
+            drawn = -1;
+        }
+
+        void ChooseSort(ShopSort sort)
+        {
+            shopSort = sort;
+            sortMenuOpen = false;
+            drawn = -1;
+        }
+
+        void FitGrids(int shopCount, int slots)
+        {
+            Canvas.ForceUpdateCanvases();
+            FitGrid(shopGrid, shopHost, ShopColumns, RowsOf(shopCount, ShopColumns));
+            FitGrid(wagonGrid, wagonHost, WagonColumns, RowsOf(slots, WagonColumns));
+        }
+
+        static int RowsOf(int count, int columns)
+        {
+            if (count <= 0 || columns <= 0)
+                return 1;
+            return (count + columns - 1) / columns;
+        }
+
+        static void FitGrid(GridLayoutGroup grid, RectTransform host, int columns, int rows)
+        {
+            float width = host.rect.width;
+            float height = host.rect.height;
+            if (width < 10f || height < 10f || columns <= 0 || rows <= 0)
+                return;
+            float cellW = (width - grid.padding.horizontal - (columns - 1) * grid.spacing.x) / columns;
+            float cellH = (height - grid.padding.vertical - (rows - 1) * grid.spacing.y) / rows;
+            if (cellW < 8f || cellH < 8f)
+                return;
+            grid.cellSize = new Vector2(cellW, cellH);
+        }
+
+        void SelectShop(GoodId good)
+        {
+            shopSelected = true;
+            pickedGood = good;
+            wagonPick = -1;
+            sortMenuOpen = false;
+            drawn = -1;
+        }
+
+        void SelectWagon(int index)
+        {
+            if (index < 0 || index >= session.CargoCount)
+                return;
+            shopSelected = false;
+            wagonPick = index;
+            pickedGood = session.CargoGoodAt(index);
+            sortMenuOpen = false;
+            drawn = -1;
+        }
+
+        void PressBuy()
+        {
+            if (!SelectionLive())
+                return;
+            GoodId good = SelectedGood();
+            if (session.TryBuy(good))
+                MarketSounds.PlayBuy(good);
+        }
+
+        void PressSell()
+        {
+            if (wagonPick >= 0 && wagonPick < session.CargoCount)
+            {
+                if (session.TrySellStack(wagonPick))
+                {
+                    wagonPick = -1;
+                    MarketSounds.PlaySale();
+                }
+                return;
+            }
+
+            if (shopSelected && session.TrySell(pickedGood))
+                MarketSounds.PlaySale();
+        }
+
+        bool SelectionLive()
+        {
+            if (wagonPick >= 0)
+                return wagonPick < session.CargoCount;
+            return shopSelected;
+        }
+
+        bool CanPressSell()
+        {
+            if (wagonPick >= 0 && wagonPick < session.CargoCount)
+                return session.CanSellStack(wagonPick);
+            if (shopSelected)
+                return session.CanSell(pickedGood);
+            return false;
+        }
+
+        GoodId SelectedGood()
+        {
+            if (wagonPick >= 0 && wagonPick < session.CargoCount)
+                return session.CargoGoodAt(wagonPick);
+            return pickedGood;
+        }
+
+        void NoteSelection()
+        {
+            if (!MarketInFront())
+                return;
+            if (wagonPick >= 0 && wagonPick < session.CargoCount)
+            {
+                session.NoteShownSale(wagonPick);
+                return;
+            }
+
+            if (shopSelected)
+                session.NoteShownBuy(pickedGood);
+        }
+
+        string DetailLine()
+        {
+            if (!SelectionLive())
+                return string.Empty;
+            GoodId good = SelectedGood();
+            bool wagon = wagonPick >= 0 && wagonPick < session.CargoCount;
+            var parts = new List<string>();
+            if (wagon)
+            {
+                if (EconomyCatalog.Buys(session.Dock, good))
+                    parts.Add(session.SellValueAt(wagonPick) + " coin");
+            }
+            else
+            {
+                parts.Add(session.BuyCost(session.Dock, good) + " coin");
+            }
+
+            if (EconomyCatalog.IsContraband(session.Dock, good))
+                parts.Add("contraband");
+            DemandBand band = EconomyCatalog.DemandOf(session.Dock, good, session.StockOf(session.Dock, good));
+            if (band == DemandBand.High)
+                parts.Add("high demand");
+            else if (band == DemandBand.Mid)
+                parts.Add("mid demand");
+            else if (band == DemandBand.Low)
+                parts.Add("low demand");
+            return string.Join("  ·  ", parts);
+        }
+
+        void MakeSquare(RectTransform host, string name, string label, string count, bool selected, DemandBand band, bool dim, UnityEngine.Events.UnityAction action)
+        {
+            var rect = Child(host, name);
+            var ring = rect.gameObject.AddComponent<Image>();
+            ring.sprite = quad;
+            ring.color = selected ? Ink : BandColor(band);
+            ring.raycastTarget = action != null;
+            if (action != null)
+            {
+                var button = rect.gameObject.AddComponent<Button>();
+                button.targetGraphic = ring;
+                button.transition = Selectable.Transition.None;
+                var nav = button.navigation;
+                nav.mode = Navigation.Mode.None;
+                button.navigation = nav;
+                button.onClick.AddListener(action);
+                buttons.Add(button);
+            }
+
+            var rim = ImageOn(Child(rect, "Rim"), BandColor(band), false);
+            Stretch(rim.rectTransform, 4f);
+            var face = ImageOn(Child(rect, "Face"), dim ? FaceDim : Field, false);
+            Stretch(face.rectTransform, 8f);
+            if (string.IsNullOrEmpty(label))
+                return;
+
+            var text = Body(rect, 18, TextAlignmentOptions.Center);
+            text.text = label;
+            text.color = dim ? Quiet : Ink;
+            text.textWrappingMode = TextWrappingModes.Normal;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 11f;
+            text.fontSizeMax = 16f;
+            var textRt = text.rectTransform;
+            textRt.anchorMin = Vector2.zero;
+            textRt.anchorMax = Vector2.one;
+            float bottom = string.IsNullOrEmpty(count) ? 6f : 20f;
+            textRt.offsetMin = new Vector2(6f, bottom);
+            textRt.offsetMax = new Vector2(-6f, -6f);
+            if (string.IsNullOrEmpty(count))
+                return;
+
+            var countText = Body(rect, 14, TextAlignmentOptions.BottomRight);
+            countText.text = count;
+            countText.color = dim ? Quiet : Ink;
+            countText.textWrappingMode = TextWrappingModes.NoWrap;
+            var countRt = countText.rectTransform;
+            countRt.anchorMin = new Vector2(1f, 0f);
+            countRt.anchorMax = new Vector2(1f, 0f);
+            countRt.pivot = new Vector2(1f, 0f);
+            countRt.sizeDelta = new Vector2(48f, 20f);
+            countRt.anchoredPosition = new Vector2(-4f, 3f);
+        }
+
+        static Color BandColor(DemandBand band)
+        {
+            switch (band)
+            {
+                case DemandBand.High:
+                    return DemandHigh;
+                case DemandBand.Mid:
+                    return DemandMid;
+                case DemandBand.Low:
+                    return DemandLow;
+                default:
+                    return RimQuiet;
+            }
         }
 
         static void ClearChildren(RectTransform host)
@@ -828,7 +1368,6 @@ namespace Caravans.Play
 
         void SyncRoads()
         {
-            roadButton.gameObject.SetActive(false);
             if (roadsReady && roadsDock == session.Dock)
                 return;
 
@@ -838,13 +1377,32 @@ namespace Caravans.Play
             {
                 PlaceId dest = roads[i];
                 string label = "Take the road to " + CaravanSession.PlaceName(dest);
-                Button button = StackButton(plazaColumn, label, () => AskRoad(dest));
+                Button button = StackButton(gatesColumn, label, () => AskRoad(dest));
                 button.transform.SetSiblingIndex(i);
                 neighborRoads.Add(button);
+                neighborDests.Add(dest);
             }
 
             roadsDock = session.Dock;
             roadsReady = true;
+            PlaceRoadButtons();
+        }
+
+        void PlaceRoadButtons()
+        {
+            bool onMap = lookingAtMap && !session.Traveling;
+            RectTransform host = onMap ? mapRoads : gatesColumn;
+            for (int i = 0; i < neighborRoads.Count; i++)
+            {
+                Button button = neighborRoads[i];
+                if (button == null || host == null)
+                    continue;
+                button.transform.SetParent(host, false);
+                button.transform.SetSiblingIndex(i);
+            }
+
+            if (mapRoads != null)
+                mapRoads.gameObject.SetActive(onMap);
         }
 
         void ClearNeighborRoads()
@@ -859,6 +1417,8 @@ namespace Caravans.Play
             }
 
             neighborRoads.Clear();
+            neighborDests.Clear();
+            roadLit = false;
             roadsReady = false;
         }
 
@@ -867,59 +1427,33 @@ namespace Caravans.Play
             if (!session.CanTakeRoad())
                 return;
             pendingDest = dest;
-            choosingRoad = true;
-            draftPace = session.ChosenPace;
+            roadLit = true;
             Redraw();
         }
 
-        Button MakeRow(RectTransform host, GoodId good, int count)
+        void Embark()
         {
-            var row = Child(host, good.ToString());
-            var background = row.gameObject.AddComponent<Image>();
-            background.sprite = quad;
-            background.color = Field;
-            background.raycastTarget = false;
-            var element = row.gameObject.AddComponent<LayoutElement>();
-            element.preferredHeight = 64f;
-            var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 10f;
-            layout.padding = new RectOffset(10, 10, 8, 8);
-            layout.childAlignment = TextAnchor.MiddleLeft;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = false;
-            layout.childForceExpandHeight = true;
+            if (!roadLit || !session.CanTakeRoad())
+                return;
+            session.ChooseRoadPace(draftPace);
+            PlaceId dest = pendingDest;
+            roadLit = false;
+            lookingAtMap = false;
+            session.DepartTo(dest);
+        }
 
-            var swatch = ImageOn(Child(row, "Swatch"), Swatch(good), false);
-            swatch.gameObject.AddComponent<LayoutElement>().preferredWidth = 28f;
-            var name = Body(row, 20, TextAlignmentOptions.MidlineLeft);
-            string label = CaravanSession.GoodName(good);
-            if (EconomyCatalog.IsContraband(session.Dock, good))
-                label += " · contraband";
-            name.text = label;
-            name.textWrappingMode = TextWrappingModes.NoWrap;
-            name.overflowMode = TextOverflowModes.Ellipsis;
-            name.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
-            var countText = Body(row, 18, TextAlignmentOptions.MidlineRight);
-            countText.text = selling ? "Wagon " + count : "Shelf " + count;
-            countText.gameObject.AddComponent<LayoutElement>().preferredWidth = 120f;
-            var price = Body(row, 18, TextAlignmentOptions.MidlineRight);
-            int shown = selling ? session.SellValue(session.Dock, good) : session.BuyCost(session.Dock, good);
-            price.text = shown + " coin";
-            price.gameObject.AddComponent<LayoutElement>().preferredWidth = 120f;
-
-            GoodId captured = good;
-            Button button = Tab(row, selling ? "Sell" : "Buy", () =>
-            {
-                if (selling)
-                    session.TrySell(captured);
-                else
-                    session.TryBuy(captured);
-            });
-            button.GetComponent<LayoutElement>().preferredWidth = 110f;
-            if (selling && !EconomyCatalog.Buys(session.Dock, good))
-                button.interactable = false;
-            return button;
+        string NextCampLine()
+        {
+            if (!roadLit)
+                return string.Empty;
+            float dayHours;
+            float nightHours;
+            session.SplitUntilStop(pendingDest, draftPace, out dayHours, out nightHours);
+            if (dayHours + nightHours <= 0.001f)
+                return "Travel to next camp";
+            return "Travel to next camp\n<color=" + DayHex + ">"
+                + Amount(dayHours) + " h day</color>  <color=" + NightHex + ">"
+                + Amount(nightHours) + " h night</color>";
         }
 
         void ApplyFreeButtons()
@@ -931,29 +1465,39 @@ namespace Caravans.Play
             houseTab.interactable = EconomyCatalog.IsCity(session.Dock);
             for (int i = 0; i < neighborRoads.Count; i++)
             {
-                if (neighborRoads[i] != null)
-                    neighborRoads[i].interactable = session.CanTakeRoad();
+                if (neighborRoads[i] == null)
+                    continue;
+                neighborRoads[i].interactable = session.CanTakeRoad();
+                TintPace(neighborRoads[i], roadLit && neighborDests[i] == pendingDest);
             }
-            buyTab.interactable = true;
-            sellTab.interactable = true;
-            roadButton.interactable = false;
-            waitButton.interactable = session.CanWait();
+            gatesCareful.interactable = true;
+            gatesSteady.interactable = true;
+            gatesRush.interactable = true;
+            TintPace(gatesCareful, draftPace == RoadPace.Careful);
+            TintPace(gatesSteady, draftPace == RoadPace.Steady);
+            TintPace(gatesRush, draftPace == RoadPace.Rush);
+            embarkButton.interactable = roadLit && session.CanTakeRoad();
+            buyButton.interactable = SelectionLive() && session.CanBuy(SelectedGood());
+            sellButton.interactable = CanPressSell();
+            sortButton.interactable = true;
+            for (int i = 0; i < sortChoices.Count; i++)
+                sortChoices[i].interactable = true;
+            innTab.interactable = true;
+            gatesTab.interactable = true;
+            tavernTab.interactable = true;
+            stablesTab.interactable = true;
+            innWaitButton.interactable = session.CanWait();
+            innDawnButton.interactable = session.CanWaitUntilDawn();
+            innDuskButton.interactable = session.CanWaitUntilDusk();
             restButton.interactable = session.CanRest();
             waterButton.interactable = session.CanFillWater();
             foodButton.interactable = session.CanFillFood();
             listenButton.interactable = true;
-            lookButton.interactable = !session.Traveling;
             pauseButton.interactable = session.Traveling && !session.HoldTravel;
             pace1.interactable = session.Traveling && !session.HoldTravel;
             pace2.interactable = session.Traveling && !session.HoldTravel;
             pace4.interactable = session.Traveling && !session.HoldTravel;
             backButton.interactable = true;
-            foreach (var pair in tradeButtons)
-            {
-                if (pair.Value == null)
-                    continue;
-                pair.Value.interactable = Afford(pair.Key, selling);
-            }
         }
 
         void LockButtons()
@@ -970,17 +1514,6 @@ namespace Caravans.Play
             var found = root.GetComponentsInChildren<Button>(true);
             for (int i = 0; i < found.Length; i++)
                 found[i].interactable = true;
-        }
-
-        bool Afford(GoodId good, bool sell)
-        {
-            if (session.Traveling)
-                return false;
-            if (sell)
-                return session.CargoOf(good) > 0;
-            if (session.StockOf(session.Dock, good) <= 0)
-                return false;
-            return session.Coin >= session.BuyCost(session.Dock, good);
         }
 
         void ClearRaised()
@@ -1024,12 +1557,17 @@ namespace Caravans.Play
         {
             if (mapRoot == null || !mapRoot.gameObject.activeInHierarchy)
                 return;
+            FitMapFrame();
             EnsureMap();
             float sun = TravelScale.Sunlight(session.Hour);
             if (mapImage.texture != null)
                 mapImage.color = Color.Lerp(new Color(0.55f, 0.62f, 0.8f), Color.white, sun);
 
             Vector2 point = session.CaravanPoint;
+            bool close = session.Traveling;
+            float radius = session.VisionRadius();
+            PlaceSheet(point, close, radius);
+            UpdateRoute();
             PlaceOnMap(token, point, 22f);
             int npcCount = session.NpcCount;
             for (int i = 0; i < npcTokens.Count; i++)
@@ -1047,13 +1585,120 @@ namespace Caravans.Play
                 npcTokens[i].color = HouseColor(mark.House);
             }
 
-            if (fogMaterial != null)
+            bool shade = close && fogMaterial != null;
+            if (fogImage != null)
+                fogImage.gameObject.SetActive(shade);
+            if (!shade)
+                return;
+            fogMaterial.SetVector("_Center", new Vector4(point.x, 1f - point.y, 0f, 0f));
+            fogMaterial.SetFloat("_Radius", radius);
+            fogMaterial.SetFloat("_Soft", radius * 0.1f);
+            fogMaterial.SetFloat("_Aspect", RoadPath.Aspect);
+        }
+
+        void FitMapFrame()
+        {
+            if (mapFrame == null)
+                return;
+            if (session.Traveling || lookingAtMap)
             {
-                fogMaterial.SetVector("_Center", new Vector4(point.x, 1f - point.y, 0f, 0f));
-                fogMaterial.SetFloat("_Radius", session.VisionRadius());
-                fogMaterial.SetFloat("_Soft", 0.035f);
-                fogMaterial.SetFloat("_Aspect", RoadPath.Aspect);
+                Stretch(mapFrame, 12f);
+                return;
             }
+
+            mapFrame.anchorMin = Vector2.zero;
+            mapFrame.anchorMax = Vector2.one;
+            mapFrame.offsetMin = new Vector2(GatesPanelRight + 12f, TabHeight + 12f);
+            mapFrame.offsetMax = new Vector2(-12f, -(BannerHeight + 64f + 12f));
+        }
+
+        void UpdateRoute()
+        {
+            if (routeRoot == null)
+                return;
+            PlaceId dest = session.Dock;
+            bool show = false;
+            if (session.Traveling || session.CampPending || session.AwaitingPace || session.EncounterPending)
+            {
+                dest = session.LegDestination;
+                show = true;
+            }
+            else if (choosingRoad || roadLit)
+            {
+                dest = pendingDest;
+                show = true;
+            }
+
+            if (!show)
+            {
+                routeRoot.gameObject.SetActive(false);
+                return;
+            }
+
+            routeRoot.gameObject.SetActive(true);
+            PlaceOnMap(routeMark.rectTransform, RoadGraph.DockPoint(dest), 72f);
+            int count = 0;
+            if (!RoadGraph.IsSea(session.Dock, dest))
+            {
+                IReadOnlyList<Vector2> samples = RoadGraph.Samples(session.Dock, dest);
+                if (samples != null && samples.Count > 1)
+                    count = samples.Count - 1;
+                EnsureRouteSegments(count);
+                for (int i = 0; i < count; i++)
+                {
+                    routeSegments[i].gameObject.SetActive(true);
+                    PlaceSegment(routeSegments[i].rectTransform, samples[i], samples[i + 1], 8f);
+                }
+            }
+
+            for (int i = count; i < routeSegments.Count; i++)
+                routeSegments[i].gameObject.SetActive(false);
+        }
+
+        void EnsureRouteSegments(int count)
+        {
+            while (routeSegments.Count < count)
+            {
+                Image segment = ImageOn(Child(routeRoot, "Leg"), new Color(0.93f, 0.78f, 0.35f, 0.95f), false);
+                routeSegments.Add(segment);
+            }
+        }
+
+        void PlaceSegment(RectTransform rect, Vector2 fromTop, Vector2 toTop, float thickness)
+        {
+            var start = new Vector2(fromTop.x, 1f - fromTop.y);
+            var end = new Vector2(toTop.x, 1f - toTop.y);
+            var mid = (start + end) * 0.5f;
+            rect.anchorMin = mid;
+            rect.anchorMax = mid;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+            Rect space = routeRoot.rect;
+            var delta = new Vector2((end.x - start.x) * space.width, (end.y - start.y) * space.height);
+            rect.sizeDelta = new Vector2(Mathf.Max(delta.magnitude, 1f), thickness);
+            rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
+            rect.localScale = Vector3.one;
+        }
+
+        void PlaceSheet(Vector2 topLeft, bool close, float radius)
+        {
+            if (mapSheet == null)
+                return;
+            Rect view = mapRoot.rect;
+            if (view.width < 2f || view.height < 2f)
+                return;
+            mapSheet.sizeDelta = new Vector2(view.width, view.height);
+            if (!close || radius < 0.0001f)
+            {
+                mapSheet.pivot = new Vector2(0.5f, 0.5f);
+                mapSheet.localScale = Vector3.one;
+                mapSheet.anchoredPosition = Vector2.zero;
+                return;
+            }
+
+            mapSheet.pivot = new Vector2(topLeft.x, 1f - topLeft.y);
+            mapSheet.localScale = new Vector3(1f / (2f * radius), 1f / (2f * radius), 1f);
+            mapSheet.anchoredPosition = Vector2.zero;
         }
 
         static void PlaceOnMap(RectTransform rect, Vector2 topLeft, float diameter)
@@ -1089,15 +1734,21 @@ namespace Caravans.Play
             Redraw();
         }
 
+        void ShowPlazaSpot()
+        {
+            innSpot.SetActive(plazaSpot == PlazaSpot.Inn);
+            gatesSpot.SetActive(plazaSpot == PlazaSpot.Gates);
+            tavernSpot.SetActive(plazaSpot == PlazaSpot.Tavern);
+            stablesSpot.SetActive(plazaSpot == PlazaSpot.Stables);
+            TintPace(innTab, plazaSpot == PlazaSpot.Inn);
+            TintPace(gatesTab, plazaSpot == PlazaSpot.Gates);
+            TintPace(tavernTab, plazaSpot == PlazaSpot.Tavern);
+            TintPace(stablesTab, plazaSpot == PlazaSpot.Stables);
+        }
+
         void OpenHouse()
         {
             page = Page.House;
-            Redraw();
-        }
-
-        void OpenSell()
-        {
-            selling = true;
             Redraw();
         }
 
@@ -1249,21 +1900,6 @@ namespace Caravans.Play
                     return new Color(0.55f, 0.38f, 0.68f, 1f);
                 default:
                     return new Color(0.78f, 0.52f, 0.22f, 1f);
-            }
-        }
-
-        static Color Swatch(GoodId good)
-        {
-            switch (good)
-            {
-                case GoodId.ShimmersteelJars:
-                    return new Color(0.76f, 0.79f, 0.82f, 1f);
-                case GoodId.FingerFungus:
-                    return new Color(0.58f, 0.42f, 0.62f, 1f);
-                case GoodId.Water:
-                    return new Color(0.42f, 0.6f, 0.72f, 1f);
-                default:
-                    return new Color(0.71f, 0.54f, 0.32f, 1f);
             }
         }
 
@@ -1459,6 +2095,29 @@ namespace Caravans.Play
                         texture.SetPixel(x, y, new Color(0.25f, 0.14f, 0.08f, alpha));
                     else
                         texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), 64f);
+        }
+
+        static Sprite MakeRing()
+        {
+            const int size = 64;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            var center = new Vector2((size - 1) * 0.5f, (size - 1) * 0.5f);
+            float outer = size * 0.46f;
+            float inner = size * 0.30f;
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), center);
+                    float alpha = 0f;
+                    if (dist <= outer && dist >= inner)
+                        alpha = 1f;
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
                 }
             }
 

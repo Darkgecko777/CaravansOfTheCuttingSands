@@ -1,7 +1,7 @@
 {
   "startingCoin": 400,
-  "wagonSpace": 16,
-  "wagonWeight": 256,
+  "wagonSpace": 8,
+  "wagonWeight": 20,
   "dayHours": 24,
   "morningHour": 6,
   "nightHour": 18,
