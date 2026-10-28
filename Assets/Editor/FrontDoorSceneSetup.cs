@@ -7,12 +7,13 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
-// Builds the title and house scenes inside the open Editor so they are real
-// scenes the storm can outlive. SampleScene stays the run.
+// Builds the title, house, and cargo-sound scenes inside the open Editor so
+// they are real scenes the storm can outlive. SampleScene stays the run.
 static class FrontDoorSceneSetup
 {
     const string TitlePath = "Assets/Scenes/TitleScreen.unity";
     const string HousePath = "Assets/Scenes/HouseSelect.unity";
+    const string CargoPath = "Assets/Scenes/CargoSounds.unity";
     const string MaterialPath = "Assets/Resources/FrontDoor/SandGrain.mat";
 
     [InitializeOnLoadMethod]
@@ -46,6 +47,7 @@ static class FrontDoorSceneSetup
 
         EnsureScene(TitlePath, "TitleScreen", new Color(0.45f, 0.32f, 0.18f, 1f), typeof(TitleScreen));
         EnsureScene(HousePath, "HouseSelect", new Color(0.12f, 0.08f, 0.05f, 1f), typeof(HouseSelectScreen));
+        EnsureScene(CargoPath, "CargoSounds", new Color(0.2f, 0.15f, 0.11f, 1f), typeof(CargoSoundScreen));
         EnsureMaterial();
         EnsureBuildSettings();
         EnsurePlayStartsAtTitle();
@@ -103,7 +105,8 @@ static class FrontDoorSceneSetup
     static void EnsureBuildSettings()
     {
         if (AssetDatabase.LoadAssetAtPath<SceneAsset>(TitlePath) == null
-            || AssetDatabase.LoadAssetAtPath<SceneAsset>(HousePath) == null)
+            || AssetDatabase.LoadAssetAtPath<SceneAsset>(HousePath) == null
+            || AssetDatabase.LoadAssetAtPath<SceneAsset>(CargoPath) == null)
         {
             if (buildAttempts++ < 8)
                 EditorApplication.delayCall += EnsureBuildSettings;
@@ -114,7 +117,7 @@ static class FrontDoorSceneSetup
         var kept = new List<EditorBuildSettingsScene>();
         for (int i = 0; i < current.Length; i++)
         {
-            if (current[i].path == TitlePath || current[i].path == HousePath)
+            if (current[i].path == TitlePath || current[i].path == HousePath || current[i].path == CargoPath)
                 continue;
             kept.Add(current[i]);
         }
@@ -125,6 +128,7 @@ static class FrontDoorSceneSetup
             new EditorBuildSettingsScene(HousePath, true),
         };
         ordered.AddRange(kept);
+        ordered.Add(new EditorBuildSettingsScene(CargoPath, true));
 
         bool same = current.Length == ordered.Count;
         for (int i = 0; same && i < current.Length; i++)

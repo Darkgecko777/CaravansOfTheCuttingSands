@@ -8,6 +8,7 @@ namespace Caravans.FrontDoor
         public const string TitleScene = "TitleScreen";
         public const string HouseScene = "HouseSelect";
         public const string PlayScene = "SampleScene";
+        public const string CargoSoundsScene = "CargoSounds";
 
         public static bool RunConfirmed { get; private set; }
         public static string ChosenHouse { get; private set; } = "";
@@ -67,6 +68,12 @@ namespace Caravans.FrontDoor
             }
 
             TitleScreen.Spawn();
+        }
+
+        public static void ShowCargoSounds()
+        {
+            if (Application.CanStreamedLevelBeLoaded(CargoSoundsScene))
+                SceneManager.LoadScene(CargoSoundsScene);
         }
 
         public static void ConfirmRun(string houseId)

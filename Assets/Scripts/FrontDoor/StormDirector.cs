@@ -113,6 +113,19 @@ namespace Caravans.FrontDoor
                 return;
             }
 
+            // Buy clips are sampled here. The title wind stops at once.
+            if (scene.name == Gate.CargoSoundsScene)
+            {
+                HideVisuals();
+                wind.Stop();
+                wind.volume = 0f;
+                fade.Finish();
+                listenersSettled = false;
+                HarmonizeListeners();
+                fadeSettled = true;
+                return;
+            }
+
             // Sand is title-only. A second Begin does not restart the taper.
             BeginFade();
         }

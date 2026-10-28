@@ -44,6 +44,14 @@ namespace Caravans.FrontDoor
             AudioAmplitude = 0f;
         }
 
+        public void Finish()
+        {
+            Active = false;
+            Finished = true;
+            Visual = 0f;
+            AudioAmplitude = 0f;
+        }
+
         public void Resume()
         {
             Active = false;

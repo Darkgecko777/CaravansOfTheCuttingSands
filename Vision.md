@@ -24,7 +24,7 @@ Names and place stories live in `Caravans_Goods.md`. Weight, pack size, base pri
 
 ## How a session opens
 
-The title is a desert picture with a bed of blowing sand and a loop of wind. New Game, Continue, Options, and Exit are on the menu. New Game and Exit work. Continue is present and inert. Options opens a panel whose only control closes it.
+The title is a desert picture with a bed of blowing sand and a loop of wind. New Game, Continue, Options, and Exit are on the menu. New Game and Exit work. Continue is present and inert. Options opens a panel whose only control closes it. An ASSET TESTING button sits apart from that menu, in the lower left. It opens a review bench and does not start a run. The bench has four tabs: Market, Front door, Map, and Mounts. Market is a shop of every good except rations, eight columns and five rows. Each name sits in a band at the bottom of its cell. A picture under `Resources/Goods` for that good fills the space above the band. Giant Duzhu Hide and Pincer Beast Fur have pictures. Pressing a cell plays that good's buy sound and the header names the clip. Sale plays the shared scrubstone click. Front door shows the title picture, the menu frame, and the button panel, and Wind plays the title wind once. Map shows the painted map. Mounts shows the duzhu on the left and the pincer beast on the right. Pressing a picture plays mount-duzhu or mount-pincer-beast, and the header names that clip. Nothing moves coin or cargo. The play market does not show these pictures. Back returns to the title.
 
 New Game asks "Choose Your House" under the line "The market does not forgive the uncommitted." All five houses can be confirmed: Kharûn, Zamath, Thalor, Veythar, and Ghorath. Each card carries a letter, K, Z, T, V, or G, and a short flavour. Confirm opens free play at that city. Back returns to the title.
 
@@ -84,7 +84,7 @@ Starting stock is thinner the more hops a place sits from a producer. A place si
 
 ## Tunable numbers
 
-Play reads `data/config/` from disk when a session needs a rate. The files hold the numbers the running game already uses.
+Play reads `data/config/` from disk when a session needs a rate. The files hold the numbers the running game already uses. The same read reaches `Docs/Economy_Weight_Price.csv`, `Docs/Economy_Eat_Per_Day.csv`, `Encounter_IDs.md`, and `Route_Tags.md`. A player build copies those files into the folder that contains the exe, which is where the player looks.
 
 `consumption.json` holds the morning integrity loss: a tenth for ordinary food, a quarter for Sweet Bliss. It holds the daily ration appetite of 1, which the eat sheet does not list. It also holds the kit: 25 litres and 10 kilograms per day, a canteen of 75 litres, a ration bag of 30 kilograms, and a shelf unit of 25 litres or 10 kilograms.
 
@@ -111,7 +111,7 @@ A button under the date and the coin opens a near-full-screen chart of every goo
 **Front door**
 
 - Title with blowing sand, wind, and the line "Buy on knowledge. Risk the journey."
-- New Game, an inert Continue, Options, and Exit. Options opens a panel whose only control closes it.
+- New Game, an inert Continue, Options, and Exit. Options opens a panel whose only control closes it. An ASSET TESTING button sits apart from the menu and opens a review bench that does not start a run. The tabs are Market, Front door, Map, and Mounts. Market plays a good's buy sound, and Sale plays the shared scrubstone click. A goods picture fills the space above the name band when that file is present. Giant Duzhu Hide and Pincer Beast Fur have pictures. Front door shows the title art and plays the wind once. Map shows the painted map. Mounts shows the duzhu and the pincer beast side by side, and a press plays that mount's call. The play market does not show these pictures. Back returns to the title.
 - House select for Kharûn, Zamath, Thalor, Veythar, and Ghorath, each confirmable.
 - A confirmed house opens free play at that city with 400 coin, an empty wagon, a full canteen, and a full ration bag.
 

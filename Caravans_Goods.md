@@ -104,7 +104,7 @@ Dune village. Two luxury goods. Pays well for water, including brine.
 Kelkris eat the molt and leavings of pincer beasts. Pincer beasts are the second pack tier. No pack system yet.
 
 - **Kelkris Feathers.** A light bundle, almost no heft. Feathered rodent, not a bird.
-- **Pincer Beast Fur.** A pelt roll, bulky more than dense.
+- **Pincer Beast Fur.** A stack of uneven pelts, bulky more than dense.
 
 ### Draven
 
