@@ -14,6 +14,10 @@ namespace Caravans.Play
         const int Columns = 8;
         const float Header = 52f;
         const float NameBand = 0.30f;
+        const float SealInset = 24f;
+        const float SealGap = 12f;
+        const float SealButtonHeight = 96f;
+        const float SealNoteSeconds = 2f;
 
         static readonly Color Ink = new Color(0.95f, 0.89f, 0.78f, 1f);
         static readonly Color Quiet = new Color(0.78f, 0.7f, 0.58f, 1f);
@@ -24,7 +28,9 @@ namespace Caravans.Play
         static readonly Color Field = new Color(0.28f, 0.21f, 0.16f, 1f);
         static readonly Color Rim = new Color(0.16f, 0.12f, 0.10f, 1f);
 
-        enum Page { Market, FrontDoor, Map, Mounts }
+        enum Page { Market, FrontDoor, Map, Mounts, UiKit, Card, Seals }
+
+        static readonly Color ParchmentInk = new Color(0.28f, 0.16f, 0.09f, 1f);
 
         TMP_FontAsset font;
         Sprite quad;
@@ -37,11 +43,19 @@ namespace Caravans.Play
         GameObject doorPage;
         GameObject mapPage;
         GameObject mountsPage;
+        GameObject uiPage;
+        GameObject cardPage;
+        GameObject sealsPage;
         Button marketTab;
         Button doorTab;
         Button mapTab;
         Button mountsTab;
+        Button uiTab;
+        Button cardTab;
+        Button sealsTab;
         Button saleButton;
+        TextMeshProUGUI sealNote;
+        float sealNoteUntil;
         Button windButton;
         Page page = Page.Market;
         int selected = -1;
@@ -63,6 +77,8 @@ namespace Caravans.Play
 
         void LateUpdate()
         {
+            if (sealNote != null && sealNote.text.Length > 0 && Time.unscaledTime >= sealNoteUntil)
+                sealNote.text = "";
             if (fitted)
                 return;
             fitted = FitCells();
@@ -120,6 +136,12 @@ namespace Caravans.Play
             mapTab.GetComponent<LayoutElement>().preferredWidth = 120f;
             mountsTab = Tab(head, "Mounts", () => Show(Page.Mounts));
             mountsTab.GetComponent<LayoutElement>().preferredWidth = 150f;
+            uiTab = Tab(head, "UI Kit", () => Show(Page.UiKit));
+            uiTab.GetComponent<LayoutElement>().preferredWidth = 130f;
+            cardTab = Tab(head, "Card", () => Show(Page.Card));
+            cardTab.GetComponent<LayoutElement>().preferredWidth = 110f;
+            sealsTab = Tab(head, "Seals", () => Show(Page.Seals));
+            sealsTab.GetComponent<LayoutElement>().preferredWidth = 120f;
 
             var spacer = Child(head, "Spacer");
             spacer.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
@@ -134,12 +156,15 @@ namespace Caravans.Play
             heard.textWrappingMode = TextWrappingModes.NoWrap;
             heard.overflowMode = TextOverflowModes.Overflow;
             var heardElement = heard.gameObject.AddComponent<LayoutElement>();
-            heardElement.preferredWidth = 420f;
+            heardElement.preferredWidth = 260f;
 
             marketPage = BuildMarket(frame);
             doorPage = BuildFrontDoor(frame);
             mapPage = BuildMap(frame);
             mountsPage = BuildMounts(frame);
+            uiPage = BuildUiKit(frame);
+            cardPage = BuildCard(frame);
+            sealsPage = BuildSeals(frame);
             Show(Page.Market);
         }
 
@@ -208,6 +233,218 @@ namespace Caravans.Play
             AddMount(body, "Duzhu", "Mounts/Duzhu", "Audio/mount-duzhu", "Duzhu", 0f, 0.5f);
             AddMount(body, "PincerBeast", "Mounts/PincerBeast", "Audio/mount-pincer-beast", "Pincer beast", 0.5f, 1f);
             return body.gameObject;
+        }
+
+        GameObject BuildUiKit(RectTransform frame)
+        {
+            var body = PageBody(frame, "UiKit");
+            Sprite paper = FrontArt.Parchment();
+            Sprite bone = FrontArt.BoneFrame();
+            SliceBox(body, "Panel", paper, new Vector2(0.02f, 0.05f), new Vector2(0.28f, 0.50f), "Panel", "Kharûn", 36f, ParchmentInk);
+            SliceBox(body, "TopBar", paper, new Vector2(0.30f, 0.78f), new Vector2(0.98f, 0.96f), "Top bar", "Day 1, hour 6", 24f, ParchmentInk);
+            BuildBanner(body, paper);
+            SliceBox(body, "Bone", bone, new Vector2(0.30f, 0.05f), new Vector2(0.63f, 0.50f), "Frame", "BA-04", 28f, Ink);
+            SliceBox(body, "BoneBar", bone, new Vector2(0.65f, 0.28f), new Vector2(0.98f, 0.50f), "Border", "", 22f, Ink);
+            return body.gameObject;
+        }
+
+        GameObject BuildCard(RectTransform frame)
+        {
+            var body = PageBody(frame, "Card");
+            Sprite sprite = FrontArt.BoneFrame();
+            var picture = Child(body, "Frame");
+            picture.anchorMin = new Vector2(0.16f, 0.08f);
+            picture.anchorMax = new Vector2(0.84f, 0.94f);
+            picture.offsetMin = Vector2.zero;
+            picture.offsetMax = Vector2.zero;
+            var image = picture.gameObject.AddComponent<Image>();
+            image.sprite = sprite;
+            image.type = sprite != null ? Image.Type.Sliced : Image.Type.Simple;
+            image.color = sprite != null ? Color.white : Color.clear;
+            image.raycastTarget = false;
+
+            var title = Body(picture, 36f, TextAlignmentOptions.Center);
+            title.font = FrontArt.Bold();
+            title.color = Ink;
+            title.text = "BA-04";
+            var titleRt = title.rectTransform;
+            titleRt.anchorMin = new Vector2(0.14f, 0.72f);
+            titleRt.anchorMax = new Vector2(0.86f, 0.90f);
+            titleRt.offsetMin = Vector2.zero;
+            titleRt.offsetMax = Vector2.zero;
+
+            var line = Body(picture, 24f, TextAlignmentOptions.Center);
+            line.font = FrontArt.Regular();
+            line.color = Ink;
+            line.text = "Nothing comes of this yet.";
+            var lineRt = line.rectTransform;
+            lineRt.anchorMin = new Vector2(0.16f, 0.28f);
+            lineRt.anchorMax = new Vector2(0.84f, 0.66f);
+            lineRt.offsetMin = Vector2.zero;
+            lineRt.offsetMax = Vector2.zero;
+            return body.gameObject;
+        }
+
+        GameObject BuildSeals(RectTransform frame)
+        {
+            var body = PageBody(frame, "Seals");
+            Sprite market = FrontArt.ResinSeal();
+            float buttonW = SealButtonWidth(market);
+
+            sealNote = Body(body, 32f, TextAlignmentOptions.Center);
+            sealNote.font = FrontArt.Bold();
+            sealNote.color = Ink;
+            sealNote.text = "";
+            var noteRt = sealNote.rectTransform;
+            noteRt.anchorMin = new Vector2(0f, 0f);
+            noteRt.anchorMax = new Vector2(1f, 0f);
+            noteRt.pivot = new Vector2(0.5f, 0f);
+            noteRt.sizeDelta = new Vector2(-48f, 48f);
+            noteRt.anchoredPosition = new Vector2(0f, SealButtonHeight + 16f);
+
+            var line = Child(body, "Line");
+            line.anchorMin = Vector2.zero;
+            line.anchorMax = new Vector2(1f, 0f);
+            line.pivot = new Vector2(0.5f, 0f);
+            line.sizeDelta = new Vector2(0f, SealButtonHeight);
+            line.anchoredPosition = Vector2.zero;
+            var buttons = line.gameObject.AddComponent<HorizontalLayoutGroup>();
+            buttons.spacing = SealGap;
+            buttons.padding = new RectOffset((int)SealInset, (int)SealInset, 0, 0);
+            buttons.childAlignment = TextAnchor.MiddleLeft;
+            buttons.childControlWidth = true;
+            buttons.childControlHeight = true;
+            buttons.childForceExpandWidth = false;
+            buttons.childForceExpandHeight = true;
+            SealButton(line, "Market", market, FrontArt.ResinSealHover(), FrontArt.ResinSealSelected(), buttonW);
+            SealButton(line, "Gate", FrontArt.ResinSealGate(), FrontArt.ResinSealGateHover(), FrontArt.ResinSealGateSelected(), buttonW);
+            return body.gameObject;
+        }
+
+        static float SealButtonWidth(Sprite sprite)
+        {
+            if (sprite == null || sprite.rect.height < 1f)
+                return SealButtonHeight;
+            return SealButtonHeight * sprite.rect.width / sprite.rect.height;
+        }
+
+        void SealButton(RectTransform row, string name, Sprite sprite, Sprite hover, Sprite pressed, float buttonW)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(row, false);
+            var fit = go.AddComponent<LayoutElement>();
+            fit.preferredWidth = buttonW;
+            fit.preferredHeight = SealButtonHeight;
+            var image = go.AddComponent<Image>();
+            image.sprite = sprite;
+            image.type = Image.Type.Simple;
+            image.preserveAspect = true;
+            image.raycastTarget = true;
+            image.color = sprite != null ? Color.white : Color.clear;
+            var button = go.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.transition = Selectable.Transition.None;
+            var nav = button.navigation;
+            nav.mode = Navigation.Mode.None;
+            button.navigation = nav;
+            button.onClick.AddListener(() =>
+            {
+                sealNote.text = name;
+                sealNoteUntil = Time.unscaledTime + SealNoteSeconds;
+            });
+            go.AddComponent<SealPress>().Bind(image, hover, pressed);
+        }
+
+        void BuildBanner(RectTransform page, Sprite paper)
+        {
+            var column = Child(page, "Banner");
+            column.anchorMin = new Vector2(0.02f, 0.52f);
+            column.anchorMax = new Vector2(0.98f, 0.76f);
+            column.offsetMin = Vector2.zero;
+            column.offsetMax = Vector2.zero;
+
+            var picture = Child(column, "Picture");
+            picture.anchorMin = Vector2.zero;
+            picture.anchorMax = Vector2.one;
+            picture.offsetMin = new Vector2(0f, 28f);
+            picture.offsetMax = Vector2.zero;
+            var image = picture.gameObject.AddComponent<Image>();
+            image.sprite = paper;
+            image.type = paper != null ? Image.Type.Sliced : Image.Type.Simple;
+            image.color = paper != null ? Color.white : Color.clear;
+            image.raycastTarget = false;
+
+            var row = picture.gameObject.AddComponent<HorizontalLayoutGroup>();
+            row.padding = new RectOffset(88, 96, 70, 76);
+            row.spacing = 28f;
+            row.childAlignment = TextAnchor.MiddleLeft;
+            row.childControlWidth = true;
+            row.childControlHeight = true;
+            row.childForceExpandWidth = false;
+            row.childForceExpandHeight = true;
+
+            BannerField(picture, "Khar\u00fbn", 200f);
+            BannerField(picture, "Day 1, hour 6", 240f);
+            BannerField(picture, "Scrubstone 400", 280f);
+            var tabs = Child(picture, "CharacterTabs");
+            var room = tabs.gameObject.AddComponent<LayoutElement>();
+            room.flexibleWidth = 1f;
+            room.preferredWidth = 160f;
+
+            var label = Body(column, 18f, TextAlignmentOptions.Bottom);
+            label.text = "Banner";
+            var cap = label.rectTransform;
+            cap.anchorMin = Vector2.zero;
+            cap.anchorMax = new Vector2(1f, 0f);
+            cap.pivot = new Vector2(0.5f, 0f);
+            cap.sizeDelta = new Vector2(0f, 28f);
+            cap.anchoredPosition = Vector2.zero;
+        }
+
+        void BannerField(RectTransform row, string text, float width)
+        {
+            var field = Body(row, 22f, TextAlignmentOptions.MidlineLeft);
+            field.font = FrontArt.Bold();
+            field.color = ParchmentInk;
+            field.text = text;
+            field.textWrappingMode = TextWrappingModes.NoWrap;
+            var fit = field.gameObject.AddComponent<LayoutElement>();
+            fit.preferredWidth = width;
+        }
+
+        void SliceBox(RectTransform page, string name, Sprite sprite, Vector2 anchorMin, Vector2 anchorMax, string caption, string sample, float sampleSize, Color ink)
+        {
+            var column = Child(page, name);
+            column.anchorMin = anchorMin;
+            column.anchorMax = anchorMax;
+            column.offsetMin = Vector2.zero;
+            column.offsetMax = Vector2.zero;
+
+            var picture = Child(column, "Picture");
+            picture.anchorMin = Vector2.zero;
+            picture.anchorMax = Vector2.one;
+            picture.offsetMin = new Vector2(0f, 32f);
+            picture.offsetMax = Vector2.zero;
+            var image = picture.gameObject.AddComponent<Image>();
+            image.sprite = sprite;
+            image.type = sprite != null ? Image.Type.Sliced : Image.Type.Simple;
+            image.color = sprite != null ? Color.white : Color.clear;
+            image.raycastTarget = false;
+
+            var line = Body(picture, sampleSize, TextAlignmentOptions.Center);
+            line.font = FrontArt.Bold();
+            line.color = ink;
+            line.text = sample;
+            Stretch(line.rectTransform, 28f);
+
+            var label = Body(column, 18f, TextAlignmentOptions.Bottom);
+            label.text = caption;
+            var cap = label.rectTransform;
+            cap.anchorMin = Vector2.zero;
+            cap.anchorMax = new Vector2(1f, 0f);
+            cap.pivot = new Vector2(0.5f, 0f);
+            cap.sizeDelta = new Vector2(0f, 28f);
+            cap.anchoredPosition = Vector2.zero;
         }
 
         void AddMount(RectTransform body, string name, string texturePath, string clipPath, string caption, float x0, float x1)
@@ -399,12 +636,18 @@ namespace Caravans.Play
             doorPage.SetActive(next == Page.FrontDoor);
             mapPage.SetActive(next == Page.Map);
             mountsPage.SetActive(next == Page.Mounts);
+            uiPage.SetActive(next == Page.UiKit);
+            cardPage.SetActive(next == Page.Card);
+            sealsPage.SetActive(next == Page.Seals);
             saleButton.gameObject.SetActive(next == Page.Market);
             windButton.gameObject.SetActive(next == Page.FrontDoor);
             Tint(marketTab, next == Page.Market);
             Tint(doorTab, next == Page.FrontDoor);
             Tint(mapTab, next == Page.Map);
             Tint(mountsTab, next == Page.Mounts);
+            Tint(uiTab, next == Page.UiKit);
+            Tint(cardTab, next == Page.Card);
+            Tint(sealsTab, next == Page.Seals);
             heard.text = "";
             if (next == Page.Market)
                 fitted = FitCells();
@@ -539,6 +782,70 @@ namespace Caravans.Play
             texture.SetPixels(pixels);
             texture.Apply();
             return Sprite.Create(texture, new Rect(0f, 0f, 4f, 4f), new Vector2(0.5f, 0.5f), 4f);
+        }
+
+        // Pointer look for a seal button. The base sprite stays on the image. Hover and press replace it.
+        sealed class SealPress : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
+        {
+            const float PressHold = 0.2f;
+
+            Image image;
+            Sprite hover;
+            Sprite pressed;
+            bool over;
+            bool down;
+            float pressedUntil;
+
+            public void Bind(Image target, Sprite hoverSprite, Sprite pressedSprite)
+            {
+                image = target;
+                hover = hoverSprite;
+                pressed = pressedSprite;
+            }
+
+            public void OnPointerEnter(PointerEventData eventData)
+            {
+                over = true;
+                Apply();
+            }
+
+            public void OnPointerExit(PointerEventData eventData)
+            {
+                over = false;
+                down = false;
+                Apply();
+            }
+
+            public void OnPointerDown(PointerEventData eventData)
+            {
+                down = true;
+                Apply();
+            }
+
+            public void OnPointerUp(PointerEventData eventData)
+            {
+                down = false;
+                if (over)
+                    pressedUntil = Time.unscaledTime + PressHold;
+                Apply();
+            }
+
+            void Update()
+            {
+                if (pressedUntil > 0f && Time.unscaledTime >= pressedUntil)
+                {
+                    pressedUntil = 0f;
+                    Apply();
+                }
+            }
+
+            void Apply()
+            {
+                if (image == null)
+                    return;
+                bool showPressed = (down || Time.unscaledTime < pressedUntil) && pressed != null;
+                image.overrideSprite = showPressed ? pressed : over && hover != null ? hover : null;
+            }
         }
     }
 }

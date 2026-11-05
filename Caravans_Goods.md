@@ -52,7 +52,7 @@ Oasis fortress. Fresh water is the ordinary good. Named plants are the export. O
 - **Dream Lotus Nectar.** Mind-altering, not a rumour. A small vial, very light, precious. Leaves the city only by smuggling. Not a legal market good.
 - **Crimson Eyed Melon Juice.** Hallucinogenic hookah juice, legal. A flask, light.
 - **Numbspindle.** Potent anesthetic. Medicine in the city, and the hunting tool Ghûl uses on the hulv. A small bundle, light.
-- **Mor Root.** Plant fibre sold as lamp wick. A coil, very light.
+- **Mor Root.** Plant fibre for heating and illumination. Kindling, and shaved down for lamp wicks. A stack, very light. Not a binding.
 
 ### Veythar
 
@@ -125,7 +125,7 @@ Salt flats, south of the main map. Both goods are edible salts. Not Zamath’s i
 Both goods come off clack fiends, the insects.
 
 - **Clack Fiend Larvae.** Large insect eggs. Edible. A crate, ordinary heft.
-- **Clack Fiend Molt-skin.** Nutrient-rich shed. A skin or sheet, light. Not a hide from a kill.
+- **Clack Fiend Molt-skin.** Nutrient-rich shed, processed from large segments into an oily gossamer sheet. Thin enough that a sack almost shows its contents. The cloth sacks are made from it. A skin or sheet, light. Not a hide from a kill.
 
 ### Neth
 

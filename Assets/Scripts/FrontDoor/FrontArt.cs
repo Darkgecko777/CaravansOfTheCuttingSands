@@ -10,6 +10,14 @@ namespace Caravans.FrontDoor
         static Sprite plateQuiet;
         static Sprite plateHot;
         static Sprite platePressed;
+        static Sprite parchment;
+        static Sprite boneFrame;
+        static Sprite resinSeal;
+        static Sprite resinSealHover;
+        static Sprite resinSealSelected;
+        static Sprite resinSealGate;
+        static Sprite resinSealGateHover;
+        static Sprite resinSealGateSelected;
         static Texture2D title;
         static Texture2D grain;
         static Material sand;
@@ -40,6 +48,52 @@ namespace Caravans.FrontDoor
         public static Sprite PlatePressed()
         {
             return platePressed = platePressed != null ? platePressed : Slice("FrontDoor/plate_pressed", new Vector4(22f, 22f, 22f, 22f));
+        }
+
+        public static Sprite Parchment()
+        {
+            // Borders sit outside the ink corners. 310 pixels per unit keeps a corner near 72 screen pixels.
+            return parchment = parchment != null
+                ? parchment
+                : Slice("Ui/parchment", new Vector4(176f, 224f, 220f, 200f), 310f);
+        }
+
+        public static Sprite BoneFrame()
+        {
+            // Borders sit outside the sinew at each corner. 230 pixels per unit keeps a joint near 96 screen pixels.
+            return boneFrame = boneFrame != null
+                ? boneFrame
+                : Slice("Ui/bone-frame", new Vector4(220f, 210f, 210f, 220f), 230f);
+        }
+
+        public static Sprite ResinSeal()
+        {
+            return resinSeal = resinSeal != null ? resinSeal : Slice("Ui/resin-seal", Vector4.zero);
+        }
+
+        public static Sprite ResinSealHover()
+        {
+            return resinSealHover = resinSealHover != null ? resinSealHover : Slice("Ui/resin-seal-hover", Vector4.zero);
+        }
+
+        public static Sprite ResinSealSelected()
+        {
+            return resinSealSelected = resinSealSelected != null ? resinSealSelected : Slice("Ui/resin-seal-selected", Vector4.zero);
+        }
+
+        public static Sprite ResinSealGate()
+        {
+            return resinSealGate = resinSealGate != null ? resinSealGate : Slice("Ui/resin-seal-gate", Vector4.zero);
+        }
+
+        public static Sprite ResinSealGateHover()
+        {
+            return resinSealGateHover = resinSealGateHover != null ? resinSealGateHover : Slice("Ui/resin-seal-gate-hover", Vector4.zero);
+        }
+
+        public static Sprite ResinSealGateSelected()
+        {
+            return resinSealGateSelected = resinSealGateSelected != null ? resinSealGateSelected : Slice("Ui/resin-seal-gate-selected", Vector4.zero);
         }
 
         public static Texture2D TitleTexture()
@@ -125,7 +179,7 @@ namespace Caravans.FrontDoor
             return grain;
         }
 
-        static Sprite Slice(string path, Vector4 border)
+        static Sprite Slice(string path, Vector4 border, float pixelsPerUnit = 100f)
         {
             var texture = Resources.Load<Texture2D>(path);
             if (texture == null || !texture.isReadable)
@@ -134,7 +188,7 @@ namespace Caravans.FrontDoor
                 texture,
                 new Rect(0f, 0f, texture.width, texture.height),
                 new Vector2(0.5f, 0.5f),
-                100f,
+                pixelsPerUnit,
                 0,
                 SpriteMeshType.FullRect,
                 border,

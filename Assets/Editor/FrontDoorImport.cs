@@ -5,7 +5,9 @@ public class FrontDoorImport : AssetPostprocessor
 {
     void OnPreprocessTexture()
     {
-        if (!assetPath.StartsWith("Assets/Resources/FrontDoor/") || !assetPath.EndsWith(".png"))
+        bool door = assetPath.StartsWith("Assets/Resources/FrontDoor/") && assetPath.EndsWith(".png");
+        bool ui = assetPath.StartsWith("Assets/Resources/Ui/") && assetPath.EndsWith(".png");
+        if (!door && !ui)
             return;
         var importer = (TextureImporter)assetImporter;
         importer.textureType = TextureImporterType.Default;
@@ -16,7 +18,7 @@ public class FrontDoorImport : AssetPostprocessor
         importer.textureCompression = TextureImporterCompression.Uncompressed;
         importer.wrapMode = TextureWrapMode.Clamp;
         importer.filterMode = FilterMode.Bilinear;
-        importer.maxTextureSize = assetPath.EndsWith("title_screen.png") ? 2048 : 1024;
+        importer.maxTextureSize = assetPath.EndsWith("title_screen.png") || ui ? 2048 : 1024;
     }
 
     void OnPreprocessAudio()
@@ -45,6 +47,14 @@ public class FrontDoorImport : AssetPostprocessor
             FixTexture("Assets/Resources/FrontDoor/plate_quiet.png", 1024);
             FixTexture("Assets/Resources/FrontDoor/plate_hot.png", 1024);
             FixTexture("Assets/Resources/FrontDoor/plate_pressed.png", 1024);
+            FixTexture("Assets/Resources/Ui/parchment.png", 2048);
+            FixTexture("Assets/Resources/Ui/bone-frame.png", 2048);
+            FixTexture("Assets/Resources/Ui/resin-seal.png", 2048);
+            FixTexture("Assets/Resources/Ui/resin-seal-hover.png", 2048);
+            FixTexture("Assets/Resources/Ui/resin-seal-selected.png", 2048);
+            FixTexture("Assets/Resources/Ui/resin-seal-gate.png", 2048);
+            FixTexture("Assets/Resources/Ui/resin-seal-gate-hover.png", 2048);
+            FixTexture("Assets/Resources/Ui/resin-seal-gate-selected.png", 2048);
             FixWind("Assets/Resources/FrontDoor/wind_sound.wav");
         };
     }
