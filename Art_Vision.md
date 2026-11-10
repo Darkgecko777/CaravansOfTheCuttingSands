@@ -57,11 +57,13 @@ Add gear and baggage plus a saddle (no rider) appropriate for several days deser
 
 ## Market goods
 
+A cord in a goods picture is Zar'Kun sinew: one continuous pale grey cord, suckers visible, the end tucked or joined to what it binds. A sack, pouch, or wrap is Clack Fiend molt-skin, pale and thin enough that the contents almost show. A crate, haft, or wooden body is living lumber, planed, with moss along the edges, as on the Shimmersteel Jars crate. A liquid vessel is low-grade shimmersteel: thick faceted crystal, a sand-bronze lip, grit in the crevices. The mouth is closed by a scrubcast resin plug pressed into it, and the drips stay joined to the lip. An off-list trade item may appear only as packaging. The water bladder is that package. Glass, cork, hemp, burlap, generic rope, generic timber, and bronze are not used.
+
 ### Giant Duzhu Hide
 
-A bulky rolled hide from the giant, the oversized animal. The picture is `Assets/Resources/Goods/GiantDuzhuHide.png`. It is the file on the Giant Duzhu Hide cell. The leather is matte sand with ochre patches. Larger flat plates lie along the top of the roll. The open end is one continuous sheet wound in a spiral, the inner end tucked at the center. No animal, no harness.
+A bulky rolled hide from the giant, the oversized animal. The picture is `Assets/Resources/Goods/GiantDuzhuHide.png`. It is the file on the Giant Duzhu Hide cell. The leather is matte sand with ochre patches and a fine grain over the whole roll. The open end is one continuous sheet wound in a spiral, the inner end tucked at the center. No animal, no harness.
 
-Scraped Giant Duzhu hide is a writing surface. The large plates are worn down to a faint grain, and the centre of the sheet is flat and blank. The leather stays matte sand with ochre patches. Each end of the header is one short curl of that same sheet, the end tucked. The picture is `Assets/Resources/Ui/hide-header.png`, shown across the full width of the UI Kit tab. It is not an accepted look. The rolled cargo picture is unchanged.
+Scraped Giant Duzhu hide is a writing surface. The large plates are worn down to a faint grain, and the centre of the sheet is flat and blank. The leather stays matte sand with ochre patches. Each end of the header is one short curl of that same sheet, the end tucked. The picture is `Assets/Resources/Ui/hide-header.png`, shown across the full width of the UI Kit tab. It is not an accepted look. The rolled cargo picture is the sand hide on the Giant Duzhu Hide cell.
 
 ### Shimmersteel
 
@@ -127,4 +129,72 @@ The mount picture is `Assets/Resources/Mounts/PincerBeast.jpg`. It is the file o
 
 ### Pincer Beast Fur
 
-The cargo is a stack of separate pelts, bulky more than dense. The picture is `Assets/Resources/Goods/PincerBeastFur.png`. It is the file on the Pincer Beast Fur cell. The pieces differ in size and outline, so the pile is lopsided. Each piece rests on the one below it. The hair is dense and dusty tan.
+The cargo is a stack of separate pelts, bulky more than dense. The picture is `Assets/Resources/Goods/PincerBeastFur.png`. It is the file on the Pincer Beast Fur cell. Four pelts of a similar size lie flat, each resting on the one below it. The hair is dense and dusty tan.
+
+### Brine Scrub
+
+A heavy pale sack of coarse salt. The picture is `Assets/Resources/Goods/BrineScrub.png`. It is the file on the Brine Scrub cell. The cloth is thin enough that the salt shows through. The neck is gathered and held by a band of that same cloth. The sack rests on its base. The existing file was kept.
+
+### Water
+
+One large swollen beast bladder of fresh water. The picture is `Assets/Resources/Goods/Water.png`. It is the file on the Water cell. The hide is pale and taut. One pale grey suckered cord knots the neck shut and continues as the carrying sling around the body, returning to that knot.
+
+### Sea water
+
+The same bladder. The picture is `Assets/Resources/Goods/SeaWater.png`. It is the file on the Sea water cell. A dry salt crust covers the hide, and the gathered neck carries a paler brine stain. The cord is the same sling and knot.
+
+### Tiger Cactus Flesh
+
+A modest dense cut of reddish plant flesh. The picture is `Assets/Resources/Goods/TigerCactusFlesh.png`. It is the file on the Tiger Cactus Flesh cell. Pale molt-skin wraps the middle, and one suckered cord ties it. The free end is a wrapped plug.
+
+### Khor Crafted Tools
+
+A road-worn bundle of a heavy pick-adze, a broad scraping blade, and a short pry-bar. The picture is `Assets/Resources/Goods/KhorCraftedTools.png`. It is the file on the Khor Crafted Tools cell. Each head is dull gritty faceted shimmersteel, joined to a living-lumber haft with moss along the wood. One suckered cord binds the three hafts, and the free end is a wrapped plug.
+
+### Vek Kilned Pottery
+
+A moss-edged living-lumber crate of kiln-dark clay. The picture is `Assets/Resources/Goods/VekKilnedPottery.png`. It is the file on the Vek Kilned Pottery cell. A tall jug, a bowl, and a lidded pot sit in the crate. Fine geometric lines are incised in the clay. The jug handle joins the neck and the body.
+
+### Kelkris Feathers
+
+A light bundle of soft feathers in mixed lengths. The picture is `Assets/Resources/Goods/KelkrisFeathers.png`. It is the file on the Kelkris Feathers cell. One suckered cord binds the quills, and the free end is a wrapped plug.
+
+### Sweet Bliss
+
+A handful of whole pomegranates in a loose molt-skin gather. The picture is `Assets/Resources/Goods/SweetBliss.png`. It is the file on the Sweet Bliss cell. One suckered cord closes the gather, and the ends are tucked into the knot.
+
+### Finger Fungus
+
+A light cluster of pale hand-like blooms. The picture is `Assets/Resources/Goods/FingerFungus.png`. It is the file on the Finger Fungus cell. The fingers are readable. One suckered cord gathers them, and the ends run into the cluster.
+
+### Terrorshriek Talons
+
+A few oversized hooked talons, partly folded in pale molt-skin. The picture is `Assets/Resources/Goods/TerrorshriekTalons.png`. It is the file on the Terrorshriek Talons cell. One suckered cord ties the wrap, and the free end is a wrapped plug.
+
+### Dune Mollusk Pearls
+
+A small molt-skin pouch. The picture is `Assets/Resources/Goods/DuneMolluskPearls.png`. It is the file on the Dune Mollusk Pearls cell. Irregular matte sand-toned pearls show through the sheet. One suckered cord ties the neck, and the free end is a wrapped plug.
+
+### Fire Salt
+
+A dense rust-red flecked salt cake. The picture is `Assets/Resources/Goods/FireSalt.png`. It is the file on the Fire Salt cell. Pale molt-skin wraps the middle. One suckered cord ties it, and the free end is a wrapped plug.
+
+### Sweetrock
+
+A molt-skin pouch of pale honey-white salt crystals. The picture is `Assets/Resources/Goods/Sweetrock.png`. It is the file on the Sweetrock cell. The crystals show through the sheet. One suckered cord ties the neck, and the free end is a wrapped plug.
+
+### Eyes of Arkhul
+
+A small molt-skin pouch, slightly open. The picture is `Assets/Resources/Goods/EyesOfArkhul.png`. It is the file on the Eyes of Arkhul cell. A few irregular smooth dark gems show in the mouth. One suckered cord ties the pouch, and the free end is a wrapped plug.
+
+### Reth's Blood
+
+One small thick faceted vial of dark ink. The picture is `Assets/Resources/Goods/RethsBlood.png`. It is the file on the Reth's Blood cell. The body is grey crystal with a sand-bronze lip. A dark amber resin plug sits in the mouth, and the drips stay joined to the lip.
+
+### Clack Fiend Larvae
+
+A moss-edged living-lumber crate lined with pale molt-skin. The picture is `Assets/Resources/Goods/ClackFiendLarvae.png`. It is the file on the Clack Fiend Larvae cell. Large chitinous eggs rest in the lining.
+
+### Kel Eel Flesh
+
+Cured sides of dark brine meat in an open moss-edged living-lumber crate. The picture is `Assets/Resources/Goods/KelEelFlesh.png`. It is the file on the Kel Eel Flesh cell. One suckered cord binds the meat, and the free end is a wrapped plug.
