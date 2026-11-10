@@ -259,7 +259,7 @@ namespace Caravans.Play
             Sprite paper = FrontArt.Parchment();
             Sprite bone = FrontArt.BoneFrame();
             SliceBox(body, "Panel", paper, new Vector2(0.02f, 0.02f), new Vector2(0.28f, 0.43f), "Panel", "Kharûn", 36f, ParchmentInk);
-            SliceBox(body, "TopBar", paper, new Vector2(0.30f, 0.255f), new Vector2(0.98f, 0.43f), "Top bar", "Day 1, hour 6", 24f, ParchmentInk);
+            SliceBox(body, "TopBar", paper, new Vector2(0.30f, 0.255f), new Vector2(0.98f, 0.43f), "Top bar", WorldClock.Format(1, 6f), 22f, ParchmentInk);
             SliceBox(body, "Bone", bone, new Vector2(0.30f, 0.02f), new Vector2(0.63f, 0.235f), "Frame", "BA-04", 28f, Ink);
             SliceBox(body, "BoneBar", bone, new Vector2(0.65f, 0.02f), new Vector2(0.98f, 0.235f), "Border", "", 22f, Ink);
             return body.gameObject;
@@ -296,6 +296,8 @@ namespace Caravans.Play
                 LeadImage(stack, "Rod", rod, rodTop, 1f);
             if (wrap != null)
                 LeadImage(stack, "Wrap", wrap, 0f, 1f);
+
+            LayerPicture(body, "Rail", "Ui/banner", new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.34f), "Banner rail");
 
             var label = Body(column, 18f, TextAlignmentOptions.Bottom);
             label.text = "Lead";

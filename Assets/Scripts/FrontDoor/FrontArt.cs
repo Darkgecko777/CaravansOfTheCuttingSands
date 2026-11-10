@@ -62,17 +62,18 @@ namespace Caravans.FrontDoor
 
         public static Sprite Banner()
         {
-            // Caps keep the rod, the crest, the lumber edge, and the foot.
+            // Caps hold the knobs, the crystal, the lumber lip, and the hook tips. The arch stays open.
             return banner = banner != null
                 ? banner
-                : Slice("Ui/banner", new Vector4(230f, 40f, 220f, 40f), 100f);
+                : Slice("Ui/banner", new Vector4(200f, 48f, 200f, 168f), 140f);
         }
 
         public static Sprite HideHeader()
         {
+            // Curls stay in the side caps. The blank centre stretches.
             return hideHeader = hideHeader != null
                 ? hideHeader
-                : Slice("Ui/hide-header", Vector4.zero);
+                : Slice("Ui/hide-header", new Vector4(170f, 36f, 170f, 36f), 300f);
         }
 
         public static Sprite BoneFrame()

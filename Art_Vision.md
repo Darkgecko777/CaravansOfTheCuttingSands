@@ -20,7 +20,7 @@ The paper target is the mockup `Npz0d.jpg` in the project root. It is a referenc
 
 The sheet is aged cream parchment: visible fiber, foxing, faint cracks, and a torn deckled edge. The corner ornament is flat dark-brown ink. Between the corners the edge is one torn strip, even enough to stretch, with no medallion along a side. The fill is the paper itself. Text is never painted on the sheet.
 
-The title menu frame stays gilded metal. This paper is the information panel, the location banner, and the top bar. Location tabs are a separate piece and are not part of the sheet. A location tab is a scrubcast resin seal, painted in dark amber with brush grain and grit, one drip joined to the bottom edge and ending in a bead. The resin takes a signet the way hot wax does. A circular border is pressed into the face, the field inside sits lower, and the device is one soft bold stamp. Hover and selected keep that same seal. On a screen the seal is the size of one tab in a bottom line of six.
+The title menu frame stays gilded metal. This paper is the information panel and the top bar. The location banner is the shimmersteel rail with a hanging vellum field. Location tabs are a separate piece and are not part of the sheet. A location tab is a scrubcast resin seal, painted in dark amber with brush grain and grit, one drip joined to the bottom edge and ending in a bead. The resin takes a signet the way hot wax does. A circular border is pressed into the face, the field inside sits lower, and the device is one soft bold stamp. Hover and selected keep that same seal. On a screen the seal is the size of one tab in a bottom line of six.
 
 The market seal is `Assets/Resources/Ui/resin-seal.png`. Hover is `Assets/Resources/Ui/resin-seal-hover.png`. Selected is `Assets/Resources/Ui/resin-seal-selected.png`. The market device is a thick upright, a level beam, and two pans joined to the beam.
 
@@ -28,7 +28,7 @@ The gate device is two thick uprights joined by a beam across the top, with one 
 
 The accepted sheet is `Assets/Resources/Ui/parchment.png`. It is the file on the UI Kit tab, sliced as a tall panel and as a short wide bar. The corner ink is inside the slice border. The torn edge between the corners stretches.
 
-A header under review on that same tab is scraped Giant Duzhu hide, `Assets/Resources/Ui/hide-header.png`. It is not this sheet, and it is not an accepted look.
+The accepted header on that same tab is ash-ivory scraped Giant Duzhu hide, `Assets/Resources/Ui/hide-header.png`. It is not this sheet. The centre is blank. Each end is one short curl of the same sheet, the end tucked. It replaces the sand stand-in.
 
 The accepted road frame is `Assets/Resources/Ui/bone-frame.png`. It is four Hulv bone beams, one continuous Zar'Kun sinew lashing at each corner, honeycomb at the cut ends. The center is empty. UI Kit shows it sliced at two sizes. Card shows it with the title and the body as text.
 
@@ -63,7 +63,9 @@ A cord in a goods picture is Zar'Kun sinew: one continuous pale grey cord, sucke
 
 A bulky rolled hide from the giant, the oversized animal. The picture is `Assets/Resources/Goods/GiantDuzhuHide.png`. It is the file on the Giant Duzhu Hide cell. The leather is matte sand with ochre patches and a fine grain over the whole roll. The open end is one continuous sheet wound in a spiral, the inner end tucked at the center. No animal, no harness.
 
-Scraped Giant Duzhu hide is a writing surface. The large plates are worn down to a faint grain, and the centre of the sheet is flat and blank. The leather stays matte sand with ochre patches. Each end of the header is one short curl of that same sheet, the end tucked. The picture is `Assets/Resources/Ui/hide-header.png`, shown across the full width of the UI Kit tab. It is not an accepted look. The rolled cargo picture is the sand hide on the Giant Duzhu Hide cell.
+Scraped Giant Duzhu hide is a writing surface. The large plates are worn down to a faint grain, and the centre of the sheet is flat and blank. The accepted header is ash-ivory, not the matte sand of the cargo roll. Each end is one short curl of that same sheet, the end tucked. The picture is `Assets/Resources/Ui/hide-header.png`, shown across the full width of the UI Kit tab. The rolled cargo picture is the sand hide on the Giant Duzhu Hide cell.
+
+The accepted location banner is `Assets/Resources/Ui/banner.png`. A pale honey faceted shimmersteel bar runs between two sand-bronze knobs. Under it, a living-lumber lip with moss along the edge turns down at both ends. The centre is open. In play the ash-ivory vellum hangs in that opening, and the place name and the patron line are Unity text. Parchment stays the information panel and the top bar. Layers shows this rail under the shimmersteel rod.
 
 ### Shimmersteel
 

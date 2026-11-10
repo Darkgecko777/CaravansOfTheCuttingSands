@@ -12,7 +12,7 @@ Tunable numbers live in `data/config/`.
 
 Visual work is shown on the asset-testing bench on the first pass, and again after each revision. The bench is the ASSET TESTING screen. The scene name stays CargoSounds. Work is one set and one item. Read `Art_Vision.md` before making a picture. Pictures are made with Imagine. After a picture is generated, run the structural check below before it is shown. Sound is made with the audio subagent below, and that subagent starts before the other work when a new or revised clip is needed. A goods picture is placed at `Assets/Resources/Goods/<GoodId>.png` so the Market tab can show it. A mount picture is placed at `Assets/Resources/Mounts/<Name>`. A mount call lands at `Assets/Resources/Audio/mount-<name>.wav`. A user-interface picture is placed at `Assets/Resources/Ui/` and shown on the UI Kit tab. An accepted look is written back into `Art_Vision.md`. When the bench's behavior changes, update `Vision.md`.
 
-The play screens and the play market stay as they are until the user asks for a picture to be implemented in the game proper. A picture on the bench is the review. That ask has not been made.
+Goods pictures are in the play market, the wagon cargo, and the logbook. A missing picture keeps the name and does not break the row. The bench remains the review. Encounters, kit figures, and Fill buttons do not show goods pictures.
 
 After generating a picture, do not present it yet. Perform a silent structural check for physical continuity and topology.
 

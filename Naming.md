@@ -37,6 +37,10 @@ Do not use:
 
 Sorel is the soft leak on the current map. Draven is legal as a place and pairs with Torvern. It is also a stock given name elsewhere. Do not hand it to a person. The place is Torvern, not Torven.
 
+## The year
+
+The caravan year has eight months of thirty days, in order: Vekmar, Dravun, Morvek, Thulor, Zarneth, Kalvorn, Sorvek, Torvak. A year is 240 days. Day 1 of a new run is 1 Vekmar, Year 112. The day is eight parts of three hours: Dawn, Morning, Midday, Afternoon, Dusk, Evening, Night, and Deep night. Dawn is hour 6.
+
 ## Places
 
 Reuse these endings before inventing one.
