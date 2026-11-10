@@ -11,6 +11,8 @@ namespace Caravans.FrontDoor
         static Sprite plateHot;
         static Sprite platePressed;
         static Sprite parchment;
+        static Sprite banner;
+        static Sprite hideHeader;
         static Sprite boneFrame;
         static Sprite resinSeal;
         static Sprite resinSealHover;
@@ -56,6 +58,21 @@ namespace Caravans.FrontDoor
             return parchment = parchment != null
                 ? parchment
                 : Slice("Ui/parchment", new Vector4(176f, 224f, 220f, 200f), 310f);
+        }
+
+        public static Sprite Banner()
+        {
+            // Caps keep the rod, the crest, the lumber edge, and the foot.
+            return banner = banner != null
+                ? banner
+                : Slice("Ui/banner", new Vector4(230f, 40f, 220f, 40f), 100f);
+        }
+
+        public static Sprite HideHeader()
+        {
+            return hideHeader = hideHeader != null
+                ? hideHeader
+                : Slice("Ui/hide-header", Vector4.zero);
         }
 
         public static Sprite BoneFrame()

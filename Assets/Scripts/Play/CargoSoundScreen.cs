@@ -28,7 +28,7 @@ namespace Caravans.Play
         static readonly Color Field = new Color(0.28f, 0.21f, 0.16f, 1f);
         static readonly Color Rim = new Color(0.16f, 0.12f, 0.10f, 1f);
 
-        enum Page { Market, FrontDoor, Map, Mounts, UiKit, Card, Seals }
+        enum Page { Market, FrontDoor, Map, Mounts, UiKit, Layers, Card, Seals }
 
         static readonly Color ParchmentInk = new Color(0.28f, 0.16f, 0.09f, 1f);
 
@@ -44,6 +44,7 @@ namespace Caravans.Play
         GameObject mapPage;
         GameObject mountsPage;
         GameObject uiPage;
+        GameObject layersPage;
         GameObject cardPage;
         GameObject sealsPage;
         Button marketTab;
@@ -51,6 +52,7 @@ namespace Caravans.Play
         Button mapTab;
         Button mountsTab;
         Button uiTab;
+        Button layersTab;
         Button cardTab;
         Button sealsTab;
         Button saleButton;
@@ -138,6 +140,8 @@ namespace Caravans.Play
             mountsTab.GetComponent<LayoutElement>().preferredWidth = 150f;
             uiTab = Tab(head, "UI Kit", () => Show(Page.UiKit));
             uiTab.GetComponent<LayoutElement>().preferredWidth = 130f;
+            layersTab = Tab(head, "Layers", () => Show(Page.Layers));
+            layersTab.GetComponent<LayoutElement>().preferredWidth = 140f;
             cardTab = Tab(head, "Card", () => Show(Page.Card));
             cardTab.GetComponent<LayoutElement>().preferredWidth = 110f;
             sealsTab = Tab(head, "Seals", () => Show(Page.Seals));
@@ -163,6 +167,7 @@ namespace Caravans.Play
             mapPage = BuildMap(frame);
             mountsPage = BuildMounts(frame);
             uiPage = BuildUiKit(frame);
+            layersPage = BuildLayers(frame);
             cardPage = BuildCard(frame);
             sealsPage = BuildSeals(frame);
             Show(Page.Market);
@@ -238,14 +243,119 @@ namespace Caravans.Play
         GameObject BuildUiKit(RectTransform frame)
         {
             var body = PageBody(frame, "UiKit");
+            var hide = FrontArt.HideHeader();
+            var band = Child(body, "Header");
+            band.anchorMin = new Vector2(0.01f, 0.45f);
+            band.anchorMax = new Vector2(0.99f, 0.99f);
+            band.offsetMin = Vector2.zero;
+            band.offsetMax = Vector2.zero;
+            var header = band.gameObject.AddComponent<Image>();
+            header.sprite = hide;
+            header.type = Image.Type.Simple;
+            header.preserveAspect = true;
+            header.raycastTarget = false;
+            header.color = hide != null ? Color.white : Color.clear;
+
             Sprite paper = FrontArt.Parchment();
             Sprite bone = FrontArt.BoneFrame();
-            SliceBox(body, "Panel", paper, new Vector2(0.02f, 0.05f), new Vector2(0.28f, 0.50f), "Panel", "Kharûn", 36f, ParchmentInk);
-            SliceBox(body, "TopBar", paper, new Vector2(0.30f, 0.78f), new Vector2(0.98f, 0.96f), "Top bar", "Day 1, hour 6", 24f, ParchmentInk);
-            BuildBanner(body, paper);
-            SliceBox(body, "Bone", bone, new Vector2(0.30f, 0.05f), new Vector2(0.63f, 0.50f), "Frame", "BA-04", 28f, Ink);
-            SliceBox(body, "BoneBar", bone, new Vector2(0.65f, 0.28f), new Vector2(0.98f, 0.50f), "Border", "", 22f, Ink);
+            SliceBox(body, "Panel", paper, new Vector2(0.02f, 0.02f), new Vector2(0.28f, 0.43f), "Panel", "Kharûn", 36f, ParchmentInk);
+            SliceBox(body, "TopBar", paper, new Vector2(0.30f, 0.255f), new Vector2(0.98f, 0.43f), "Top bar", "Day 1, hour 6", 24f, ParchmentInk);
+            SliceBox(body, "Bone", bone, new Vector2(0.30f, 0.02f), new Vector2(0.63f, 0.235f), "Frame", "BA-04", 28f, Ink);
+            SliceBox(body, "BoneBar", bone, new Vector2(0.65f, 0.02f), new Vector2(0.98f, 0.235f), "Border", "", 22f, Ink);
             return body.gameObject;
+        }
+
+        GameObject BuildLayers(RectTransform frame)
+        {
+            var body = PageBody(frame, "Layers");
+            var column = Child(body, "Lead");
+            column.anchorMin = new Vector2(0f, 0.38f);
+            column.anchorMax = new Vector2(1f, 1f);
+            column.offsetMin = Vector2.zero;
+            column.offsetMax = Vector2.zero;
+
+            var stack = Child(column, "Stack");
+            stack.anchorMin = Vector2.zero;
+            stack.anchorMax = Vector2.one;
+            stack.offsetMin = new Vector2(0f, 32f);
+            stack.offsetMax = Vector2.zero;
+
+            var rod = Resources.Load<Texture2D>("Ui/shimmersteel-rod");
+            var wrap = Resources.Load<Texture2D>("Ui/sinew-wrap");
+            float aspect = wrap != null
+                ? wrap.width / (float)Mathf.Max(wrap.height, 1)
+                : rod != null ? rod.width / (float)Mathf.Max(rod.height, 1) : 1f;
+            var fit = stack.gameObject.AddComponent<AspectRatioFitter>();
+            fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            fit.aspectRatio = aspect;
+
+            float rodTop = rod != null && wrap != null
+                ? 1f - rod.height / (float)Mathf.Max(wrap.height, 1)
+                : 0f;
+            if (rod != null)
+                LeadImage(stack, "Rod", rod, rodTop, 1f);
+            if (wrap != null)
+                LeadImage(stack, "Wrap", wrap, 0f, 1f);
+
+            var label = Body(column, 18f, TextAlignmentOptions.Bottom);
+            label.text = "Lead";
+            label.color = Ink;
+            var cap = label.rectTransform;
+            cap.anchorMin = Vector2.zero;
+            cap.anchorMax = new Vector2(1f, 0f);
+            cap.pivot = new Vector2(0.5f, 0f);
+            cap.sizeDelta = new Vector2(0f, 28f);
+            cap.anchoredPosition = Vector2.zero;
+            return body.gameObject;
+        }
+
+        void LeadImage(RectTransform parent, string name, Texture2D texture, float yMin, float yMax)
+        {
+            var picture = Child(parent, name);
+            picture.anchorMin = new Vector2(0f, yMin);
+            picture.anchorMax = new Vector2(1f, yMax);
+            picture.offsetMin = Vector2.zero;
+            picture.offsetMax = Vector2.zero;
+            var raw = picture.gameObject.AddComponent<RawImage>();
+            raw.texture = texture;
+            raw.raycastTarget = false;
+            raw.color = Color.white;
+        }
+
+        void LayerPicture(RectTransform body, string name, string texturePath, Vector2 anchorMin, Vector2 anchorMax, string caption)
+        {
+            var column = Child(body, name);
+            column.anchorMin = anchorMin;
+            column.anchorMax = anchorMax;
+            column.offsetMin = Vector2.zero;
+            column.offsetMax = Vector2.zero;
+
+            var texture = Resources.Load<Texture2D>(texturePath);
+            var picture = Child(column, "Picture");
+            picture.anchorMin = Vector2.zero;
+            picture.anchorMax = Vector2.one;
+            picture.offsetMin = new Vector2(0f, 32f);
+            picture.offsetMax = Vector2.zero;
+            var raw = picture.gameObject.AddComponent<RawImage>();
+            raw.texture = texture;
+            raw.raycastTarget = false;
+            raw.color = texture != null ? Color.white : Color.clear;
+            if (texture != null)
+            {
+                var fit = picture.gameObject.AddComponent<AspectRatioFitter>();
+                fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+                fit.aspectRatio = texture.width / (float)Mathf.Max(texture.height, 1);
+            }
+
+            var label = Body(column, 18f, TextAlignmentOptions.Bottom);
+            label.text = caption;
+            label.color = Ink;
+            var cap = label.rectTransform;
+            cap.anchorMin = Vector2.zero;
+            cap.anchorMax = new Vector2(1f, 0f);
+            cap.pivot = new Vector2(0.5f, 0f);
+            cap.sizeDelta = new Vector2(0f, 28f);
+            cap.anchoredPosition = Vector2.zero;
         }
 
         GameObject BuildCard(RectTransform frame)
@@ -353,63 +463,6 @@ namespace Caravans.Play
                 sealNoteUntil = Time.unscaledTime + SealNoteSeconds;
             });
             go.AddComponent<SealPress>().Bind(image, hover, pressed);
-        }
-
-        void BuildBanner(RectTransform page, Sprite paper)
-        {
-            var column = Child(page, "Banner");
-            column.anchorMin = new Vector2(0.02f, 0.52f);
-            column.anchorMax = new Vector2(0.98f, 0.76f);
-            column.offsetMin = Vector2.zero;
-            column.offsetMax = Vector2.zero;
-
-            var picture = Child(column, "Picture");
-            picture.anchorMin = Vector2.zero;
-            picture.anchorMax = Vector2.one;
-            picture.offsetMin = new Vector2(0f, 28f);
-            picture.offsetMax = Vector2.zero;
-            var image = picture.gameObject.AddComponent<Image>();
-            image.sprite = paper;
-            image.type = paper != null ? Image.Type.Sliced : Image.Type.Simple;
-            image.color = paper != null ? Color.white : Color.clear;
-            image.raycastTarget = false;
-
-            var row = picture.gameObject.AddComponent<HorizontalLayoutGroup>();
-            row.padding = new RectOffset(88, 96, 70, 76);
-            row.spacing = 28f;
-            row.childAlignment = TextAnchor.MiddleLeft;
-            row.childControlWidth = true;
-            row.childControlHeight = true;
-            row.childForceExpandWidth = false;
-            row.childForceExpandHeight = true;
-
-            BannerField(picture, "Khar\u00fbn", 200f);
-            BannerField(picture, "Day 1, hour 6", 240f);
-            BannerField(picture, "Scrubstone 400", 280f);
-            var tabs = Child(picture, "CharacterTabs");
-            var room = tabs.gameObject.AddComponent<LayoutElement>();
-            room.flexibleWidth = 1f;
-            room.preferredWidth = 160f;
-
-            var label = Body(column, 18f, TextAlignmentOptions.Bottom);
-            label.text = "Banner";
-            var cap = label.rectTransform;
-            cap.anchorMin = Vector2.zero;
-            cap.anchorMax = new Vector2(1f, 0f);
-            cap.pivot = new Vector2(0.5f, 0f);
-            cap.sizeDelta = new Vector2(0f, 28f);
-            cap.anchoredPosition = Vector2.zero;
-        }
-
-        void BannerField(RectTransform row, string text, float width)
-        {
-            var field = Body(row, 22f, TextAlignmentOptions.MidlineLeft);
-            field.font = FrontArt.Bold();
-            field.color = ParchmentInk;
-            field.text = text;
-            field.textWrappingMode = TextWrappingModes.NoWrap;
-            var fit = field.gameObject.AddComponent<LayoutElement>();
-            fit.preferredWidth = width;
         }
 
         void SliceBox(RectTransform page, string name, Sprite sprite, Vector2 anchorMin, Vector2 anchorMax, string caption, string sample, float sampleSize, Color ink)
@@ -637,6 +690,7 @@ namespace Caravans.Play
             mapPage.SetActive(next == Page.Map);
             mountsPage.SetActive(next == Page.Mounts);
             uiPage.SetActive(next == Page.UiKit);
+            layersPage.SetActive(next == Page.Layers);
             cardPage.SetActive(next == Page.Card);
             sealsPage.SetActive(next == Page.Seals);
             saleButton.gameObject.SetActive(next == Page.Market);
@@ -646,6 +700,7 @@ namespace Caravans.Play
             Tint(mapTab, next == Page.Map);
             Tint(mountsTab, next == Page.Mounts);
             Tint(uiTab, next == Page.UiKit);
+            Tint(layersTab, next == Page.Layers);
             Tint(cardTab, next == Page.Card);
             Tint(sealsTab, next == Page.Seals);
             heard.text = "";

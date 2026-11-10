@@ -48,7 +48,11 @@ public class FrontDoorImport : AssetPostprocessor
             FixTexture("Assets/Resources/FrontDoor/plate_hot.png", 1024);
             FixTexture("Assets/Resources/FrontDoor/plate_pressed.png", 1024);
             FixTexture("Assets/Resources/Ui/parchment.png", 2048);
+            FixTexture("Assets/Resources/Ui/banner.png", 2048);
+            FixTexture("Assets/Resources/Ui/shimmersteel-rod.png", 2048);
+            FixTexture("Assets/Resources/Ui/sinew-wrap.png", 2048);
             FixTexture("Assets/Resources/Ui/bone-frame.png", 2048);
+            FixTexture("Assets/Resources/Ui/hide-header.png", 2048);
             FixTexture("Assets/Resources/Ui/resin-seal.png", 2048);
             FixTexture("Assets/Resources/Ui/resin-seal-hover.png", 2048);
             FixTexture("Assets/Resources/Ui/resin-seal-selected.png", 2048);

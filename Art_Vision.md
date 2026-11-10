@@ -28,6 +28,8 @@ The gate device is two thick uprights joined by a beam across the top, with one 
 
 The accepted sheet is `Assets/Resources/Ui/parchment.png`. It is the file on the UI Kit tab, sliced as a tall panel and as a short wide bar. The corner ink is inside the slice border. The torn edge between the corners stretches.
 
+A header under review on that same tab is scraped Giant Duzhu hide, `Assets/Resources/Ui/hide-header.png`. It is not this sheet, and it is not an accepted look.
+
 The accepted road frame is `Assets/Resources/Ui/bone-frame.png`. It is four Hulv bone beams, one continuous Zar'Kun sinew lashing at each corner, honeycomb at the cut ends. The center is empty. UI Kit shows it sliced at two sizes. Card shows it with the title and the body as text.
 
 A physical UI piece uses a material from this world. Bone is Hulv bone: porous ivory beams. Wood is living lumber: faceted grain, bark, moss, a grain-eye, dark sap. Metal hardware is shimmersteel, sand-bronze crystal with grit in the crevices, or frost iron, dark iron under a pale rime, when the piece is cold. Cord is Zar'Kun sinew. Do not paint bronze, generic timber, or polished ivory.
@@ -58,6 +60,8 @@ Add gear and baggage plus a saddle (no rider) appropriate for several days deser
 ### Giant Duzhu Hide
 
 A bulky rolled hide from the giant, the oversized animal. The picture is `Assets/Resources/Goods/GiantDuzhuHide.png`. It is the file on the Giant Duzhu Hide cell. The leather is matte sand with ochre patches. Larger flat plates lie along the top of the roll. The open end is one continuous sheet wound in a spiral, the inner end tucked at the center. No animal, no harness.
+
+Scraped Giant Duzhu hide is a writing surface. The large plates are worn down to a faint grain, and the centre of the sheet is flat and blank. The leather stays matte sand with ochre patches. Each end of the header is one short curl of that same sheet, the end tucked. The picture is `Assets/Resources/Ui/hide-header.png`, shown across the full width of the UI Kit tab. It is not an accepted look. The rolled cargo picture is unchanged.
 
 ### Shimmersteel
 
