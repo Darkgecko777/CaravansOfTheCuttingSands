@@ -66,22 +66,23 @@ namespace Caravans.FrontDoor
             if (camera == null)
                 return;
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.12f, 0.08f, 0.05f, 1f);
+            camera.backgroundColor = new Color(0.62f, 0.48f, 0.32f, 1f);
         }
 
         void Build()
         {
             var canvas = FrontUi.Canvas("HouseCanvas", 20);
             canvas.SetParent(transform, false);
-            var wash = FrontUi.Box(canvas, "Wash", new Vector2(1480f, 900f));
-            wash.anchorMin = wash.anchorMax = new Vector2(0.5f, 0.5f);
-            wash.pivot = new Vector2(0.5f, 0.5f);
-            var washImage = wash.gameObject.AddComponent<Image>();
-            Sprite paper = FrontArt.Parchment();
-            washImage.sprite = paper;
-            washImage.type = paper != null ? Image.Type.Sliced : Image.Type.Simple;
-            washImage.color = paper != null ? Color.white : new Color(0.12f, 0.08f, 0.05f, 1f);
-            washImage.raycastTarget = false;
+            var ground = FrontUi.Box(canvas, "Sand", new Vector2(1920f, 1080f));
+            ground.anchorMin = Vector2.zero;
+            ground.anchorMax = Vector2.one;
+            ground.offsetMin = Vector2.zero;
+            ground.offsetMax = Vector2.zero;
+            var sand = ground.gameObject.AddComponent<RawImage>();
+            Texture2D plate = FrontArt.TitleTexture();
+            sand.texture = plate;
+            sand.color = plate != null ? Color.white : new Color(0.62f, 0.48f, 0.32f, 1f);
+            sand.raycastTarget = false;
             var column = FrontUi.Box(canvas, "Column", new Vector2(1400f, 820f));
             column.anchorMin = column.anchorMax = new Vector2(0.5f, 0.5f);
             column.pivot = new Vector2(0.5f, 0.5f);
@@ -103,7 +104,7 @@ namespace Caravans.FrontDoor
             header.type = vellum != null ? Image.Type.Sliced : Image.Type.Simple;
             header.color = vellum != null ? Color.white : Color.clear;
             header.raycastTarget = false;
-            var title = FrontUi.Label(titleBand, "Choose Your House", 40f, true, CardInk, new Vector2(1400f, 56f));
+            var title = FrontUi.Label(titleBand, "Choose Your House", 40f, true, VellumInk, new Vector2(1400f, 56f));
             var titleHost = (RectTransform)title.transform.parent;
             titleHost.anchorMin = Vector2.zero;
             titleHost.anchorMax = Vector2.one;
@@ -112,7 +113,7 @@ namespace Caravans.FrontDoor
             var titleHostFit = titleHost.GetComponent<LayoutElement>();
             if (titleHostFit != null)
                 titleHostFit.ignoreLayout = true;
-            FrontUi.Label(column, "The market does not forgive the uncommitted.", 16f, false, CardSoft, new Vector2(1400f, 28f));
+            FrontUi.Label(column, "The market does not forgive the uncommitted.", 16f, false, FrontUi.TitleGold, new Vector2(1400f, 28f));
 
             var row = FrontUi.Box(column, "Houses", new Vector2(1400f, 340f));
             var rowElement = row.gameObject.AddComponent<LayoutElement>();
@@ -176,10 +177,11 @@ namespace Caravans.FrontDoor
             fillRect.offsetMin = new Vector2(72f, 72f);
             fillRect.offsetMax = new Vector2(-72f, -72f);
             var fill = fillRect.gameObject.AddComponent<Image>();
-            Sprite sheet = FrontArt.Parchment();
+            Sprite sheet = FrontArt.HidePanel();
             fill.sprite = sheet;
             fill.type = sheet != null ? Image.Type.Sliced : Image.Type.Simple;
-            fill.color = Color.white;
+            Color tint = HouseTint(house.Id);
+            fill.color = tint;
             fill.raycastTarget = false;
             fillRect.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
 
@@ -210,7 +212,7 @@ namespace Caravans.FrontDoor
                 new Vector2(180f, 24f));
 
             IgnoreRaycasts(mark, name, flavour, status);
-            var card = new Card { Id = house.Id, Fill = fill, Available = open };
+            var card = new Card { Id = house.Id, Fill = fill, Available = open, Tint = tint };
             if (open)
             {
                 string id = house.Id;
@@ -230,7 +232,7 @@ namespace Caravans.FrontDoor
                 if (!card.Available || card.Fill == null)
                     continue;
                 bool chosen = card.Id == houseId;
-                card.Fill.color = chosen ? new Color(1f, 0.94f, 0.78f, 1f) : Color.white;
+                card.Fill.color = chosen ? Brighten(card.Tint) : card.Tint;
             }
         }
 
@@ -251,14 +253,42 @@ namespace Caravans.FrontDoor
             }
         }
 
-        static readonly Color CardInk = new Color(0.28f, 0.16f, 0.09f, 1f);
-        static readonly Color CardSoft = new Color(0.42f, 0.28f, 0.16f, 1f);
+        static readonly Color VellumInk = new Color(0.28f, 0.16f, 0.09f, 1f);
+        static readonly Color CardInk = new Color(0.95f, 0.89f, 0.78f, 1f);
+        static readonly Color CardSoft = new Color(0.95f, 0.85f, 0.55f, 1f);
+
+        static Color HouseTint(string houseId)
+        {
+            switch (houseId)
+            {
+                case "house_kharun":
+                    return new Color(0.55f, 0.72f, 0.84f, 1f);
+                case "house_zamath":
+                    return new Color(0.45f, 0.62f, 0.38f, 1f);
+                case "house_thalor":
+                    return new Color(0.72f, 0.28f, 0.22f, 1f);
+                case "house_veythar":
+                    return new Color(0.55f, 0.38f, 0.68f, 1f);
+                default:
+                    return new Color(0.78f, 0.52f, 0.22f, 1f);
+            }
+        }
+
+        static Color Brighten(Color color)
+        {
+            return new Color(
+                Mathf.Lerp(color.r, 1f, 0.28f),
+                Mathf.Lerp(color.g, 1f, 0.28f),
+                Mathf.Lerp(color.b, 1f, 0.28f),
+                1f);
+        }
 
         sealed class Card
         {
             public string Id;
             public Image Fill;
             public bool Available;
+            public Color Tint;
         }
     }
 }

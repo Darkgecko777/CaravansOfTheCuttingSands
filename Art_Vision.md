@@ -16,17 +16,19 @@ A goods picture is a full-size painting with no background. The delivered file i
 
 ## UI paper
 
-The paper target is the mockup `Npz0d.jpg` in the project root. It is a reference for the sheet. It is not a screen to copy, and the words on it are not game text.
+The paper target is the mockup `Npz0d.jpg` in the project root. It is a reference for a document sheet. It is not a screen to copy, and the words on it are not game text.
 
-The sheet is aged cream parchment: visible fiber, foxing, faint cracks, and a torn deckled edge. The corner ornament is flat dark-brown ink. Between the corners the edge is one torn strip, even enough to stretch, with no medallion along a side. The fill is the paper itself. Text is never painted on the sheet.
+A document is aged cream parchment: visible fiber, foxing, faint cracks, and a torn deckled edge. There is no ink corner and no medallion. The fill is the paper itself. Text is never painted on the sheet. The picture is `Assets/Resources/Ui/parchment-plain.png`. The logbook uses it. The older scrollwork sheet `Assets/Resources/Ui/parchment.png` stays on disk and is not shown.
 
-The title menu frame stays gilded metal. This paper is the information panel and the top bar. The location banner is the shimmersteel rail with a hanging vellum field. Location tabs are a separate piece and are not part of the sheet. A location tab is a scrubcast resin seal, painted in dark amber with brush grain and grit, one drip joined to the bottom edge and ending in a bead. The resin takes a signet the way hot wax does. A circular border is pressed into the face, the field inside sits lower, and the device is one soft bold stamp. Hover and selected keep that same seal. On a screen the seal is the size of one tab in a bottom line of six.
+The world is the background. A settlement screen uses the blurred picture `Assets/Art/Approved/bg_settlement_generic.png`. The sharp file beside it stays out of the game. House select reuses the title sand. On the road the painted map is the view. The accepted play panel is `Assets/Art/Approved/ui_hide_panel.png`: dark tanned Giant Duzhu hide, Hulv bone corner beams, Zar'Kun sinew lashing, sliced with a 150 pixel border on every side. The accepted play bar, top and bottom, is `Assets/Art/Approved/ui_hide_bar.png`, the same hide with bronze-grade shimmersteel trim and bone end caps, sliced 145 left, 145 right, 45 top, 45 bottom. The place name is Unity text on that bar. The title menu frame stays gilded metal. The older even-grain hide `Assets/Resources/Ui/duzhu-hide-panel.png` and the shimmersteel rail `Assets/Resources/Ui/banner.png` stay on the asset-testing bench.
+
+Play tabs are the approved scrubcast resin seals in `Assets/Art/Approved/`. Market, Inn, House, Gates, Buy, and Sell each have a signet, a brighter hover, and a darker press. Other buttons use the blank seal `ui_seal_base.png` with Unity text and no signet. A goods slot uses `ui_goods_cell.png`, and a selected slot uses `ui_goods_cell_selected.png`. The wagon capacity frame is `ui_meter_frame.png`, sliced just inside the talons, and the fill is `ui_meter_fill.png`. The older resin seals, one drip and a bead, remain the Seals tab samples.
 
 The market seal is `Assets/Resources/Ui/resin-seal.png`. Hover is `Assets/Resources/Ui/resin-seal-hover.png`. Selected is `Assets/Resources/Ui/resin-seal-selected.png`. The market device is a thick upright, a level beam, and two pans joined to the beam.
 
 The gate device is two thick uprights joined by a beam across the top, with one opening between the uprights. The picture is `Assets/Resources/Ui/resin-seal-gate.png`. Hover is `Assets/Resources/Ui/resin-seal-gate-hover.png`. The pressed line is `Assets/Resources/Ui/resin-seal-gate-selected.png`. It is on the Seals tab with the market seal.
 
-The accepted sheet is `Assets/Resources/Ui/parchment.png`. It is the file on the UI Kit tab, sliced as a tall panel and as a short wide bar. The corner ink is inside the slice border. The torn edge between the corners stretches.
+UI Kit shows the dark hide as the panel, the plain parchment as the document sheet, a slim dark strip as the top bar, and the bone frame at two sizes. The torn edge of the document sheet sits inside the slice border.
 
 The accepted header on that same tab is ash-ivory scraped Giant Duzhu hide, `Assets/Resources/Ui/hide-header.png`. It is not this sheet. The centre is blank. Each end is one short curl of the same sheet, the end tucked. It replaces the sand stand-in.
 
@@ -65,7 +67,7 @@ A bulky rolled hide from the giant, the oversized animal. The picture is `Assets
 
 Scraped Giant Duzhu hide is a writing surface. The large plates are worn down to a faint grain, and the centre of the sheet is flat and blank. The accepted header is ash-ivory, not the matte sand of the cargo roll. Each end is one short curl of that same sheet, the end tucked. The picture is `Assets/Resources/Ui/hide-header.png`, shown across the full width of the UI Kit tab. The rolled cargo picture is the sand hide on the Giant Duzhu Hide cell.
 
-The accepted location banner is `Assets/Resources/Ui/banner.png`. A pale honey faceted shimmersteel bar runs between two sand-bronze knobs. Under it, a living-lumber lip with moss along the edge turns down at both ends. The centre is open. In play the ash-ivory vellum hangs in that opening, and the place name and the patron line are Unity text. Parchment stays the information panel and the top bar. Layers shows this rail under the shimmersteel rod.
+`Assets/Resources/Ui/banner.png` is a pale honey faceted shimmersteel bar between two sand-bronze knobs. There is no living lumber and no moss. Layers on the asset-testing bench shows this rail with the vellum. Play does not draw it. The place name is Unity text on the hide bar. House select reuses `Assets/Resources/FrontDoor/title_screen.png`, which has no baked lettering.
 
 ### Shimmersteel
 

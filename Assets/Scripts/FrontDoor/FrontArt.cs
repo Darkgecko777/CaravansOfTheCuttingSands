@@ -11,6 +11,7 @@ namespace Caravans.FrontDoor
         static Sprite plateHot;
         static Sprite platePressed;
         static Sprite parchment;
+        static Sprite hidePanel;
         static Sprite banner;
         static Sprite hideHeader;
         static Sprite boneFrame;
@@ -21,6 +22,7 @@ namespace Caravans.FrontDoor
         static Sprite resinSealGateHover;
         static Sprite resinSealGateSelected;
         static Texture2D title;
+        static Texture2D settlement;
         static Texture2D grain;
         static Material sand;
         static TMP_FontAsset bold;
@@ -54,18 +56,29 @@ namespace Caravans.FrontDoor
 
         public static Sprite Parchment()
         {
-            // Borders sit outside the ink corners. 310 pixels per unit keeps a corner near 72 screen pixels.
+            // Plain document sheet. The torn edge stays in the slice border.
             return parchment = parchment != null
                 ? parchment
-                : Slice("Ui/parchment", new Vector4(176f, 224f, 220f, 200f), 310f);
+                : Slice("Ui/parchment-plain", new Vector4(72f, 72f, 72f, 72f), 220f);
+        }
+
+        public static Sprite HidePanel()
+        {
+            ApprovedArt art = ApprovedArt.Load();
+            if (art != null && art.hidePanel != null)
+                return art.hidePanel;
+            // Even rim stays in the slice border. The grain in the centre stretches.
+            return hidePanel = hidePanel != null
+                ? hidePanel
+                : Slice("Ui/duzhu-hide-panel", new Vector4(48f, 48f, 48f, 48f), 128f);
         }
 
         public static Sprite Banner()
         {
-            // Caps hold the knobs, the crystal, the lumber lip, and the hook tips. The arch stays open.
+            // Knobs stay in the side caps. The crystal centre stretches.
             return banner = banner != null
                 ? banner
-                : Slice("Ui/banner", new Vector4(200f, 48f, 200f, 168f), 140f);
+                : Slice("Ui/banner", new Vector4(200f, 10f, 200f, 10f), 140f);
         }
 
         public static Sprite HideHeader()
@@ -119,6 +132,13 @@ namespace Caravans.FrontDoor
             if (title == null)
                 title = Resources.Load<Texture2D>("FrontDoor/title_screen");
             return title;
+        }
+
+        public static Texture2D SettlementDesert()
+        {
+            if (settlement == null)
+                settlement = Resources.Load<Texture2D>("FrontDoor/settlement-desert");
+            return settlement;
         }
 
         public static AudioClip Wind()

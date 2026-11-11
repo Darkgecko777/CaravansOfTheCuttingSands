@@ -11,15 +11,14 @@ namespace Caravans.Play
 {
     public sealed class PlayPresenter : MonoBehaviour
     {
-        const float TopBarHeight = 72f;
-        const float ViewBarHeight = 64f;
-        const float BannerHeight = 190f;
-        const float TabHeight = 76f;
-        const float MarketStrip = 48f;
+        const float TopBarHeight = 128f;
+        const float TabHeight = 118f;
         const float WagonPanelWidth = 520f;
+        const float DetailWidth = 300f;
         const float FrameGap = 20f;
-        const float FrameHeader = 52f;
+        const float FrameHeader = 96f;
         const float WeightLine = 36f;
+        const float MeterHeight = 72f;
         const float ShopCellW = 158f;
         const float ShopCellH = 120f;
         const float WagonCellW = 236f;
@@ -37,10 +36,6 @@ namespace Caravans.Play
         static readonly Color ButtonDown = new Color(0.3f, 0.2f, 0.14f, 1f);
         static readonly Color ButtonOff = new Color(0.24f, 0.19f, 0.16f, 0.85f);
         static readonly Color Field = new Color(0.28f, 0.21f, 0.16f, 1f);
-        static readonly Color DemandHigh = new Color(0.70f, 0.24f, 0.18f, 1f);
-        static readonly Color DemandMid = new Color(0.62f, 0.48f, 0.26f, 1f);
-        static readonly Color DemandLow = new Color(0.34f, 0.46f, 0.30f, 1f);
-        static readonly Color RimQuiet = new Color(0.16f, 0.12f, 0.10f, 1f);
         static readonly Color FaceDim = new Color(0.18f, 0.14f, 0.11f, 1f);
         static readonly Color WagonGround = new Color(0.32f, 0.23f, 0.16f, 1f);
         static readonly Color ParchmentInk = new Color(0.28f, 0.16f, 0.09f, 1f);
@@ -113,11 +108,8 @@ namespace Caravans.Play
         RectTransform optionsRoot;
         TextMeshProUGUI placeText;
         TextMeshProUGUI clockText;
-        TextMeshProUGUI travelText;
         TextMeshProUGUI coinText;
         TextMeshProUGUI cargoText;
-        TextMeshProUGUI bannerName;
-        TextMeshProUGUI bannerTag;
         TextMeshProUGUI outlookText;
         TextMeshProUGUI listenText;
         TextMeshProUGUI legText;
@@ -128,7 +120,13 @@ namespace Caravans.Play
         GridLayoutGroup wagonGrid;
         RectTransform sortMenu;
         TextMeshProUGUI detailText;
+        TextMeshProUGUI detailName;
         TextMeshProUGUI weightText;
+        Image detailCell;
+        RawImage detailIcon;
+        Image meterFill;
+        RawImage groundImage;
+        AspectRatioFitter groundFit;
         RectTransform gatesColumn;
         GameObject innSpot;
         GameObject gatesSpot;
@@ -137,7 +135,6 @@ namespace Caravans.Play
         PlaceId roadsDock;
         bool roadsReady;
         Button marketTab;
-        Button plazaTab;
         Button houseTab;
         Button buyButton;
         Button sellButton;
@@ -182,6 +179,12 @@ namespace Caravans.Play
             disc = MakeSprite(true);
             ring = MakeRing();
             font = MakeFont();
+            var camera = Camera.main;
+            if (camera != null)
+            {
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(0.62f, 0.48f, 0.32f, 1f);
+            }
             MarketSounds.Bind(gameObject);
             Build();
             Redraw();
@@ -223,6 +226,17 @@ namespace Caravans.Play
             var root = canvasGo.GetComponent<RectTransform>();
             Stretch(root);
 
+            var ground = Child(root, "Ground");
+            Stretch(ground);
+            var plate = Child(ground, "Plate");
+            Stretch(plate);
+            groundImage = plate.gameObject.AddComponent<RawImage>();
+            groundImage.raycastTarget = false;
+            groundFit = plate.gameObject.AddComponent<AspectRatioFitter>();
+            groundFit.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            groundFit.aspectRatio = 16f / 9f;
+            ApplyGround(session.Dock);
+
             dock = Child(root, "Dock");
             FillBelowBar(dock);
             travel = Child(root, "Travel");
@@ -231,7 +245,6 @@ namespace Caravans.Play
             BuildDock();
             BuildTravel();
             BuildTopBar(root);
-            BuildViewBar(root);
             BuildLogbook(root);
             dimmer = ImageOn(Child(root, "Dimmer"), new Color(0.05f, 0.04f, 0.03f, 0.72f), true);
             Stretch(dimmer.rectTransform);
@@ -242,65 +255,35 @@ namespace Caravans.Play
 
         void BuildDock()
         {
-            var banner = Child(dock, "Banner");
-            TopStrip(banner, BannerHeight);
-            var field = Child(banner, "Field");
-            Stretch(field);
-            field.offsetMin = new Vector2(156f, 8f);
-            field.offsetMax = new Vector2(-156f, -122f);
-            var vellum = field.gameObject.AddComponent<Image>();
-            Sprite header = FrontArt.HideHeader();
-            vellum.sprite = header;
-            vellum.type = header != null ? Image.Type.Sliced : Image.Type.Simple;
-            vellum.color = header != null ? Color.white : Color.clear;
-            vellum.raycastTarget = false;
-            var rail = Child(banner, "Rail");
-            Stretch(rail);
-            var railImage = rail.gameObject.AddComponent<Image>();
-            Sprite bannerSprite = FrontArt.Banner();
-            railImage.sprite = bannerSprite != null ? bannerSprite : quad;
-            railImage.type = bannerSprite != null ? Image.Type.Sliced : Image.Type.Simple;
-            railImage.color = Color.white;
-            railImage.raycastTarget = false;
-            bannerName = Body(field, 26, TextAlignmentOptions.Center);
-            bannerName.color = ParchmentInk;
-            var nameRt = bannerName.rectTransform;
-            nameRt.anchorMin = new Vector2(0.06f, 0.42f);
-            nameRt.anchorMax = new Vector2(0.94f, 0.96f);
-            nameRt.offsetMin = Vector2.zero;
-            nameRt.offsetMax = Vector2.zero;
-            bannerTag = Body(field, 16, TextAlignmentOptions.Center);
-            bannerTag.color = ParchmentInk;
-            var tagRt = bannerTag.rectTransform;
-            tagRt.anchorMin = new Vector2(0.06f, 0.02f);
-            tagRt.anchorMax = new Vector2(0.94f, 0.46f);
-            tagRt.offsetMin = Vector2.zero;
-            tagRt.offsetMax = Vector2.zero;
-            bannerTag.text = string.Empty;
-
             var body = Child(dock, "Body");
             body.anchorMin = Vector2.zero;
             body.anchorMax = Vector2.one;
             body.offsetMin = new Vector2(0f, TabHeight);
-            body.offsetMax = new Vector2(0f, -BannerHeight);
+            body.offsetMax = Vector2.zero;
 
             marketPage = BuildMarket(body);
             plazaPage = BuildPlaza(body);
             housePage = BuildHousePage(body);
 
-            var tabs = PaperOn(Child(dock, "Tabs"), false);
+            var tabs = HideBarOn(Child(dock, "Tabs"));
             BottomStrip(tabs.rectTransform, TabHeight);
             var row = tabs.gameObject.AddComponent<HorizontalLayoutGroup>();
-            row.spacing = 18f;
-            row.padding = new RectOffset(24, 24, 6, 6);
+            row.spacing = 14f;
+            row.padding = new RectOffset(28, 28, 8, 8);
             row.childAlignment = TextAnchor.MiddleCenter;
             row.childControlWidth = true;
             row.childControlHeight = true;
             row.childForceExpandWidth = false;
-            row.childForceExpandHeight = true;
-            marketTab = SealTab(tabs.rectTransform, "Market", () => OpenMarket(), false);
-            plazaTab = SealTab(tabs.rectTransform, "Plaza", () => OpenPlaza(), false);
-            houseTab = SealTab(tabs.rectTransform, "House", () => OpenHouse(), false);
+            row.childForceExpandHeight = false;
+            ApprovedArt art = ApprovedArt.Load();
+            marketTab = SealTab(tabs.rectTransform, "Market", art != null ? art.sealMarket : null, art != null ? art.sealMarketHover : null, art != null ? art.sealMarketPressed : null, OpenMarket);
+            innTab = SealTab(tabs.rectTransform, "Inn", art != null ? art.sealInn : null, art != null ? art.sealInnHover : null, art != null ? art.sealInnPressed : null, OpenInn);
+            houseTab = SealTab(tabs.rectTransform, "House", art != null ? art.sealHouse : null, art != null ? art.sealHouseHover : null, art != null ? art.sealHousePressed : null, OpenHouse);
+            gatesTab = SealTab(tabs.rectTransform, "Gates", art != null ? art.sealGates : null, art != null ? art.sealGatesHover : null, art != null ? art.sealGatesPressed : null, OpenGates);
+            tavernTab = Tab(tabs.rectTransform, "Tavern", OpenTavern);
+            stablesTab = Tab(tabs.rectTransform, "Stables", OpenStables);
+            SquareSeal(tavernTab, 96f);
+            SquareSeal(stablesTab, 96f);
         }
 
         GameObject BuildMarket(RectTransform body)
@@ -308,40 +291,29 @@ namespace Caravans.Play
             var page = Child(body, "Market");
             Stretch(page);
 
-            var strip = Child(page, "Detail");
-            TopStrip(strip, MarketStrip);
-            PaperOn(strip, false);
-            detailText = Body(strip, 22, TextAlignmentOptions.MidlineLeft);
-            detailText.color = ParchmentInk;
-            Stretch(detailText.rectTransform, 16f);
-
+            float shopRight = WagonPanelWidth + DetailWidth + FrameGap * 2f + 12f;
             var shop = PaperOn(Child(page, "ShopFrame"), false);
             shop.rectTransform.anchorMin = Vector2.zero;
             shop.rectTransform.anchorMax = Vector2.one;
             shop.rectTransform.offsetMin = new Vector2(12f, 8f);
-            shop.rectTransform.offsetMax = new Vector2(-(WagonPanelWidth + FrameGap + 12f), -MarketStrip);
+            shop.rectTransform.offsetMax = new Vector2(-shopRight, -8f);
 
             var shopHead = Child(shop.rectTransform, "Head");
             TopStrip(shopHead, FrameHeader);
             var shopRow = shopHead.gameObject.AddComponent<HorizontalLayoutGroup>();
             shopRow.spacing = 8f;
-            shopRow.padding = new RectOffset(8, 8, 6, 6);
+            shopRow.padding = new RectOffset(16, 12, 8, 8);
             shopRow.childAlignment = TextAnchor.MiddleLeft;
             shopRow.childControlWidth = true;
             shopRow.childControlHeight = true;
             shopRow.childForceExpandWidth = false;
-            shopRow.childForceExpandHeight = true;
+            shopRow.childForceExpandHeight = false;
+            var shopTitle = Body(shopHead, 26, TextAlignmentOptions.MidlineLeft);
+            shopTitle.color = Ink;
+            shopTitle.text = "Settlement Sells";
+            shopTitle.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
             sortButton = Tab(shopHead, "Sort", ToggleSortMenu);
-            var sortFit = sortButton.GetComponent<LayoutElement>();
-            sortFit.preferredWidth = 150f;
-            sortFit.preferredHeight = 40f;
-            var shopSpacer = Child(shopHead, "Spacer");
-            var shopSpace = shopSpacer.gameObject.AddComponent<LayoutElement>();
-            shopSpace.flexibleWidth = 1f;
-            buyButton = Tab(shopHead, "Buy", PressBuy);
-            var buyFit = buyButton.GetComponent<LayoutElement>();
-            buyFit.preferredWidth = 160f;
-            buyFit.preferredHeight = 40f;
+            SquareSeal(sortButton, 80f);
 
             shopHost = Child(shop.rectTransform, "Cells");
             shopHost.anchorMin = Vector2.zero;
@@ -379,38 +351,66 @@ namespace Caravans.Play
             RaiseCanvas(sortMenu.gameObject, 8);
             sortMenu.gameObject.SetActive(false);
 
+            var detail = PaperOn(Child(page, "DetailColumn"), true);
+            detail.rectTransform.anchorMin = new Vector2(1f, 0f);
+            detail.rectTransform.anchorMax = Vector2.one;
+            detail.rectTransform.offsetMin = new Vector2(-(WagonPanelWidth + DetailWidth + FrameGap + 12f), 8f);
+            detail.rectTransform.offsetMax = new Vector2(-(WagonPanelWidth + FrameGap + 12f), -8f);
+            var detailColumn = detail.gameObject.AddComponent<VerticalLayoutGroup>();
+            detailColumn.spacing = 10f;
+            detailColumn.padding = new RectOffset(16, 16, 18, 16);
+            detailColumn.childAlignment = TextAnchor.UpperCenter;
+            detailColumn.childControlWidth = true;
+            detailColumn.childControlHeight = true;
+            detailColumn.childForceExpandWidth = false;
+            detailColumn.childForceExpandHeight = false;
+            detailName = Body(detail.rectTransform, 26, TextAlignmentOptions.Center);
+            detailName.color = Ink;
+            var nameFit = detailName.gameObject.AddComponent<LayoutElement>();
+            nameFit.preferredHeight = 40f;
+            nameFit.preferredWidth = 260f;
+            detailCell = CellFace(Child(detail.rectTransform, "Preview"), false);
+            var previewFit = detailCell.gameObject.AddComponent<LayoutElement>();
+            previewFit.preferredHeight = 180f;
+            previewFit.preferredWidth = 180f;
+            detailIcon = GoodsPicture(detailCell.rectTransform, null);
+            detailText = Body(detail.rectTransform, 20, TextAlignmentOptions.Center);
+            detailText.color = Ink;
+            var detailFit = detailText.gameObject.AddComponent<LayoutElement>();
+            detailFit.preferredHeight = 72f;
+            detailFit.preferredWidth = 260f;
+            ApprovedArt art = ApprovedArt.Load();
+            buyButton = SealTab(detail.rectTransform, "Buy", art != null ? art.sealBuy : null, art != null ? art.sealBuyHover : null, art != null ? art.sealBuyPressed : null, PressBuy);
+            sellButton = SealTab(detail.rectTransform, "Sell", art != null ? art.sealSell : null, art != null ? art.sealSellHover : null, art != null ? art.sealSellPressed : null, PressSell);
+
             var wagon = PaperOn(Child(page, "WagonFrame"), false);
             wagon.rectTransform.anchorMin = new Vector2(1f, 0f);
             wagon.rectTransform.anchorMax = Vector2.one;
             wagon.rectTransform.offsetMin = new Vector2(-(WagonPanelWidth + 12f), 8f);
-            wagon.rectTransform.offsetMax = new Vector2(-12f, -MarketStrip);
+            wagon.rectTransform.offsetMax = new Vector2(-12f, -8f);
 
             var wagonHead = Child(wagon.rectTransform, "Head");
             TopStrip(wagonHead, FrameHeader);
-            var wagonRow = wagonHead.gameObject.AddComponent<HorizontalLayoutGroup>();
-            wagonRow.padding = new RectOffset(8, 8, 6, 6);
-            wagonRow.childAlignment = TextAnchor.MiddleRight;
-            wagonRow.childControlWidth = true;
-            wagonRow.childControlHeight = true;
-            wagonRow.childForceExpandWidth = false;
-            wagonRow.childForceExpandHeight = true;
-            var wagonSpacer = Child(wagonHead, "Spacer");
-            wagonSpacer.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
-            sellButton = Tab(wagonHead, "Sell", PressSell);
-            var sellFit = sellButton.GetComponent<LayoutElement>();
-            sellFit.preferredWidth = 160f;
-            sellFit.preferredHeight = 40f;
+            var wagonTitle = Body(wagonHead, 26, TextAlignmentOptions.Center);
+            wagonTitle.color = Ink;
+            wagonTitle.text = "Your Wagon";
+            Stretch(wagonTitle.rectTransform, 8f);
 
             var weightBar = Child(wagon.rectTransform, "Weight");
             BottomStrip(weightBar, WeightLine);
-            weightText = Body(weightBar, 20, TextAlignmentOptions.Center);
-            weightText.color = ParchmentInk;
+            weightText = Body(weightBar, 18, TextAlignmentOptions.Center);
+            weightText.color = Ink;
             Stretch(weightText.rectTransform, 4f);
+
+            var meter = Child(wagon.rectTransform, "Meter");
+            BottomStrip(meter, MeterHeight);
+            meter.anchoredPosition = new Vector2(0f, WeightLine);
+            BuildMeter(meter);
 
             wagonHost = Child(wagon.rectTransform, "Slots");
             wagonHost.anchorMin = Vector2.zero;
             wagonHost.anchorMax = Vector2.one;
-            wagonHost.offsetMin = new Vector2(8f, WeightLine);
+            wagonHost.offsetMin = new Vector2(8f, WeightLine + MeterHeight);
             wagonHost.offsetMax = new Vector2(-8f, -FrameHeader);
             wagonGrid = wagonHost.gameObject.AddComponent<GridLayoutGroup>();
             wagonGrid.cellSize = new Vector2(WagonCellW, WagonCellH);
@@ -437,25 +437,6 @@ namespace Caravans.Play
         {
             var page = Child(body, "Plaza");
             Stretch(page);
-            var sub = Child(page, "SubTabs");
-            TopStrip(sub, 64f);
-            PaperOn(sub, false);
-            var layout = sub.gameObject.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 12f;
-            layout.padding = new RectOffset(28, 28, 8, 8);
-            layout.childControlWidth = false;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = false;
-            layout.childForceExpandHeight = true;
-            layout.childAlignment = TextAnchor.MiddleLeft;
-            innTab = SealTab(sub, "Inn", OpenInn, false);
-            gatesTab = SealTab(sub, "Gates", OpenGates, true);
-            tavernTab = SealTab(sub, "Tavern", OpenTavern, false);
-            stablesTab = SealTab(sub, "Stables", OpenStables, false);
-            innTab.GetComponent<LayoutElement>().preferredWidth = 160f;
-            gatesTab.GetComponent<LayoutElement>().preferredWidth = 160f;
-            tavernTab.GetComponent<LayoutElement>().preferredWidth = 170f;
-            stablesTab.GetComponent<LayoutElement>().preferredWidth = 180f;
 
             var inn = Spot(page, "Inn");
             innSpot = inn.gameObject;
@@ -485,7 +466,7 @@ namespace Caravans.Play
             gatesLayout.childForceExpandWidth = true;
             gatesLayout.childForceExpandHeight = false;
             outlookText = Body(gatesColumn, 20, TextAlignmentOptions.Center);
-            outlookText.color = ParchmentInk;
+            outlookText.color = Ink;
             var fit = outlookText.gameObject.AddComponent<LayoutElement>();
             fit.preferredHeight = 90f;
             var spacer = Child(gatesColumn, "Spacer");
@@ -517,7 +498,7 @@ namespace Caravans.Play
             gatesSteady.GetComponent<LayoutElement>().flexibleWidth = 1f;
             gatesRush.GetComponent<LayoutElement>().flexibleWidth = 1f;
             nextCampText = Body(embarkPanel, 20, TextAlignmentOptions.Center);
-            nextCampText.color = ParchmentInk;
+            nextCampText.color = Ink;
             nextCampText.richText = true;
             nextCampText.gameObject.AddComponent<LayoutElement>().preferredHeight = 72f;
             embarkButton = StackButton(embarkPanel, "Embark", Embark);
@@ -531,7 +512,7 @@ namespace Caravans.Play
                 Redraw();
             });
             listenText = Body(tavernColumn, 20, TextAlignmentOptions.Center);
-            listenText.color = ParchmentInk;
+            listenText.color = Ink;
             var listenFit = listenText.gameObject.AddComponent<LayoutElement>();
             listenFit.preferredHeight = 48f;
 
@@ -539,7 +520,7 @@ namespace Caravans.Play
             stablesSpot = stables.gameObject;
             var stablesColumn = SpotColumn(stables);
             var stablesText = Body(stablesColumn, 24, TextAlignmentOptions.Center);
-            stablesText.color = ParchmentInk;
+            stablesText.color = Ink;
             stablesText.text = "Mount upgrades are not in this slice.";
             var stablesFit = stablesText.gameObject.AddComponent<LayoutElement>();
             stablesFit.preferredHeight = 80f;
@@ -550,7 +531,6 @@ namespace Caravans.Play
         {
             var spot = Child(page, name);
             Stretch(spot);
-            spot.offsetMax = new Vector2(0f, -64f);
             return spot;
         }
 
@@ -608,7 +588,7 @@ namespace Caravans.Play
             Stretch(page);
             PaperOn(page, false);
             housePageText = Body(page, 24, TextAlignmentOptions.Center);
-            housePageText.color = ParchmentInk;
+            housePageText.color = Ink;
             Stretch(housePageText.rectTransform, 32f);
             housePageText.text = "Jobs and standing are not in this slice.";
             return page.gameObject;
@@ -618,11 +598,8 @@ namespace Caravans.Play
         {
             mapFrame = Child(travel, "MapFrame");
             Stretch(mapFrame, 12f);
-            var mat = Child(mapFrame, "Mat");
-            Stretch(mat);
-            PaperOn(mat, false);
             mapRoot = Child(mapFrame, "Map");
-            Stretch(mapRoot, 22f);
+            Stretch(mapRoot, 16f);
             var fit = mapRoot.gameObject.AddComponent<AspectRatioFitter>();
             fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
             fit.aspectRatio = RoadPath.Aspect;
@@ -677,11 +654,8 @@ namespace Caravans.Play
                 npcTokens.Add(npcImage);
             }
 
-            var bone = Child(mapFrame, "Bone");
-            Stretch(bone);
-            BoneOn(bone);
-
             mapRoads = Child(travel, "MapRoads");
+            PaperOn(mapRoads, false);
             mapRoads.anchorMin = new Vector2(0f, 0f);
             mapRoads.anchorMax = new Vector2(0f, 1f);
             mapRoads.pivot = new Vector2(0f, 0.5f);
@@ -697,33 +671,33 @@ namespace Caravans.Play
             roadLayout.childForceExpandHeight = false;
             mapRoads.gameObject.SetActive(false);
 
-            var legBar = PaperOn(Child(travel, "Leg"), false);
+            var legBar = DarkBar(Child(travel, "Leg"), false);
             TopStrip(legBar.rectTransform, 40f);
             legText = Body(legBar.rectTransform, 20, TextAlignmentOptions.Center);
-            legText.color = ParchmentInk;
+            legText.color = Ink;
             Stretch(legText.rectTransform, 4f);
 
             paceBar = new GameObject("Pace", typeof(RectTransform));
             paceBar.transform.SetParent(travel, false);
             var paceRt = paceBar.GetComponent<RectTransform>();
-            BottomStrip(paceRt, 72f);
-            PaperOn(paceRt, false);
+            BottomStrip(paceRt, 96f);
+            HideBarOn(paceRt);
             var paceLayout = paceBar.AddComponent<HorizontalLayoutGroup>();
             paceLayout.spacing = 12f;
             paceLayout.childAlignment = TextAnchor.MiddleCenter;
-            paceLayout.childControlWidth = false;
+            paceLayout.childControlWidth = true;
             paceLayout.childControlHeight = true;
             paceLayout.childForceExpandWidth = false;
-            paceLayout.childForceExpandHeight = true;
+            paceLayout.childForceExpandHeight = false;
             paceLayout.padding = new RectOffset(0, 0, 10, 10);
             pauseButton = Tab(paceRt, "Pause", () => session.SetPaused(true));
             pace1 = Tab(paceRt, "1×", () => session.ChoosePace(1));
             pace2 = Tab(paceRt, "2×", () => session.ChoosePace(2));
             pace4 = Tab(paceRt, "4×", () => session.ChoosePace(4));
-            pauseButton.GetComponent<LayoutElement>().preferredWidth = 140f;
-            pace1.GetComponent<LayoutElement>().preferredWidth = 100f;
-            pace2.GetComponent<LayoutElement>().preferredWidth = 100f;
-            pace4.GetComponent<LayoutElement>().preferredWidth = 100f;
+            SquareSeal(pauseButton, 76f);
+            SquareSeal(pace1, 76f);
+            SquareSeal(pace2, 76f);
+            SquareSeal(pace4, 76f);
 
             backButton = Tab(travel, "Back to the plaza", () =>
             {
@@ -740,51 +714,51 @@ namespace Caravans.Play
 
         void BuildTopBar(RectTransform root)
         {
-            var bar = PaperOn(Child(root, "TopBar"), false);
+            var bar = HideBarOn(Child(root, "TopBar"));
             TopStrip(bar.rectTransform, TopBarHeight);
             RaiseCanvas(bar.gameObject, 20);
-            var layout = bar.gameObject.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 18f;
-            layout.padding = new RectOffset(24, 16, 10, 10);
-            layout.childAlignment = TextAnchor.MiddleLeft;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandHeight = true;
-            layout.childForceExpandWidth = false;
-            placeText = HudText(bar.rectTransform, 220f, TextAlignmentOptions.MidlineLeft);
-            clockText = HudText(bar.rectTransform, 460f, TextAlignmentOptions.MidlineLeft);
-            travelText = HudText(bar.rectTransform, 150f, TextAlignmentOptions.MidlineLeft);
-            coinText = HudText(bar.rectTransform, 140f, TextAlignmentOptions.MidlineLeft);
-            cargoText = HudText(bar.rectTransform, 0f, TextAlignmentOptions.MidlineLeft);
-            placeText.color = ParchmentInk;
-            clockText.color = ParchmentInk;
-            travelText.color = ParchmentInk;
-            coinText.color = ParchmentInk;
-            cargoText.color = ParchmentInk;
-            cargoText.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
-            gearButton = SealTab(bar.rectTransform, "Gear", ToggleOptions, false);
-            gearButton.GetComponent<LayoutElement>().preferredWidth = 120f;
-        }
 
-        void BuildViewBar(RectTransform root)
-        {
-            var bar = PaperOn(Child(root, "ViewBar"), false);
-            bar.rectTransform.anchorMin = new Vector2(0f, 1f);
-            bar.rectTransform.anchorMax = Vector2.one;
-            bar.rectTransform.pivot = new Vector2(0.5f, 1f);
-            bar.rectTransform.sizeDelta = new Vector2(0f, ViewBarHeight);
-            bar.rectTransform.anchoredPosition = new Vector2(0f, -TopBarHeight);
-            RaiseCanvas(bar.gameObject, 24);
-            var layout = bar.gameObject.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 12f;
-            layout.padding = new RectOffset(24, 16, 6, 6);
-            layout.childAlignment = TextAnchor.MiddleLeft;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = false;
-            layout.childForceExpandHeight = true;
-            logbookButton = SealTab(bar.rectTransform, "Logbook", ToggleLogbook, false);
-            logbookButton.GetComponent<LayoutElement>().preferredWidth = 220f;
+            placeText = Body(bar.rectTransform, 28, TextAlignmentOptions.MidlineLeft);
+            placeText.color = Ink;
+            var placeRt = placeText.rectTransform;
+            placeRt.anchorMin = Vector2.zero;
+            placeRt.anchorMax = new Vector2(0.34f, 1f);
+            placeRt.offsetMin = new Vector2(150f, 18f);
+            placeRt.offsetMax = new Vector2(-8f, -18f);
+
+            clockText = Body(bar.rectTransform, 26, TextAlignmentOptions.Center);
+            clockText.color = Ink;
+            var clockRt = clockText.rectTransform;
+            clockRt.anchorMin = new Vector2(0.34f, 0f);
+            clockRt.anchorMax = new Vector2(0.66f, 1f);
+            clockRt.offsetMin = new Vector2(8f, 18f);
+            clockRt.offsetMax = new Vector2(-8f, -18f);
+
+            var cluster = Child(bar.rectTransform, "Resources");
+            cluster.anchorMin = new Vector2(0.66f, 0f);
+            cluster.anchorMax = Vector2.one;
+            cluster.offsetMin = new Vector2(8f, 16f);
+            cluster.offsetMax = new Vector2(-150f, -16f);
+            var row = cluster.gameObject.AddComponent<HorizontalLayoutGroup>();
+            row.spacing = 8f;
+            row.childAlignment = TextAnchor.MiddleRight;
+            row.childControlWidth = true;
+            row.childControlHeight = true;
+            row.childForceExpandWidth = false;
+            row.childForceExpandHeight = false;
+            ApprovedArt art = ApprovedArt.Load();
+            HudIcon(cluster, art != null ? art.iconScrubstone : null);
+            coinText = HudText(cluster, 120f, TextAlignmentOptions.MidlineLeft);
+            coinText.color = Ink;
+            coinText.fontSize = 26f;
+            HudIcon(cluster, art != null ? art.iconCapacity : null);
+            cargoText = HudText(cluster, 110f, TextAlignmentOptions.MidlineLeft);
+            cargoText.color = Ink;
+            cargoText.fontSize = 26f;
+            logbookButton = Tab(cluster, "Logbook", ToggleLogbook);
+            gearButton = Tab(cluster, "Gear", ToggleOptions);
+            SquareSeal(logbookButton, 72f);
+            SquareSeal(gearButton, 72f);
         }
 
         void BuildLogbook(RectTransform root)
@@ -793,8 +767,8 @@ namespace Caravans.Play
             logbookRoot.anchorMin = Vector2.zero;
             logbookRoot.anchorMax = Vector2.one;
             logbookRoot.offsetMin = new Vector2(36f, 28f);
-            logbookRoot.offsetMax = new Vector2(-36f, -(TopBarHeight + ViewBarHeight + 16f));
-            PaperOn(logbookRoot, true);
+            logbookRoot.offsetMax = new Vector2(-36f, -(TopBarHeight + 16f));
+            DocumentOn(logbookRoot, true);
             RaiseCanvas(logbookRoot.gameObject, 18);
 
             var dateBand = Child(logbookRoot, "Date");
@@ -876,7 +850,7 @@ namespace Caravans.Play
             Stretch(fill, 96f);
             PaperOn(fill, true);
             cardTitle = Body(panel, 28, TextAlignmentOptions.Center);
-            cardTitle.color = ParchmentInk;
+            cardTitle.color = Ink;
             cardTitle.text = "The road";
             var titleRt = cardTitle.rectTransform;
             titleRt.anchorMin = new Vector2(0f, 1f);
@@ -885,7 +859,7 @@ namespace Caravans.Play
             titleRt.sizeDelta = new Vector2(0f, 64f);
             titleRt.anchoredPosition = new Vector2(0f, -96f);
             cardBody = Body(panel, 22, TextAlignmentOptions.Center);
-            cardBody.color = ParchmentInk;
+            cardBody.color = Ink;
             var bodyRt = cardBody.rectTransform;
             bodyRt.anchorMin = new Vector2(0f, 1f);
             bodyRt.anchorMax = Vector2.one;
@@ -971,7 +945,7 @@ namespace Caravans.Play
             Center(panel, new Vector2(480f, 280f));
             PaperOn(panel, true);
             var title = Body(panel, 24, TextAlignmentOptions.Center);
-            title.color = ParchmentInk;
+            title.color = Ink;
             title.text = "Save is not in this slice.";
             var titleRt = title.rectTransform;
             titleRt.anchorMin = new Vector2(0f, 0.55f);
@@ -996,7 +970,6 @@ namespace Caravans.Play
             ShowPlazaSpot();
             houseTab.gameObject.SetActive(EconomyCatalog.IsCity(session.Dock));
             TintPace(marketTab, page == Page.Market);
-            TintPace(plazaTab, page == Page.Plaza);
             TintPace(houseTab, page == Page.House);
             paceBar.SetActive(session.Traveling && !session.CampPending && !session.AwaitingPace && !session.EncounterPending);
             backButton.gameObject.SetActive(lookingAtMap && !session.Traveling);
@@ -1007,8 +980,7 @@ namespace Caravans.Play
             dimmer.gameObject.SetActive(roadChoice && !optionsOpen && !choosingRoad);
             ShowRoadChoice(roadChoice);
 
-            bannerName.text = CaravanSession.PlaceName(session.Dock);
-            bannerTag.text = session.PatronLine();
+            ApplyGround(session.Dock);
             outlookText.text = session.OutlookLine();
             nextCampText.text = NextCampLine();
             listenText.text = listenLine;
@@ -1133,9 +1105,8 @@ namespace Caravans.Play
             {
                 GoodId captured = goods[i];
                 int stock = session.StockOf(session.Dock, captured);
-                DemandBand band = EconomyCatalog.DemandOf(session.Dock, captured, stock);
                 MakeSquare(shopHost, captured.ToString(), CaravanSession.GoodName(captured), stock.ToString(),
-                    shopSelected && pickedGood == captured, band, stock <= 0, () => SelectShop(captured), captured);
+                    shopSelected && pickedGood == captured, () => SelectShop(captured), captured);
             }
 
             int slots = EconomyRates.WagonSpace;
@@ -1143,17 +1114,16 @@ namespace Caravans.Play
             {
                 int captured = i;
                 GoodId good = session.CargoGoodAt(i);
-                int stock = session.StockOf(session.Dock, good);
-                DemandBand band = EconomyCatalog.DemandOf(session.Dock, good, stock);
                 MakeSquare(wagonHost, "Slot" + i, CaravanSession.GoodName(good), null,
-                    wagonPick == i, band, false, () => SelectWagon(captured), good);
+                    wagonPick == i, () => SelectWagon(captured), good);
             }
 
             for (int i = session.CargoCount; i < slots; i++)
-                MakeSquare(wagonHost, "Empty" + i, null, null, false, DemandBand.None, true, null);
+                MakeSquare(wagonHost, "Empty" + i, null, null, false, null);
 
             weightText.text = "Weight " + session.CargoWeight() + "/" + EconomyRates.WagonWeight;
             detailText.text = DetailLine();
+            ShowDetail();
             sortMenu.gameObject.SetActive(sortMenuOpen);
             for (int i = 0; i < sortChoices.Count; i++)
                 TintPace(sortChoices[i], sortChoiceKinds[i] == shopSort);
@@ -1357,17 +1327,18 @@ namespace Caravans.Play
             return string.Join("  ·  ", parts);
         }
 
-        void MakeSquare(RectTransform host, string name, string label, string count, bool selected, DemandBand band, bool dim, UnityEngine.Events.UnityAction action, GoodId? icon = null)
+        void MakeSquare(RectTransform host, string name, string label, string count, bool selected, UnityEngine.Events.UnityAction action, GoodId? icon = null)
         {
             var rect = Child(host, name);
-            var ring = rect.gameObject.AddComponent<Image>();
-            ring.sprite = quad;
-            ring.color = selected ? Ink : BandColor(band);
-            ring.raycastTarget = action != null;
+            bool empty = string.IsNullOrEmpty(label);
+            Image face = CellFace(rect, selected && !empty);
+            face.raycastTarget = action != null;
+            if (empty)
+                face.color = new Color(1f, 1f, 1f, 0.5f);
             if (action != null)
             {
                 var button = rect.gameObject.AddComponent<Button>();
-                button.targetGraphic = ring;
+                button.targetGraphic = face;
                 button.transition = Selectable.Transition.None;
                 var nav = button.navigation;
                 nav.mode = Navigation.Mode.None;
@@ -1376,21 +1347,15 @@ namespace Caravans.Play
                 buttons.Add(button);
             }
 
-            var rim = ImageOn(Child(rect, "Rim"), BandColor(band), false);
-            Stretch(rim.rectTransform, 4f);
-            var face = PaperOn(Child(rect, "Face"), false);
-            Stretch(face.rectTransform, 8f);
-            if (dim)
-                face.color = new Color(0.72f, 0.66f, 0.58f, 1f);
-            if (string.IsNullOrEmpty(label))
+            if (empty)
                 return;
 
             if (icon.HasValue)
-                GoodsIcon(rect, icon.Value, 0.32f);
+                GoodsIcon(rect, icon.Value);
 
-            var text = Body(rect, 18, TextAlignmentOptions.Center);
+            var text = Body(rect, 16, TextAlignmentOptions.Center);
             text.text = label;
-            text.color = ParchmentInk;
+            text.color = Ink;
             text.textWrappingMode = TextWrappingModes.Normal;
             text.overflowMode = TextOverflowModes.Ellipsis;
             text.enableAutoSizing = true;
@@ -1398,56 +1363,30 @@ namespace Caravans.Play
             text.fontSizeMax = 16f;
             var textRt = text.rectTransform;
             textRt.anchorMin = Vector2.zero;
-            textRt.anchorMax = new Vector2(1f, 0.32f);
-            textRt.offsetMin = new Vector2(6f, string.IsNullOrEmpty(count) ? 4f : 16f);
-            textRt.offsetMax = new Vector2(-6f, -2f);
+            textRt.anchorMax = new Vector2(1f, 0.22f);
+            textRt.offsetMin = new Vector2(8f, string.IsNullOrEmpty(count) ? 4f : 16f);
+            textRt.offsetMax = new Vector2(-8f, 0f);
             if (string.IsNullOrEmpty(count))
                 return;
 
             var countText = Body(rect, 14, TextAlignmentOptions.BottomRight);
             countText.text = count;
-            countText.color = ParchmentInk;
+            countText.color = Ink;
             countText.textWrappingMode = TextWrappingModes.NoWrap;
             var countRt = countText.rectTransform;
             countRt.anchorMin = new Vector2(1f, 0f);
             countRt.anchorMax = new Vector2(1f, 0f);
             countRt.pivot = new Vector2(1f, 0f);
             countRt.sizeDelta = new Vector2(48f, 18f);
-            countRt.anchoredPosition = new Vector2(-6f, 2f);
+            countRt.anchoredPosition = new Vector2(-10f, 4f);
         }
 
-        void GoodsIcon(RectTransform parent, GoodId good, float nameBand)
+        void GoodsIcon(RectTransform parent, GoodId good)
         {
             Texture2D texture = Resources.Load<Texture2D>("Goods/" + good);
             if (texture == null)
                 return;
-            var picture = Child(parent, "Icon");
-            picture.anchorMin = new Vector2(0f, nameBand);
-            picture.anchorMax = Vector2.one;
-            picture.offsetMin = new Vector2(8f, 4f);
-            picture.offsetMax = new Vector2(-8f, -4f);
-            var raw = picture.gameObject.AddComponent<RawImage>();
-            raw.texture = texture;
-            raw.color = Color.white;
-            raw.raycastTarget = false;
-            var fit = picture.gameObject.AddComponent<AspectRatioFitter>();
-            fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
-            fit.aspectRatio = texture.width / (float)Mathf.Max(texture.height, 1);
-        }
-
-        static Color BandColor(DemandBand band)
-        {
-            switch (band)
-            {
-                case DemandBand.High:
-                    return DemandHigh;
-                case DemandBand.Mid:
-                    return DemandMid;
-                case DemandBand.Low:
-                    return DemandLow;
-                default:
-                    return RimQuiet;
-            }
+            GoodsPicture(parent, texture);
         }
 
         static void ClearChildren(RectTransform host)
@@ -1553,7 +1492,6 @@ namespace Caravans.Play
             gearButton.interactable = true;
             logbookButton.interactable = true;
             marketTab.interactable = true;
-            plazaTab.interactable = true;
             houseTab.interactable = EconomyCatalog.IsCity(session.Dock);
             for (int i = 0; i < neighborRoads.Count; i++)
             {
@@ -1634,9 +1572,12 @@ namespace Caravans.Play
             clockText.text = WorldClock.Format(session.Day, session.Hour);
             if (logbookDate != null)
                 logbookDate.text = clockText.text;
-            travelText.text = "Travel " + session.TravelHours.ToString("0.#") + " h";
-            coinText.text = "Coin " + session.Coin;
-            cargoText.text = CargoLine();
+            coinText.text = session.Coin.ToString();
+            int used = session.CargoSpace();
+            int cap = EconomyRates.WagonSpace;
+            cargoText.text = used + "/" + cap;
+            if (meterFill != null)
+                meterFill.fillAmount = cap <= 0 ? 0f : Mathf.Clamp01(used / (float)cap);
             if (legText != null)
                 legText.text = session.Traveling ? session.LegWeatherLine() : string.Empty;
             TintPace(pauseButton, session.Pace == 0 && session.Traveling);
@@ -1704,7 +1645,7 @@ namespace Caravans.Play
             mapFrame.anchorMin = Vector2.zero;
             mapFrame.anchorMax = Vector2.one;
             mapFrame.offsetMin = new Vector2(GatesPanelRight + 12f, TabHeight + 12f);
-            mapFrame.offsetMax = new Vector2(-12f, -(BannerHeight + 64f + 12f));
+            mapFrame.offsetMax = new Vector2(-12f, -12f);
         }
 
         void UpdateRoute()
@@ -1823,12 +1764,6 @@ namespace Caravans.Play
             Redraw();
         }
 
-        void OpenPlaza()
-        {
-            page = Page.Plaza;
-            Redraw();
-        }
-
         void ShowPlazaSpot()
         {
             innSpot.SetActive(plazaSpot == PlazaSpot.Inn);
@@ -1931,39 +1866,6 @@ namespace Caravans.Play
             return verb + " · " + session.BuyCost(session.Dock, good) + " coin";
         }
 
-        string CargoLine()
-        {
-            var parts = new List<string>();
-            parts.Add("Water " + Amount(session.WaterLitres) + "/" + Amount(EconomyRates.CanteenLitres) + " L");
-            parts.Add("Rations " + Amount(session.RationKg) + "/" + Amount(EconomyRates.RationBagKg) + " kg");
-            parts.Add(session.CargoSpace() + "/" + EconomyRates.WagonSpace);
-            parts.Add(session.CargoWeight() + "/" + EconomyRates.WagonWeight);
-            int named = 0;
-            int extra = 0;
-            for (int i = 0; i < WorldIds.GoodCount; i++)
-            {
-                GoodId good = (GoodId)i;
-                int count = session.CargoOf(good);
-                if (count <= 0)
-                    continue;
-                if (named < 3)
-                {
-                    parts.Add(CaravanSession.GoodName(good) + " " + count);
-                    named += 1;
-                }
-                else
-                {
-                    extra += 1;
-                }
-            }
-
-            if (named == 0)
-                return string.Join("  ", parts);
-            if (extra > 0)
-                parts.Add("+" + extra);
-            return string.Join("  ", parts);
-        }
-
         static string Amount(float value)
         {
             return value.ToString("0.#", CultureInfo.InvariantCulture);
@@ -1971,15 +1873,8 @@ namespace Caravans.Play
 
         void TintPace(Button button, bool selected)
         {
-            if (button == null)
+            if (button == null || button.transition == Selectable.Transition.SpriteSwap)
                 return;
-            var seal = button.GetComponent<SealFace>();
-            if (seal != null)
-            {
-                seal.SetChosen(selected);
-                return;
-            }
-
             var colors = button.colors;
             colors.normalColor = selected ? ButtonHot : Color.white;
             button.colors = colors;
@@ -2002,33 +1897,64 @@ namespace Caravans.Play
             }
         }
 
-        Button SealTab(RectTransform parent, string label, UnityEngine.Events.UnityAction action, bool gate)
+        Button SealTab(RectTransform parent, string label, Sprite normal, Sprite hover, Sprite pressed, UnityEngine.Events.UnityAction action)
         {
-            Sprite quiet = gate ? FrontArt.ResinSealGate() : FrontArt.ResinSeal();
-            Sprite hover = gate ? FrontArt.ResinSealGateHover() : FrontArt.ResinSealHover();
-            Sprite chosen = gate ? FrontArt.ResinSealGateSelected() : FrontArt.ResinSealSelected();
+            if (normal == null)
+            {
+                ApprovedArt kit = ApprovedArt.Load();
+                normal = kit != null && kit.sealBase != null ? kit.sealBase : FrontArt.ResinSeal();
+            }
+
+            if (hover == null)
+                hover = normal;
+            if (pressed == null)
+                pressed = normal;
             var go = new GameObject(label, typeof(RectTransform));
             go.transform.SetParent(parent, false);
             var image = go.AddComponent<Image>();
-            image.sprite = quiet != null ? quiet : quad;
+            image.sprite = normal != null ? normal : quad;
             image.preserveAspect = true;
+            image.type = Image.Type.Simple;
             image.color = Color.white;
             var button = go.AddComponent<Button>();
             button.targetGraphic = image;
-            button.transition = Selectable.Transition.None;
+            button.transition = Selectable.Transition.SpriteSwap;
+            var state = button.spriteState;
+            state.highlightedSprite = hover;
+            state.pressedSprite = pressed;
+            state.selectedSprite = normal;
+            state.disabledSprite = normal;
+            button.spriteState = state;
+            var colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = Color.white;
+            colors.pressedColor = Color.white;
+            colors.selectedColor = Color.white;
+            colors.disabledColor = new Color(1f, 1f, 1f, 0.4f);
+            colors.fadeDuration = 0.05f;
+            button.colors = colors;
             var nav = button.navigation;
             nav.mode = Navigation.Mode.None;
             button.navigation = nav;
             button.onClick.AddListener(action);
             var element = go.AddComponent<LayoutElement>();
-            element.preferredHeight = 58f;
-            element.preferredWidth = 132f;
+            float height = 100f;
+            float aspect = 1f;
+            if (normal != null && normal.rect.height > 1f)
+                aspect = normal.rect.width / normal.rect.height;
+            element.preferredHeight = height;
+            element.preferredWidth = height * aspect;
+            var tabRt = go.GetComponent<RectTransform>();
+            tabRt.sizeDelta = new Vector2(height * aspect, height);
             var text = Body(go.GetComponent<RectTransform>(), 16, TextAlignmentOptions.Center);
             text.text = label;
             text.color = Ink;
             text.raycastTarget = false;
-            Stretch(text.rectTransform, 4f);
-            go.AddComponent<SealFace>().Bind(image, quiet, hover, chosen);
+            var textRt = text.rectTransform;
+            textRt.anchorMin = new Vector2(0.18f, 0.04f);
+            textRt.anchorMax = new Vector2(0.82f, 0.30f);
+            textRt.offsetMin = Vector2.zero;
+            textRt.offsetMax = Vector2.zero;
             buttons.Add(button);
             return button;
         }
@@ -2038,9 +1964,11 @@ namespace Caravans.Play
             var go = new GameObject(label, typeof(RectTransform));
             go.transform.SetParent(parent, false);
             var image = go.AddComponent<Image>();
-            Sprite panel = FrontArt.ButtonPanel();
+            ApprovedArt kit = ApprovedArt.Load();
+            Sprite panel = kit != null && kit.sealBase != null ? kit.sealBase : FrontArt.ButtonPanel();
             image.sprite = panel != null ? panel : quad;
-            image.type = panel != null ? Image.Type.Sliced : Image.Type.Simple;
+            image.type = Image.Type.Simple;
+            image.preserveAspect = true;
             image.color = Color.white;
             var button = go.AddComponent<Button>();
             button.targetGraphic = image;
@@ -2158,7 +2086,7 @@ namespace Caravans.Play
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
-            rect.offsetMax = new Vector2(0f, -(TopBarHeight + ViewBarHeight));
+            rect.offsetMax = new Vector2(0f, -TopBarHeight);
         }
 
         static void TopStrip(RectTransform rect, float height)
@@ -2260,32 +2188,56 @@ namespace Caravans.Play
 
         void LogbookIcon(RectTransform row, GoodId good)
         {
-            Texture2D texture = Resources.Load<Texture2D>("Goods/" + good);
-            if (texture == null)
-                return;
             var slot = Child(row, "Icon");
             var element = slot.gameObject.AddComponent<LayoutElement>();
-            element.preferredWidth = 40f;
-            element.preferredHeight = 36f;
-            var picture = Child(slot, "Picture");
-            Stretch(picture);
-            var raw = picture.gameObject.AddComponent<RawImage>();
-            raw.texture = texture;
-            raw.color = Color.white;
-            raw.raycastTarget = false;
-            var fit = picture.gameObject.AddComponent<AspectRatioFitter>();
-            fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
-            fit.aspectRatio = texture.width / (float)Mathf.Max(texture.height, 1);
+            element.preferredWidth = 48f;
+            element.preferredHeight = 44f;
+            CellFace(slot, false);
+            Texture2D texture = Resources.Load<Texture2D>("Goods/" + good);
+            if (texture != null)
+                GoodsPicture(slot, texture);
         }
 
         Image PaperOn(RectTransform rect, bool raycast)
         {
+            return SheetOn(rect, FrontArt.HidePanel(), raycast);
+        }
+
+        Image DocumentOn(RectTransform rect, bool raycast)
+        {
+            return SheetOn(rect, FrontArt.Parchment(), raycast);
+        }
+
+        Image DarkBar(RectTransform rect, bool raycast)
+        {
             var image = rect.gameObject.AddComponent<Image>();
-            Sprite sprite = FrontArt.Parchment();
+            image.sprite = quad;
+            image.color = Bar;
+            image.raycastTarget = raycast;
+            return image;
+        }
+
+        Image SheetOn(RectTransform rect, Sprite sprite, bool raycast)
+        {
+            var image = rect.gameObject.AddComponent<Image>();
             image.sprite = sprite != null ? sprite : quad;
             image.type = sprite != null ? Image.Type.Sliced : Image.Type.Simple;
+            image.fillCenter = true;
             image.color = Color.white;
             image.raycastTarget = raycast;
+            return image;
+        }
+
+        Image HideBarOn(RectTransform rect)
+        {
+            ApprovedArt art = ApprovedArt.Load();
+            Sprite bar = art != null ? art.hideBar : null;
+            var image = rect.gameObject.AddComponent<Image>();
+            image.sprite = bar != null ? bar : quad;
+            image.type = bar != null ? Image.Type.Sliced : Image.Type.Simple;
+            image.fillCenter = true;
+            image.color = Color.white;
+            image.raycastTarget = false;
             return image;
         }
 
@@ -2300,53 +2252,144 @@ namespace Caravans.Play
             return image;
         }
 
-        sealed class SealFace : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+        void SquareSeal(Button button, float height)
         {
-            Image image;
-            Sprite quiet;
-            Sprite hover;
-            Sprite chosen;
-            bool hot;
-            bool over;
+            if (button == null)
+                return;
+            var element = button.GetComponent<LayoutElement>();
+            if (element == null)
+                element = button.gameObject.AddComponent<LayoutElement>();
+            var image = button.GetComponent<Image>();
+            float aspect = 1f;
+            if (image != null && image.sprite != null && image.sprite.rect.height > 1f)
+                aspect = image.sprite.rect.width / image.sprite.rect.height;
+            element.preferredHeight = height;
+            element.preferredWidth = height * aspect;
+            element.flexibleWidth = 0f;
+            var rect = button.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(height * aspect, height);
+        }
 
-            public void Bind(Image target, Sprite quietSprite, Sprite hoverSprite, Sprite chosenSprite)
+        void HudIcon(RectTransform parent, Sprite sprite)
+        {
+            var go = new GameObject("Icon", typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var image = go.AddComponent<Image>();
+            image.sprite = sprite != null ? sprite : quad;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            var element = go.AddComponent<LayoutElement>();
+            element.preferredWidth = 52f;
+            element.preferredHeight = 52f;
+        }
+
+        Image CellFace(RectTransform rect, bool selected)
+        {
+            ApprovedArt art = ApprovedArt.Load();
+            Sprite sprite = null;
+            if (art != null)
+                sprite = selected && art.goodsCellSelected != null ? art.goodsCellSelected : art.goodsCell;
+            var image = rect.gameObject.AddComponent<Image>();
+            image.sprite = sprite != null ? sprite : quad;
+            image.type = Image.Type.Simple;
+            image.preserveAspect = sprite != null;
+            image.color = Color.white;
+            image.raycastTarget = false;
+            return image;
+        }
+
+        RawImage GoodsPicture(RectTransform parent, Texture2D texture)
+        {
+            var picture = Child(parent, "Icon");
+            picture.anchorMin = new Vector2(0.18f, 0.18f);
+            picture.anchorMax = new Vector2(0.82f, 0.82f);
+            picture.offsetMin = Vector2.zero;
+            picture.offsetMax = Vector2.zero;
+            var raw = picture.gameObject.AddComponent<RawImage>();
+            raw.texture = texture;
+            raw.color = texture != null ? Color.white : Color.clear;
+            raw.raycastTarget = false;
+            var fit = picture.gameObject.AddComponent<AspectRatioFitter>();
+            fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            fit.aspectRatio = texture != null ? texture.width / (float)Mathf.Max(texture.height, 1) : 1f;
+            return raw;
+        }
+
+        void ShowDetail()
+        {
+            if (detailName == null)
+                return;
+            bool live = SelectionLive();
+            detailName.text = live ? CaravanSession.GoodName(SelectedGood()) : string.Empty;
+            if (detailCell != null)
             {
-                image = target;
-                quiet = quietSprite;
-                hover = hoverSprite;
-                chosen = chosenSprite;
-                Apply();
+                ApprovedArt art = ApprovedArt.Load();
+                Sprite cell = null;
+                if (art != null)
+                    cell = live && art.goodsCellSelected != null ? art.goodsCellSelected : art.goodsCell;
+                if (cell != null)
+                    detailCell.sprite = cell;
+                detailCell.color = live ? Color.white : new Color(1f, 1f, 1f, 0.5f);
             }
 
-            public void SetChosen(bool value)
-            {
-                hot = value;
-                Apply();
-            }
+            if (detailIcon == null)
+                return;
+            Texture2D texture = live ? Resources.Load<Texture2D>("Goods/" + SelectedGood()) : null;
+            detailIcon.texture = texture;
+            detailIcon.color = texture != null ? Color.white : Color.clear;
+            var fit = detailIcon.GetComponent<AspectRatioFitter>();
+            if (fit != null && texture != null)
+                fit.aspectRatio = texture.width / (float)Mathf.Max(texture.height, 1);
+        }
 
-            public void OnPointerEnter(PointerEventData eventData)
-            {
-                over = true;
-                Apply();
-            }
+        void BuildMeter(RectTransform meter)
+        {
+            ApprovedArt art = ApprovedArt.Load();
+            Sprite frameSprite = art != null ? art.meterFrame : null;
+            var frame = Child(meter, "Frame");
+            Stretch(frame);
+            var frameImage = frame.gameObject.AddComponent<Image>();
+            frameImage.sprite = frameSprite != null ? frameSprite : quad;
+            frameImage.type = frameSprite != null ? Image.Type.Sliced : Image.Type.Simple;
+            frameImage.fillCenter = true;
+            frameImage.raycastTarget = false;
+            var fill = Child(meter, "Fill");
+            fill.anchorMin = new Vector2(0f, 0.32f);
+            fill.anchorMax = new Vector2(1f, 0.67f);
+            float inset = 0f;
+            if (frameSprite != null && frameSprite.pixelsPerUnit > 0f)
+                inset = frameSprite.border.x / frameSprite.pixelsPerUnit;
+            fill.offsetMin = new Vector2(inset, 0f);
+            fill.offsetMax = new Vector2(-inset, 0f);
+            meterFill = fill.gameObject.AddComponent<Image>();
+            meterFill.sprite = art != null && art.meterFill != null ? art.meterFill : quad;
+            meterFill.type = Image.Type.Filled;
+            meterFill.fillMethod = Image.FillMethod.Horizontal;
+            meterFill.fillOrigin = (int)Image.OriginHorizontal.Left;
+            meterFill.fillAmount = 0f;
+            meterFill.preserveAspect = false;
+            meterFill.raycastTarget = false;
+        }
 
-            public void OnPointerExit(PointerEventData eventData)
-            {
-                over = false;
-                Apply();
-            }
+        Texture2D BackdropFor(PlaceId place)
+        {
+            ApprovedArt art = ApprovedArt.Load();
+            Texture2D shared = art != null ? art.settlementGeneric : null;
+            if (shared != null)
+                return shared;
+            return FrontArt.SettlementDesert();
+        }
 
-            void Apply()
-            {
-                if (image == null)
-                    return;
-                if (over && hover != null)
-                    image.sprite = hover;
-                else if (hot && chosen != null)
-                    image.sprite = chosen;
-                else if (quiet != null)
-                    image.sprite = quiet;
-            }
+        void ApplyGround(PlaceId place)
+        {
+            if (groundImage == null)
+                return;
+            bool settlement = session == null || !session.Traveling;
+            Texture2D plate = settlement ? BackdropFor(place) : null;
+            groundImage.texture = plate;
+            groundImage.color = plate != null ? Color.white : new Color(0.62f, 0.48f, 0.32f, 1f);
+            if (groundFit != null && plate != null && plate.height > 0)
+                groundFit.aspectRatio = plate.width / (float)plate.height;
         }
     }
 }

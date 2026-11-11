@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4da2f38abb35d3243a30c7845512240e, type: 3}
+  m_Name: ApprovedArt
+  m_EditorClassIdentifier: Caravans.FrontDoor::Caravans.FrontDoor.ApprovedArt
+  hidePanel: {fileID: 21300000, guid: a15e4c74949c75f4ea17fa1b52bec743, type: 3}
+  hideBar: {fileID: 21300000, guid: 781a95f427de77f469726b1df11a01ff, type: 3}
+  goodsCell: {fileID: 21300000, guid: 4b3d224cf98f3154c899a3d78e009f90, type: 3}
+  goodsCellSelected: {fileID: 21300000, guid: a4650164f69a77c478bfff008f927560, type: 3}
+  sealBase: {fileID: 21300000, guid: ff9cd8adf75a2e04dbdc432489e1e57b, type: 3}
+  sealMarket: {fileID: 21300000, guid: c2d8e206a0568a544b724078ebf5334c, type: 3}
+  sealMarketHover: {fileID: 21300000, guid: 5f6b69eb832804843b75fc3245d73507, type: 3}
+  sealMarketPressed: {fileID: 21300000, guid: 7af79abfaddd5644fbcac439ad2ef79a, type: 3}
+  sealInn: {fileID: 21300000, guid: fc2e386bc18f12e4da7c303c4748daa3, type: 3}
+  sealInnHover: {fileID: 21300000, guid: b0db7935c58ee2c4e96475ad5124f697, type: 3}
+  sealInnPressed: {fileID: 21300000, guid: 4a8c99d2a55b59c43809f3745e39553b, type: 3}
+  sealHouse: {fileID: 21300000, guid: 6d1ceb14d01c1da4aa546aff6521b571, type: 3}
+  sealHouseHover: {fileID: 21300000, guid: 1d735da8d6969a348afd7b3123b42bfe, type: 3}
+  sealHousePressed: {fileID: 21300000, guid: 63a39e0703b5cc7498938bf994b9cf1d, type: 3}
+  sealGates: {fileID: 21300000, guid: d9786b12d46ee714e87237d1b89d528b, type: 3}
+  sealGatesHover: {fileID: 21300000, guid: 0728c9183a6b02e4a88405fd6c3a2602, type: 3}
+  sealGatesPressed: {fileID: 21300000, guid: c8c16a2ee6f371b44844669242f8efd6, type: 3}
+  sealBuy: {fileID: 21300000, guid: 8128e2f6f7ad75c49aef4af8fb36ab04, type: 3}
+  sealBuyHover: {fileID: 21300000, guid: c252fdb47115d8e4eb9a14470303cf83, type: 3}
+  sealBuyPressed: {fileID: 21300000, guid: 3abfc92432a295f4e8abbf51a1f6b7cc, type: 3}
+  sealSell: {fileID: 21300000, guid: 4cb55c40c3b61834d835bb8d476541e1, type: 3}
+  sealSellHover: {fileID: 21300000, guid: d7a3be874748b1c4690d72e15441d46a, type: 3}
+  sealSellPressed: {fileID: 21300000, guid: 5f518de1c5f18834c81b04d5d906353b, type: 3}
+  iconScrubstone: {fileID: 21300000, guid: 69341df0f11cd9d4682594365d2bb61f, type: 3}
+  iconCapacity: {fileID: 21300000, guid: 81768cf61fc6cd840a253e38a22d0ba5, type: 3}
+  meterFrame: {fileID: 21300000, guid: e57039a199425454e853a91ca171148f, type: 3}
+  meterFill: {fileID: 21300000, guid: c9d43a253d0400843b0fe783a83bacce, type: 3}
+  settlementGeneric: {fileID: 2800000, guid: fe35af980e9139a4ba760ff191fd55cd, type: 3}

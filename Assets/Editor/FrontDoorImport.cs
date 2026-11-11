@@ -18,7 +18,8 @@ public class FrontDoorImport : AssetPostprocessor
         importer.textureCompression = TextureImporterCompression.Uncompressed;
         importer.wrapMode = TextureWrapMode.Clamp;
         importer.filterMode = FilterMode.Bilinear;
-        importer.maxTextureSize = assetPath.EndsWith("title_screen.png") || ui ? 2048 : 1024;
+        bool wide = assetPath.EndsWith("title_screen.png") || assetPath.EndsWith("settlement-desert.png");
+        importer.maxTextureSize = wide || ui ? 2048 : 1024;
     }
 
     void OnPreprocessAudio()
@@ -48,6 +49,9 @@ public class FrontDoorImport : AssetPostprocessor
             FixTexture("Assets/Resources/FrontDoor/plate_hot.png", 1024);
             FixTexture("Assets/Resources/FrontDoor/plate_pressed.png", 1024);
             FixTexture("Assets/Resources/Ui/parchment.png", 2048);
+            FixTexture("Assets/Resources/Ui/parchment-plain.png", 2048);
+            FixTexture("Assets/Resources/Ui/duzhu-hide-panel.png", 2048);
+            FixTexture("Assets/Resources/FrontDoor/settlement-desert.png", 2048);
             FixTexture("Assets/Resources/Ui/banner.png", 2048);
             FixTexture("Assets/Resources/Ui/shimmersteel-rod.png", 2048);
             FixTexture("Assets/Resources/Ui/sinew-wrap.png", 2048);

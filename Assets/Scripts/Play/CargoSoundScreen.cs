@@ -256,12 +256,38 @@ namespace Caravans.Play
             header.raycastTarget = false;
             header.color = hide != null ? Color.white : Color.clear;
 
+            Sprite hidePanel = FrontArt.HidePanel();
             Sprite paper = FrontArt.Parchment();
             Sprite bone = FrontArt.BoneFrame();
-            SliceBox(body, "Panel", paper, new Vector2(0.02f, 0.02f), new Vector2(0.28f, 0.43f), "Panel", "Kharûn", 36f, ParchmentInk);
-            SliceBox(body, "TopBar", paper, new Vector2(0.30f, 0.255f), new Vector2(0.98f, 0.43f), "Top bar", WorldClock.Format(1, 6f), 22f, ParchmentInk);
-            SliceBox(body, "Bone", bone, new Vector2(0.30f, 0.02f), new Vector2(0.63f, 0.235f), "Frame", "BA-04", 28f, Ink);
-            SliceBox(body, "BoneBar", bone, new Vector2(0.65f, 0.02f), new Vector2(0.98f, 0.235f), "Border", "", 22f, Ink);
+            SliceBox(body, "Panel", hidePanel, new Vector2(0.02f, 0.02f), new Vector2(0.24f, 0.43f), "Panel", "", 28f, Ink);
+            SliceBox(body, "Document", paper, new Vector2(0.26f, 0.02f), new Vector2(0.48f, 0.43f), "Document", "", 22f, ParchmentInk);
+            var barColumn = Child(body, "TopBar");
+            barColumn.anchorMin = new Vector2(0.50f, 0.28f);
+            barColumn.anchorMax = new Vector2(0.98f, 0.43f);
+            var bar = Child(barColumn, "Strip");
+            bar.anchorMin = Vector2.zero;
+            bar.anchorMax = Vector2.one;
+            bar.offsetMin = new Vector2(0f, 32f);
+            bar.offsetMax = Vector2.zero;
+            var barImage = bar.gameObject.AddComponent<Image>();
+            barImage.sprite = quad;
+            barImage.color = new Color(0.12f, 0.09f, 0.07f, 0.96f);
+            barImage.raycastTarget = false;
+            var sample = Body(bar, 22f, TextAlignmentOptions.Center);
+            sample.font = FrontArt.Bold();
+            sample.color = Ink;
+            sample.text = WorldClock.Format(1, 6f);
+            Stretch(sample.rectTransform, 8f);
+            var barLabel = Body(barColumn, 18f, TextAlignmentOptions.Bottom);
+            barLabel.text = "Top bar";
+            var barCap = barLabel.rectTransform;
+            barCap.anchorMin = Vector2.zero;
+            barCap.anchorMax = new Vector2(1f, 0f);
+            barCap.pivot = new Vector2(0.5f, 0f);
+            barCap.sizeDelta = new Vector2(0f, 28f);
+            barCap.anchoredPosition = Vector2.zero;
+            SliceBox(body, "Bone", bone, new Vector2(0.50f, 0.02f), new Vector2(0.73f, 0.26f), "Frame", "BA-04", 28f, Ink);
+            SliceBox(body, "BoneBar", bone, new Vector2(0.75f, 0.02f), new Vector2(0.98f, 0.26f), "Border", "", 22f, Ink);
             return body.gameObject;
         }
 
@@ -297,7 +323,34 @@ namespace Caravans.Play
             if (wrap != null)
                 LeadImage(stack, "Wrap", wrap, 0f, 1f);
 
-            LayerPicture(body, "Rail", "Ui/banner", new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.34f), "Banner rail");
+            var rail = Child(body, "Rail");
+            rail.anchorMin = new Vector2(0.04f, 0.02f);
+            rail.anchorMax = new Vector2(0.96f, 0.34f);
+            var vellum = Resources.Load<Texture2D>("Ui/hide-header");
+            var hang = Child(rail, "Vellum");
+            hang.anchorMin = new Vector2(0.08f, 0.16f);
+            hang.anchorMax = new Vector2(0.92f, 0.72f);
+            var hangImage = hang.gameObject.AddComponent<RawImage>();
+            hangImage.texture = vellum;
+            hangImage.raycastTarget = false;
+            hangImage.color = vellum != null ? Color.white : Color.clear;
+            var barTex = Resources.Load<Texture2D>("Ui/banner");
+            var barShot = Child(rail, "Bar");
+            barShot.anchorMin = new Vector2(0f, 0.62f);
+            barShot.anchorMax = new Vector2(1f, 0.98f);
+            var barRaw = barShot.gameObject.AddComponent<RawImage>();
+            barRaw.texture = barTex;
+            barRaw.raycastTarget = false;
+            barRaw.color = barTex != null ? Color.white : Color.clear;
+            var railLabel = Body(rail, 18f, TextAlignmentOptions.Bottom);
+            railLabel.text = "Banner rail";
+            railLabel.color = Ink;
+            var railCap = railLabel.rectTransform;
+            railCap.anchorMin = Vector2.zero;
+            railCap.anchorMax = new Vector2(1f, 0f);
+            railCap.pivot = new Vector2(0.5f, 0f);
+            railCap.sizeDelta = new Vector2(0f, 28f);
+            railCap.anchoredPosition = Vector2.zero;
 
             var label = Body(column, 18f, TextAlignmentOptions.Bottom);
             label.text = "Lead";
@@ -618,7 +671,7 @@ namespace Caravans.Play
             var picture = Resources.Load<Texture2D>("Goods/" + good);
             var text = Body(rect, 18f, TextAlignmentOptions.Center);
             text.text = EconomyCatalog.GoodName(good);
-            text.color = Ink;
+            text.color = Color.black;
             text.textWrappingMode = TextWrappingModes.Normal;
             text.overflowMode = TextOverflowModes.Overflow;
             text.enableAutoSizing = true;
@@ -643,6 +696,17 @@ namespace Caravans.Play
                 fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
                 fit.aspectRatio = picture.width / (float)Mathf.Max(picture.height, 1);
             }
+
+            var plate = Child(rect, "NamePlate");
+            plate.anchorMin = Vector2.zero;
+            plate.anchorMax = new Vector2(1f, NameBand);
+            plate.offsetMin = new Vector2(8f, 3f);
+            plate.offsetMax = new Vector2(-8f, -1f);
+            var plateImage = plate.gameObject.AddComponent<Image>();
+            plateImage.sprite = quad;
+            plateImage.color = Ink;
+            plateImage.raycastTarget = false;
+            text.transform.SetAsLastSibling();
             return ring;
         }
 
