@@ -193,5 +193,15 @@ namespace Caravans.FrontDoor
             editor?.GetProperty("isPlaying")?.SetValue(null, false);
 #endif
         }
+
+#if UNITY_EDITOR
+        public bool ShotReady => optionsRoot != null;
+
+        public void ShotOptions(bool open)
+        {
+            if (optionsRoot != null)
+                optionsRoot.SetActive(open);
+        }
+#endif
     }
 }

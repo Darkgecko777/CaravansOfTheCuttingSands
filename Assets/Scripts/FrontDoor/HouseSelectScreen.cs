@@ -243,6 +243,29 @@ namespace Caravans.FrontDoor
             Gate.ConfirmRun(selected);
         }
 
+#if UNITY_EDITOR
+        public bool ShotReady => confirm != null;
+
+        public void ShotClear()
+        {
+            selected = "";
+            if (confirm != null)
+                confirm.interactable = false;
+            for (int i = 0; i < cards.Count; i++)
+            {
+                Card card = cards[i];
+                if (!card.Available || card.Fill == null)
+                    continue;
+                card.Fill.color = card.Tint;
+            }
+        }
+
+        public void ShotSelect(string houseId)
+        {
+            Select(houseId);
+        }
+#endif
+
         static void IgnoreRaycasts(params TMP_Text[] labels)
         {
             for (int i = 0; i < labels.Length; i++)

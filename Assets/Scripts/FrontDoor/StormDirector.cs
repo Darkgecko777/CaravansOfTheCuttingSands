@@ -43,6 +43,10 @@ namespace Caravans.FrontDoor
             return host.AddComponent<StormDirector>();
         }
 
+#if UNITY_EDITOR
+        public bool ShotFadeIdle => fade != null && !fade.Active;
+#endif
+
         public void Resume()
         {
             fade.Resume();

@@ -30,6 +30,8 @@ New Game asks "Choose Your House" on the ash-ivory vellum, under the line "The m
 
 A run lives until play mode ends. Gear on the play screen says "Save is not in this slice."
 
+The editor menu Caravans/Capture UI Screenshots writes one 1920×1080 picture of each screen into `Screenshots/` at the project root and lists them in `Screenshots/index.md`. Play is unchanged.
+
 ## A day at a settlement
 
 The top bar is the dark hide bar. On the left it names where the caravan is. In the centre it shows the calendar line and the day-part, such as 1 Vekmar, Year 112 · Dawn. On the right a scrubstone icon sits with the coin count, and a capacity icon sits with cargo slots used of 8. Logbook and Gear sit on that bar after the counts. The canteen and the ration bag stay on the inn fill buttons. The cargo weight stays under the wagon.

@@ -1797,5 +1797,70 @@ namespace Caravans.Play
                     return lead + "Clear. Cargo loss is not rated yet.";
             }
         }
+
+#if UNITY_EDITOR
+        public void ShotSeed()
+        {
+            int bought = 0;
+            for (int i = 0; i < WorldIds.GoodCount; i++)
+            {
+                GoodId good = (GoodId)i;
+                if (good == GoodId.Rations)
+                    continue;
+                if (StockOf(Dock, good) > 0)
+                    NoteShownBuy(good);
+                if (bought < 4 && TryBuy(good))
+                    bought++;
+            }
+
+            for (int i = 0; i < CargoCount; i++)
+                NoteShownSale(i);
+        }
+
+        public void ShotDockAt(PlaceId place)
+        {
+            Dock = place;
+            Traveling = false;
+            HoldTravel = false;
+            CampPending = false;
+            AwaitingPace = false;
+            EncounterPending = false;
+            EncounterId = null;
+            encounterArmed = false;
+            Pace = 1;
+            TravelDistance = 0f;
+            Touch();
+        }
+
+        public bool ShotDepartPaused(PlaceId destination)
+        {
+            if (!DepartTo(destination))
+                return false;
+            Pace = 0;
+            HoldTravel = false;
+            Touch();
+            return Traveling && TravelDistance <= 0.000001f;
+        }
+
+        public void ShotEncounter(string id)
+        {
+            OpenEncounter(id);
+        }
+
+        public void ShotCamp()
+        {
+            EncounterPending = false;
+            EncounterId = null;
+            encounterArmed = false;
+            OpenCamp();
+        }
+
+        public void ShotResumePace()
+        {
+            if (!CampPending)
+                ShotCamp();
+            MakeCamp();
+        }
+#endif
     }
 }

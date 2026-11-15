@@ -2391,5 +2391,189 @@ namespace Caravans.Play
             if (groundFit != null && plate != null && plate.height > 0)
                 groundFit.aspectRatio = plate.width / (float)plate.height;
         }
+
+#if UNITY_EDITOR
+        bool shotSeeded;
+
+        public bool ShotMapReady => mapImage != null && mapImage.texture != null;
+
+        public bool Shot(string id)
+        {
+            switch (id)
+            {
+                case "seed":
+                    if (!shotSeeded)
+                    {
+                        session.ShotSeed();
+                        shotSeeded = true;
+                    }
+
+                    FinishShot();
+                    return session.CargoCount > 0;
+                case "market-empty":
+                    ShotMarket(false, false, false);
+                    return page == Page.Market && !shopSelected && wagonPick < 0 && !sortMenuOpen;
+                case "market-buy":
+                    ShotMarket(true, false, false);
+                    return shopSelected && wagonPick < 0;
+                case "market-wagon":
+                    if (session.CargoCount < 1)
+                        return false;
+                    ShotMarket(false, true, false);
+                    return wagonPick == 0;
+                case "market-sort":
+                    ShotMarket(false, false, true);
+                    return sortMenuOpen && page == Page.Market;
+                case "ridgewatch":
+                    ShotClearOverlays();
+                    if (session.Dock != PlaceId.Ridgewatch || session.Traveling)
+                        session.ShotDockAt(PlaceId.Ridgewatch);
+                    page = Page.Market;
+                    FinishShot();
+                    return session.Dock == PlaceId.Ridgewatch && !session.Traveling;
+                case "inn":
+                    return ShotPlaza(PlazaSpot.Inn, false, false);
+                case "gates":
+                    return ShotPlaza(PlazaSpot.Gates, false, false);
+                case "tavern":
+                    return ShotPlaza(PlazaSpot.Tavern, false, false);
+                case "stables":
+                    return ShotPlaza(PlazaSpot.Stables, false, false);
+                case "house":
+                    ShotClearOverlays();
+                    if (session.Dock != PlaceId.Kharun || session.Traveling)
+                        session.ShotDockAt(PlaceId.Kharun);
+                    page = Page.House;
+                    FinishShot();
+                    return page == Page.House && EconomyCatalog.IsCity(session.Dock);
+                case "logbook":
+                    ShotClearOverlays();
+                    page = Page.Market;
+                    logbookOpen = true;
+                    FinishShot();
+                    return logbookOpen;
+                case "options":
+                    ShotClearOverlays();
+                    page = Page.Market;
+                    optionsOpen = true;
+                    FinishShot();
+                    return optionsOpen;
+                case "travel":
+                    return ShotPlaza(PlazaSpot.Gates, true, false);
+                case "road":
+                    return ShotPlaza(PlazaSpot.Gates, true, true);
+                case "depart":
+                    ShotClearOverlays();
+                    if (!session.Traveling)
+                    {
+                        if (!session.ShotDepartPaused(PlaceId.Draven))
+                            return false;
+                    }
+
+                    page = Page.Plaza;
+                    plazaSpot = PlazaSpot.Gates;
+                    FinishShot();
+                    return session.Traveling && session.Pace == 0 && session.TravelDistance <= 0.000001f;
+                case "encounter":
+                    ShotClearOverlays();
+                    if (!session.EncounterPending)
+                        session.ShotEncounter("WD-01");
+                    page = Page.Plaza;
+                    plazaSpot = PlazaSpot.Gates;
+                    FinishShot();
+                    return session.EncounterPending && session.EncounterId == "WD-01";
+                case "camp":
+                    ShotClearOverlays();
+                    if (!session.CampPending)
+                        session.ShotCamp();
+                    page = Page.Plaza;
+                    plazaSpot = PlazaSpot.Gates;
+                    FinishShot();
+                    return session.CampPending && !session.EncounterPending;
+                case "resume":
+                    ShotClearOverlays();
+                    if (!session.AwaitingPace)
+                        session.ShotResumePace();
+                    page = Page.Plaza;
+                    plazaSpot = PlazaSpot.Gates;
+                    FinishShot();
+                    return session.AwaitingPace && !session.CampPending;
+                default:
+                    return false;
+            }
+        }
+
+        bool ShotPlaza(PlazaSpot spot, bool lit, bool choice)
+        {
+            ShotClearOverlays();
+            if (session.Traveling || session.Dock != PlaceId.Kharun)
+                session.ShotDockAt(PlaceId.Kharun);
+            page = Page.Plaza;
+            plazaSpot = spot;
+            if (lit)
+            {
+                if (!session.CanTakeRoad())
+                    return false;
+                pendingDest = PlaceId.Draven;
+                roadLit = true;
+                draftPace = RoadPace.Steady;
+            }
+
+            choosingRoad = choice;
+            FinishShot();
+            if (choice)
+                return choosingRoad && roadLit && pendingDest == PlaceId.Draven;
+            if (lit)
+                return roadLit && pendingDest == PlaceId.Draven && !choosingRoad;
+            return plazaSpot == spot && !roadLit;
+        }
+
+        void ShotMarket(bool shop, bool wagon, bool sort)
+        {
+            ShotClearOverlays();
+            page = Page.Market;
+            if (shop)
+                SelectShop(ShotStocked());
+            if (wagon)
+                SelectWagon(0);
+            if (sort)
+                sortMenuOpen = true;
+            FinishShot();
+        }
+
+        void ShotClearOverlays()
+        {
+            sortMenuOpen = false;
+            shopSelected = false;
+            wagonPick = -1;
+            optionsOpen = false;
+            logbookOpen = false;
+            choosingRoad = false;
+            lookingAtMap = false;
+            roadLit = false;
+            listenLine = string.Empty;
+        }
+
+        GoodId ShotStocked()
+        {
+            for (int i = 0; i < WorldIds.GoodCount; i++)
+            {
+                GoodId good = (GoodId)i;
+                if (good == GoodId.Rations)
+                    continue;
+                if (session.StockOf(session.Dock, good) > 0)
+                    return good;
+            }
+
+            return GoodId.ShimmersteelJars;
+        }
+
+        void FinishShot()
+        {
+            Canvas.ForceUpdateCanvases();
+            Redraw();
+            Canvas.ForceUpdateCanvases();
+        }
+#endif
     }
 }

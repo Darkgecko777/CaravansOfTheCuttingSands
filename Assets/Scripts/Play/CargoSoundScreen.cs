@@ -968,5 +968,43 @@ namespace Caravans.Play
                 image.overrideSprite = showPressed ? pressed : over && hover != null ? hover : null;
             }
         }
+
+#if UNITY_EDITOR
+        public bool ShotReady => marketPage != null;
+        public bool ShotMarketFitted => fitted && page == Page.Market;
+
+        public void ShotPage(string name)
+        {
+            switch (name)
+            {
+                case "FrontDoor":
+                    Show(Page.FrontDoor);
+                    break;
+                case "Map":
+                    Show(Page.Map);
+                    break;
+                case "Mounts":
+                    Show(Page.Mounts);
+                    break;
+                case "UiKit":
+                    Show(Page.UiKit);
+                    break;
+                case "Layers":
+                    Show(Page.Layers);
+                    break;
+                case "Card":
+                    Show(Page.Card);
+                    break;
+                case "Seals":
+                    Show(Page.Seals);
+                    break;
+                default:
+                    Show(Page.Market);
+                    break;
+            }
+
+            Canvas.ForceUpdateCanvases();
+        }
+#endif
     }
 }
