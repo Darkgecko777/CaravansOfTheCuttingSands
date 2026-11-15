@@ -1,0 +1,691 @@
+fileFormatVersion: 2
+guid: bc5d8c1caf40ac9448373784f2b621f4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4151469454199638382
+    second: Map_Multiplane_Updated_7_labels_0
+  - first:
+      213: -122361189146915374
+    second: Map_Multiplane_Updated_7_labels_1
+  - first:
+      213: 3746778787136423908
+    second: Map_Multiplane_Updated_7_labels_2
+  - first:
+      213: 780995525861436794
+    second: Map_Multiplane_Updated_7_labels_3
+  - first:
+      213: 6937015396495756803
+    second: Map_Multiplane_Updated_7_labels_4
+  - first:
+      213: -7389128208276154069
+    second: Map_Multiplane_Updated_7_labels_5
+  - first:
+      213: -8332161652167361459
+    second: Map_Multiplane_Updated_7_labels_6
+  - first:
+      213: -6164782935312961030
+    second: Map_Multiplane_Updated_7_labels_7
+  - first:
+      213: 6497009858905064262
+    second: Map_Multiplane_Updated_7_labels_8
+  - first:
+      213: 5430824345395663933
+    second: Map_Multiplane_Updated_7_labels_9
+  - first:
+      213: 1517928666841108098
+    second: Map_Multiplane_Updated_7_labels_10
+  - first:
+      213: 6071204776612312960
+    second: Map_Multiplane_Updated_7_labels_11
+  - first:
+      213: -8106389971808706903
+    second: Map_Multiplane_Updated_7_labels_12
+  - first:
+      213: 1582930301176621475
+    second: Map_Multiplane_Updated_7_labels_13
+  - first:
+      213: -5887820017528067084
+    second: Map_Multiplane_Updated_7_labels_14
+  - first:
+      213: -7921429544541516965
+    second: Map_Multiplane_Updated_7_labels_15
+  - first:
+      213: 7942773431180393293
+    second: Map_Multiplane_Updated_7_labels_16
+  - first:
+      213: -7488520868103215613
+    second: Map_Multiplane_Updated_7_labels_17
+  - first:
+      213: 6472445596965802179
+    second: Map_Multiplane_Updated_7_labels_18
+  - first:
+      213: 6112407762332561097
+    second: Map_Multiplane_Updated_7_labels_19
+  - first:
+      213: 5677073465234335847
+    second: Map_Multiplane_Updated_7_labels_20
+  - first:
+      213: -5469199663408251475
+    second: Map_Multiplane_Updated_7_labels_21
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_0
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 981
+        width: 94
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e694471297bfc9930800000000000000
+      internalID: 4151469454199638382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_1
+      rect:
+        serializedVersion: 2
+        x: 387
+        y: 981
+        width: 72
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2dd8a9295294d4ef0800000000000000
+      internalID: -122361189146915374
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_2
+      rect:
+        serializedVersion: 2
+        x: 791
+        y: 978
+        width: 126
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e74c33a47b3ff330800000000000000
+      internalID: 3746778787136423908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_3
+      rect:
+        serializedVersion: 2
+        x: 214
+        y: 915
+        width: 67
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7de32afa47a6da00800000000000000
+      internalID: 780995525861436794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_4
+      rect:
+        serializedVersion: 2
+        x: 1380
+        y: 942
+        width: 101
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30e8b8dcfba354060800000000000000
+      internalID: 6937015396495756803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_5
+      rect:
+        serializedVersion: 2
+        x: 673
+        y: 880
+        width: 106
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2991e93b0b847990800000000000000
+      internalID: -7389128208276154069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_6
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 720
+        width: 146
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4cbe6f7f173e5c80800000000000000
+      internalID: -8332161652167361459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_7
+      rect:
+        serializedVersion: 2
+        x: 1371
+        y: 703
+        width: 121
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af1f74f259a427aa0800000000000000
+      internalID: -6164782935312961030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_8
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 656
+        width: 104
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6434f364b040a2a50800000000000000
+      internalID: 6497009858905064262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_9
+      rect:
+        serializedVersion: 2
+        x: 584
+        y: 593
+        width: 99
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d341ad8e7f92e5b40800000000000000
+      internalID: 5430824345395663933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_10
+      rect:
+        serializedVersion: 2
+        x: 1084
+        y: 614
+        width: 141
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28e42758414c01510800000000000000
+      internalID: 1517928666841108098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_11
+      rect:
+        serializedVersion: 2
+        x: 1461
+        y: 543
+        width: 165
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 087b1a4e390414450800000000000000
+      internalID: 6071204776612312960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_12
+      rect:
+        serializedVersion: 2
+        x: 1710
+        y: 540
+        width: 90
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ae9d872541508f80800000000000000
+      internalID: -8106389971808706903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_13
+      rect:
+        serializedVersion: 2
+        x: 582
+        y: 449
+        width: 100
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a9a5d1e8b2b7f510800000000000000
+      internalID: 1582930301176621475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_14
+      rect:
+        serializedVersion: 2
+        x: 1198
+        y: 464
+        width: 91
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4fb2ec993e24a4ea0800000000000000
+      internalID: -5887820017528067084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_15
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 409
+        width: 67
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5b815c7ccd611290800000000000000
+      internalID: -7921429544541516965
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_16
+      rect:
+        serializedVersion: 2
+        x: 280
+        y: 301
+        width: 107
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4bfae06a566a3e60800000000000000
+      internalID: 7942773431180393293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_17
+      rect:
+        serializedVersion: 2
+        x: 1173
+        y: 232
+        width: 117
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 306ab9342fd631890800000000000000
+      internalID: -7488520868103215613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_18
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 135
+        width: 151
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c0103b5afeb2d950800000000000000
+      internalID: 6472445596965802179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_19
+      rect:
+        serializedVersion: 2
+        x: 675
+        y: 131
+        width: 63
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ce2c249972a3d450800000000000000
+      internalID: 6112407762332561097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_20
+      rect:
+        serializedVersion: 2
+        x: 1596
+        y: 68
+        width: 126
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 768a61bfc3409ce40800000000000000
+      internalID: 5677073465234335847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_7_labels_21
+      rect:
+        serializedVersion: 2
+        x: 209
+        y: 20
+        width: 83
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dad7dd812ef7914b0800000000000000
+      internalID: -5469199663408251475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Map_Multiplane_Updated_7_labels_0: 4151469454199638382
+      Map_Multiplane_Updated_7_labels_1: -122361189146915374
+      Map_Multiplane_Updated_7_labels_10: 1517928666841108098
+      Map_Multiplane_Updated_7_labels_11: 6071204776612312960
+      Map_Multiplane_Updated_7_labels_12: -8106389971808706903
+      Map_Multiplane_Updated_7_labels_13: 1582930301176621475
+      Map_Multiplane_Updated_7_labels_14: -5887820017528067084
+      Map_Multiplane_Updated_7_labels_15: -7921429544541516965
+      Map_Multiplane_Updated_7_labels_16: 7942773431180393293
+      Map_Multiplane_Updated_7_labels_17: -7488520868103215613
+      Map_Multiplane_Updated_7_labels_18: 6472445596965802179
+      Map_Multiplane_Updated_7_labels_19: 6112407762332561097
+      Map_Multiplane_Updated_7_labels_2: 3746778787136423908
+      Map_Multiplane_Updated_7_labels_20: 5677073465234335847
+      Map_Multiplane_Updated_7_labels_21: -5469199663408251475
+      Map_Multiplane_Updated_7_labels_3: 780995525861436794
+      Map_Multiplane_Updated_7_labels_4: 6937015396495756803
+      Map_Multiplane_Updated_7_labels_5: -7389128208276154069
+      Map_Multiplane_Updated_7_labels_6: -8332161652167361459
+      Map_Multiplane_Updated_7_labels_7: -6164782935312961030
+      Map_Multiplane_Updated_7_labels_8: 6497009858905064262
+      Map_Multiplane_Updated_7_labels_9: 5430824345395663933
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

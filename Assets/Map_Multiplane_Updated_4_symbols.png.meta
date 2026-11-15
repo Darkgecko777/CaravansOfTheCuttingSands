@@ -1,0 +1,873 @@
+fileFormatVersion: 2
+guid: e3169179fc3f3834fbb86ef388e08939
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3786552789853649801
+    second: Map_Multiplane_Updated_4_symbols_0
+  - first:
+      213: -5447587987349637714
+    second: Map_Multiplane_Updated_4_symbols_1
+  - first:
+      213: 714135002158184406
+    second: Map_Multiplane_Updated_4_symbols_2
+  - first:
+      213: -88275887545614431
+    second: Map_Multiplane_Updated_4_symbols_3
+  - first:
+      213: -1437238897883454529
+    second: Map_Multiplane_Updated_4_symbols_4
+  - first:
+      213: -36322840297859577
+    second: Map_Multiplane_Updated_4_symbols_5
+  - first:
+      213: 3338388410251789594
+    second: Map_Multiplane_Updated_4_symbols_6
+  - first:
+      213: -8630470768689627706
+    second: Map_Multiplane_Updated_4_symbols_7
+  - first:
+      213: 8389477588708318977
+    second: Map_Multiplane_Updated_4_symbols_8
+  - first:
+      213: 4381037132384720883
+    second: Map_Multiplane_Updated_4_symbols_9
+  - first:
+      213: -8042381705842651972
+    second: Map_Multiplane_Updated_4_symbols_10
+  - first:
+      213: -4891758641823817940
+    second: Map_Multiplane_Updated_4_symbols_11
+  - first:
+      213: 5923318684959911303
+    second: Map_Multiplane_Updated_4_symbols_12
+  - first:
+      213: -3736102913417530071
+    second: Map_Multiplane_Updated_4_symbols_13
+  - first:
+      213: 6693237605958732814
+    second: Map_Multiplane_Updated_4_symbols_14
+  - first:
+      213: -8879825063793822490
+    second: Map_Multiplane_Updated_4_symbols_15
+  - first:
+      213: 4897520327228151696
+    second: Map_Multiplane_Updated_4_symbols_16
+  - first:
+      213: 2810705957694701525
+    second: Map_Multiplane_Updated_4_symbols_17
+  - first:
+      213: 8444883758928510599
+    second: Map_Multiplane_Updated_4_symbols_18
+  - first:
+      213: -3551681457827682335
+    second: Map_Multiplane_Updated_4_symbols_19
+  - first:
+      213: 6343796391410737520
+    second: Map_Multiplane_Updated_4_symbols_20
+  - first:
+      213: -6362020338554365882
+    second: Map_Multiplane_Updated_4_symbols_21
+  - first:
+      213: 9102249412643304432
+    second: Map_Multiplane_Updated_4_symbols_22
+  - first:
+      213: -6343163231161925660
+    second: Map_Multiplane_Updated_4_symbols_23
+  - first:
+      213: 2628069782495505370
+    second: Map_Multiplane_Updated_4_symbols_24
+  - first:
+      213: -7979702842479008319
+    second: Map_Multiplane_Updated_4_symbols_25
+  - first:
+      213: -454199664542198296
+    second: Map_Multiplane_Updated_4_symbols_26
+  - first:
+      213: 7764379715282849823
+    second: Map_Multiplane_Updated_4_symbols_27
+  - first:
+      213: 2773674285855822227
+    second: Map_Multiplane_Updated_4_symbols_28
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_0
+      rect:
+        serializedVersion: 2
+        x: 327
+        y: 1024
+        width: 73
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98bbd7a43b98c8430800000000000000
+      internalID: 3786552789853649801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_1
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 851
+        width: 338
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea5f65b86974664b0800000000000000
+      internalID: -5447587987349637714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_2
+      rect:
+        serializedVersion: 2
+        x: 809
+        y: 1012
+        width: 63
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d7bf45300e19e900800000000000000
+      internalID: 714135002158184406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_3
+      rect:
+        serializedVersion: 2
+        x: 890
+        y: 1037
+        width: 58
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1af7c984c8166cef0800000000000000
+      internalID: -88275887545614431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_4
+      rect:
+        serializedVersion: 2
+        x: 1178
+        y: 923
+        width: 283
+        height: 157
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb3684256d6ed0ce0800000000000000
+      internalID: -1437238897883454529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_5
+      rect:
+        serializedVersion: 2
+        x: 1480
+        y: 1043
+        width: 58
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70610d6b194fe7ff0800000000000000
+      internalID: -36322840297859577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_6
+      rect:
+        serializedVersion: 2
+        x: 1631
+        y: 0
+        width: 289
+        height: 1080
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a15c6535296545e20800000000000000
+      internalID: 3338388410251789594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_7
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 947
+        width: 97
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6cdbcd3ef886a3880800000000000000
+      internalID: -8630470768689627706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 734
+        width: 98
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10f5f06ea696d6470800000000000000
+      internalID: 8389477588708318977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_9
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 756
+        width: 63
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f756976f029ccc30800000000000000
+      internalID: 4381037132384720883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_10
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 740
+        width: 93
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbc062be278b36090800000000000000
+      internalID: -8042381705842651972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_11
+      rect:
+        serializedVersion: 2
+        x: 1464
+        y: 765
+        width: 56
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2fd423de6bfc1cb0800000000000000
+      internalID: -4891758641823817940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 644
+        width: 74
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78d287cf5fad33250800000000000000
+      internalID: 5923318684959911303
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_13
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 560
+        width: 215
+        height: 113
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9253279e132b62cc0800000000000000
+      internalID: -3736102913417530071
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_14
+      rect:
+        serializedVersion: 2
+        x: 565
+        y: 635
+        width: 149
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0cc47ce32823ec50800000000000000
+      internalID: 6693237605958732814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_15
+      rect:
+        serializedVersion: 2
+        x: 1128
+        y: 651
+        width: 63
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e475fcd62684c480800000000000000
+      internalID: -8879825063793822490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_16
+      rect:
+        serializedVersion: 2
+        x: 1183
+        y: 641
+        width: 121
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09750b81acc77f340800000000000000
+      internalID: 4897520327228151696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_17
+      rect:
+        serializedVersion: 2
+        x: 1512
+        y: 588
+        width: 63
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5df77704d22a10720800000000000000
+      internalID: 2810705957694701525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_18
+      rect:
+        serializedVersion: 2
+        x: 601
+        y: 487
+        width: 47
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78e366c2901423570800000000000000
+      internalID: 8444883758928510599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_19
+      rect:
+        serializedVersion: 2
+        x: 1173
+        y: 501
+        width: 88
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e7e6de1884e5bec0800000000000000
+      internalID: -3551681457827682335
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_20
+      rect:
+        serializedVersion: 2
+        x: 1579
+        y: 535
+        width: 146
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07121750531b90850800000000000000
+      internalID: 6343796391410737520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_21
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 433
+        width: 98
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64818a2a53095b7a0800000000000000
+      internalID: -6362020338554365882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_22
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 337
+        width: 223
+        height: 166
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f3bc917d9fa15e70800000000000000
+      internalID: 9102249412643304432
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_23
+      rect:
+        serializedVersion: 2
+        x: 1129
+        y: 483
+        width: 39
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ef364616ae88f7a0800000000000000
+      internalID: -6343163231161925660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_24
+      rect:
+        serializedVersion: 2
+        x: 1102
+        y: 286
+        width: 152
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adb25960b87c87420800000000000000
+      internalID: 2628069782495505370
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_25
+      rect:
+        serializedVersion: 2
+        x: 445
+        y: 170
+        width: 63
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c52dd40b86624190800000000000000
+      internalID: -7979702842479008319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_26
+      rect:
+        serializedVersion: 2
+        x: 675
+        y: 172
+        width: 101
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e55cd1cfcb52b9f0800000000000000
+      internalID: -454199664542198296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_27
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 11
+        width: 92
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f10deaea63e90cb60800000000000000
+      internalID: 7764379715282849823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Map_Multiplane_Updated_4_symbols_28
+      rect:
+        serializedVersion: 2
+        x: 190
+        y: 48
+        width: 117
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 391521341121e7620800000000000000
+      internalID: 2773674285855822227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Map_Multiplane_Updated_4_symbols_0: 3786552789853649801
+      Map_Multiplane_Updated_4_symbols_1: -5447587987349637714
+      Map_Multiplane_Updated_4_symbols_10: -8042381705842651972
+      Map_Multiplane_Updated_4_symbols_11: -4891758641823817940
+      Map_Multiplane_Updated_4_symbols_12: 5923318684959911303
+      Map_Multiplane_Updated_4_symbols_13: -3736102913417530071
+      Map_Multiplane_Updated_4_symbols_14: 6693237605958732814
+      Map_Multiplane_Updated_4_symbols_15: -8879825063793822490
+      Map_Multiplane_Updated_4_symbols_16: 4897520327228151696
+      Map_Multiplane_Updated_4_symbols_17: 2810705957694701525
+      Map_Multiplane_Updated_4_symbols_18: 8444883758928510599
+      Map_Multiplane_Updated_4_symbols_19: -3551681457827682335
+      Map_Multiplane_Updated_4_symbols_2: 714135002158184406
+      Map_Multiplane_Updated_4_symbols_20: 6343796391410737520
+      Map_Multiplane_Updated_4_symbols_21: -6362020338554365882
+      Map_Multiplane_Updated_4_symbols_22: 9102249412643304432
+      Map_Multiplane_Updated_4_symbols_23: -6343163231161925660
+      Map_Multiplane_Updated_4_symbols_24: 2628069782495505370
+      Map_Multiplane_Updated_4_symbols_25: -7979702842479008319
+      Map_Multiplane_Updated_4_symbols_26: -454199664542198296
+      Map_Multiplane_Updated_4_symbols_27: 7764379715282849823
+      Map_Multiplane_Updated_4_symbols_28: 2773674285855822227
+      Map_Multiplane_Updated_4_symbols_3: -88275887545614431
+      Map_Multiplane_Updated_4_symbols_4: -1437238897883454529
+      Map_Multiplane_Updated_4_symbols_5: -36322840297859577
+      Map_Multiplane_Updated_4_symbols_6: 3338388410251789594
+      Map_Multiplane_Updated_4_symbols_7: -8630470768689627706
+      Map_Multiplane_Updated_4_symbols_8: 8389477588708318977
+      Map_Multiplane_Updated_4_symbols_9: 4381037132384720883
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
