@@ -155,7 +155,7 @@ namespace Caravans.Play
             windButton = Tab(head, "Wind", PlayWind);
             windButton.GetComponent<LayoutElement>().preferredWidth = 120f;
 
-            heard = Body(head, 20f, TextAlignmentOptions.MidlineRight);
+            heard = Body(head, UiType.Small, TextAlignmentOptions.MidlineRight);
             heard.color = Quiet;
             heard.textWrappingMode = TextWrappingModes.NoWrap;
             heard.overflowMode = TextOverflowModes.Overflow;
@@ -267,7 +267,7 @@ namespace Caravans.Play
             var bar = Child(barColumn, "Strip");
             bar.anchorMin = Vector2.zero;
             bar.anchorMax = Vector2.one;
-            bar.offsetMin = new Vector2(0f, 32f);
+            bar.offsetMin = new Vector2(0f, 40f);
             bar.offsetMax = Vector2.zero;
             var barImage = bar.gameObject.AddComponent<Image>();
             barImage.sprite = quad;
@@ -278,13 +278,13 @@ namespace Caravans.Play
             sample.color = Ink;
             sample.text = WorldClock.Format(1, 6f);
             Stretch(sample.rectTransform, 8f);
-            var barLabel = Body(barColumn, 18f, TextAlignmentOptions.Bottom);
+            var barLabel = Body(barColumn, UiType.Small, TextAlignmentOptions.Bottom);
             barLabel.text = "Top bar";
             var barCap = barLabel.rectTransform;
             barCap.anchorMin = Vector2.zero;
             barCap.anchorMax = new Vector2(1f, 0f);
             barCap.pivot = new Vector2(0.5f, 0f);
-            barCap.sizeDelta = new Vector2(0f, 28f);
+            barCap.sizeDelta = new Vector2(0f, 36f);
             barCap.anchoredPosition = Vector2.zero;
             SliceBox(body, "Bone", bone, new Vector2(0.50f, 0.02f), new Vector2(0.73f, 0.26f), "Frame", "BA-04", 28f, Ink);
             SliceBox(body, "BoneBar", bone, new Vector2(0.75f, 0.02f), new Vector2(0.98f, 0.26f), "Border", "", 22f, Ink);
@@ -303,7 +303,7 @@ namespace Caravans.Play
             var stack = Child(column, "Stack");
             stack.anchorMin = Vector2.zero;
             stack.anchorMax = Vector2.one;
-            stack.offsetMin = new Vector2(0f, 32f);
+            stack.offsetMin = new Vector2(0f, 40f);
             stack.offsetMax = Vector2.zero;
 
             var rod = Resources.Load<Texture2D>("Ui/shimmersteel-rod");
@@ -342,24 +342,24 @@ namespace Caravans.Play
             barRaw.texture = barTex;
             barRaw.raycastTarget = false;
             barRaw.color = barTex != null ? Color.white : Color.clear;
-            var railLabel = Body(rail, 18f, TextAlignmentOptions.Bottom);
+            var railLabel = Body(rail, UiType.Small, TextAlignmentOptions.Bottom);
             railLabel.text = "Banner rail";
             railLabel.color = Ink;
             var railCap = railLabel.rectTransform;
             railCap.anchorMin = Vector2.zero;
             railCap.anchorMax = new Vector2(1f, 0f);
             railCap.pivot = new Vector2(0.5f, 0f);
-            railCap.sizeDelta = new Vector2(0f, 28f);
+            railCap.sizeDelta = new Vector2(0f, 36f);
             railCap.anchoredPosition = Vector2.zero;
 
-            var label = Body(column, 18f, TextAlignmentOptions.Bottom);
+            var label = Body(column, UiType.Small, TextAlignmentOptions.Bottom);
             label.text = "Lead";
             label.color = Ink;
             var cap = label.rectTransform;
             cap.anchorMin = Vector2.zero;
             cap.anchorMax = new Vector2(1f, 0f);
             cap.pivot = new Vector2(0.5f, 0f);
-            cap.sizeDelta = new Vector2(0f, 28f);
+            cap.sizeDelta = new Vector2(0f, 36f);
             cap.anchoredPosition = Vector2.zero;
             return body.gameObject;
         }
@@ -389,7 +389,7 @@ namespace Caravans.Play
             var picture = Child(column, "Picture");
             picture.anchorMin = Vector2.zero;
             picture.anchorMax = Vector2.one;
-            picture.offsetMin = new Vector2(0f, 32f);
+            picture.offsetMin = new Vector2(0f, 40f);
             picture.offsetMax = Vector2.zero;
             var raw = picture.gameObject.AddComponent<RawImage>();
             raw.texture = texture;
@@ -402,14 +402,14 @@ namespace Caravans.Play
                 fit.aspectRatio = texture.width / (float)Mathf.Max(texture.height, 1);
             }
 
-            var label = Body(column, 18f, TextAlignmentOptions.Bottom);
+            var label = Body(column, UiType.Small, TextAlignmentOptions.Bottom);
             label.text = caption;
             label.color = Ink;
             var cap = label.rectTransform;
             cap.anchorMin = Vector2.zero;
             cap.anchorMax = new Vector2(1f, 0f);
             cap.pivot = new Vector2(0.5f, 0f);
-            cap.sizeDelta = new Vector2(0f, 28f);
+            cap.sizeDelta = new Vector2(0f, 36f);
             cap.anchoredPosition = Vector2.zero;
         }
 
@@ -531,7 +531,7 @@ namespace Caravans.Play
             var picture = Child(column, "Picture");
             picture.anchorMin = Vector2.zero;
             picture.anchorMax = Vector2.one;
-            picture.offsetMin = new Vector2(0f, 32f);
+            picture.offsetMin = new Vector2(0f, 40f);
             picture.offsetMax = Vector2.zero;
             var image = picture.gameObject.AddComponent<Image>();
             image.sprite = sprite;
@@ -545,13 +545,13 @@ namespace Caravans.Play
             line.text = sample;
             Stretch(line.rectTransform, 28f);
 
-            var label = Body(column, 18f, TextAlignmentOptions.Bottom);
+            var label = Body(column, UiType.Small, TextAlignmentOptions.Bottom);
             label.text = caption;
             var cap = label.rectTransform;
             cap.anchorMin = Vector2.zero;
             cap.anchorMax = new Vector2(1f, 0f);
             cap.pivot = new Vector2(0.5f, 0f);
-            cap.sizeDelta = new Vector2(0f, 28f);
+            cap.sizeDelta = new Vector2(0f, 36f);
             cap.anchoredPosition = Vector2.zero;
         }
 
@@ -610,7 +610,7 @@ namespace Caravans.Play
             var picture = Child(column, "Picture");
             picture.anchorMin = new Vector2(0f, 0f);
             picture.anchorMax = Vector2.one;
-            picture.offsetMin = new Vector2(0f, 32f);
+            picture.offsetMin = new Vector2(0f, 40f);
             picture.offsetMax = Vector2.zero;
             if (texture != null)
             {
@@ -629,13 +629,13 @@ namespace Caravans.Play
                 image.raycastTarget = false;
             }
 
-            var caption = Body(column, 18f, TextAlignmentOptions.Bottom);
+            var caption = Body(column, UiType.Small, TextAlignmentOptions.Bottom);
             caption.text = name;
             var cap = caption.rectTransform;
             cap.anchorMin = Vector2.zero;
             cap.anchorMax = new Vector2(1f, 0f);
             cap.pivot = new Vector2(0.5f, 0f);
-            cap.sizeDelta = new Vector2(0f, 28f);
+            cap.sizeDelta = new Vector2(0f, 36f);
             cap.anchoredPosition = Vector2.zero;
         }
 
@@ -669,14 +669,13 @@ namespace Caravans.Play
             Stretch(face, 8f);
 
             var picture = Resources.Load<Texture2D>("Goods/" + good);
-            var text = Body(rect, 18f, TextAlignmentOptions.Center);
+            var text = Body(rect, UiType.Small, TextAlignmentOptions.Center);
             text.text = EconomyCatalog.GoodName(good);
             text.color = Color.black;
             text.textWrappingMode = TextWrappingModes.Normal;
             text.overflowMode = TextOverflowModes.Overflow;
-            text.enableAutoSizing = true;
-            text.fontSizeMin = 11f;
-            text.fontSizeMax = 16f;
+            text.enableAutoSizing = false;
+            text.fontSize = UiType.Small;
             var textRt = text.rectTransform;
             textRt.anchorMin = Vector2.zero;
             textRt.anchorMax = new Vector2(1f, NameBand);
@@ -839,8 +838,8 @@ namespace Caravans.Play
             button.navigation = nav;
             button.onClick.AddListener(action);
             var element = go.AddComponent<LayoutElement>();
-            element.preferredHeight = 40f;
-            var text = Body(go.GetComponent<RectTransform>(), 20f, TextAlignmentOptions.Center);
+            element.preferredHeight = 48f;
+            var text = Body(go.GetComponent<RectTransform>(), UiType.Small, TextAlignmentOptions.Center);
             text.text = label;
             Stretch(text.rectTransform, 4f);
             return button;

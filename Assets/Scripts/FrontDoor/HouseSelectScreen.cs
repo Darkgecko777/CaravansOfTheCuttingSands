@@ -113,7 +113,7 @@ namespace Caravans.FrontDoor
             var titleHostFit = titleHost.GetComponent<LayoutElement>();
             if (titleHostFit != null)
                 titleHostFit.ignoreLayout = true;
-            FrontUi.Label(column, "The market does not forgive the uncommitted.", 16f, false, FrontUi.TitleGold, new Vector2(1400f, 28f));
+            FrontUi.Label(column, "The market does not forgive the uncommitted.", UiType.Body, false, UiType.Cream, new Vector2(1400f, 40f));
 
             var row = FrontUi.Box(column, "Houses", new Vector2(1400f, 340f));
             var rowElement = row.gameObject.AddComponent<LayoutElement>();
@@ -144,7 +144,7 @@ namespace Caravans.FrontDoor
             backButton.targetGraphic = backImage;
             backButton.transition = Selectable.Transition.None;
             backButton.onClick.AddListener(Gate.ShowTitle);
-            var backLabel = FrontUi.Label(back, "Back", 16f, false, FrontUi.Gold, new Vector2(160f, 64f));
+            var backLabel = FrontUi.Label(back, "Back", UiType.Small, false, UiType.Cream, new Vector2(160f, 64f));
             var backHost = (RectTransform)backLabel.transform.parent;
             backHost.anchorMin = Vector2.zero;
             backHost.anchorMax = Vector2.one;
@@ -161,38 +161,25 @@ namespace Caravans.FrontDoor
             var element = rect.gameObject.AddComponent<LayoutElement>();
             element.preferredWidth = 270f;
             element.preferredHeight = 340f;
-            var frame = rect.gameObject.AddComponent<Image>();
-            Sprite bone = FrontArt.BoneFrame();
-            frame.sprite = bone;
-            frame.type = bone != null ? Image.Type.Sliced : Image.Type.Simple;
-            frame.color = house.Available ? Color.white : new Color(0.55f, 0.5f, 0.45f, 1f);
+            Color tint = HouseTint(house.Id);
+            Image fill = FrontUi.FrameSheet(rect);
+            fill.color = tint;
+            fill.raycastTarget = true;
+            var bone = rect.Find("Bone").GetComponent<Image>();
+            bone.color = house.Available ? Color.white : new Color(0.55f, 0.5f, 0.45f, 1f);
             var button = rect.gameObject.AddComponent<Button>();
-            button.targetGraphic = frame;
+            button.targetGraphic = fill;
             button.transition = Selectable.Transition.None;
             button.interactable = house.Available;
-
-            var fillRect = FrontUi.Box(rect, "Fill", new Vector2(270f, 340f));
-            fillRect.anchorMin = Vector2.zero;
-            fillRect.anchorMax = Vector2.one;
-            fillRect.offsetMin = new Vector2(72f, 72f);
-            fillRect.offsetMax = new Vector2(-72f, -72f);
-            var fill = fillRect.gameObject.AddComponent<Image>();
-            Sprite sheet = FrontArt.HidePanel();
-            fill.sprite = sheet;
-            fill.type = sheet != null ? Image.Type.Sliced : Image.Type.Simple;
-            Color tint = HouseTint(house.Id);
-            fill.color = tint;
-            fill.raycastTarget = false;
-            fillRect.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
 
             var body = FrontUi.Box(rect, "Body", new Vector2(270f, 340f));
             body.anchorMin = Vector2.zero;
             body.anchorMax = Vector2.one;
-            body.offsetMin = new Vector2(78f, 78f);
-            body.offsetMax = new Vector2(-78f, -78f);
+            body.offsetMin = new Vector2(46f, 46f);
+            body.offsetMax = new Vector2(-46f, -46f);
             var bodyLayout = body.gameObject.AddComponent<VerticalLayoutGroup>();
             bodyLayout.childAlignment = TextAnchor.MiddleCenter;
-            bodyLayout.spacing = 10f;
+            bodyLayout.spacing = 6f;
             bodyLayout.childControlWidth = true;
             bodyLayout.childControlHeight = true;
             bodyLayout.childForceExpandWidth = true;
@@ -200,16 +187,16 @@ namespace Caravans.FrontDoor
             body.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
 
             bool open = house.Available;
-            var mark = FrontUi.Label(body, house.Mark, 48f, true, open ? CardInk : FrontUi.LockedMark, new Vector2(180f, 64f));
-            var name = FrontUi.Label(body, house.Name, 16f, true, open ? CardInk : FrontUi.LockedName, new Vector2(180f, 28f));
-            var flavour = FrontUi.Label(body, house.Flavour, 12f, false, open ? CardSoft : FrontUi.LockedFlavour, new Vector2(180f, 72f), true);
+            var mark = FrontUi.Label(body, house.Mark, UiType.Header, true, open ? UiType.Cream : FrontUi.LockedMark, new Vector2(170f, 48f));
+            var name = FrontUi.Label(body, house.Name, UiType.Small, true, open ? UiType.Cream : FrontUi.LockedName, new Vector2(170f, 52f));
+            var flavour = FrontUi.Label(body, house.Flavour, UiType.Small, false, open ? UiType.Cream : FrontUi.LockedFlavour, new Vector2(170f, 78f), true);
             var status = FrontUi.Label(
                 body,
                 open ? "Available" : "Locked in Demo",
-                12f,
+                UiType.Small,
                 false,
                 open ? FrontUi.Available : FrontUi.Locked,
-                new Vector2(180f, 24f));
+                new Vector2(180f, 32f));
 
             IgnoreRaycasts(mark, name, flavour, status);
             var card = new Card { Id = house.Id, Fill = fill, Available = open, Tint = tint };
@@ -277,8 +264,6 @@ namespace Caravans.FrontDoor
         }
 
         static readonly Color VellumInk = new Color(0.28f, 0.16f, 0.09f, 1f);
-        static readonly Color CardInk = new Color(0.95f, 0.89f, 0.78f, 1f);
-        static readonly Color CardSoft = new Color(0.95f, 0.85f, 0.55f, 1f);
 
         static Color HouseTint(string houseId)
         {

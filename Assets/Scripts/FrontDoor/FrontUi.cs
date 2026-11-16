@@ -6,7 +6,40 @@ using UnityEngine.UI;
 
 namespace Caravans.FrontDoor
 {
-    static class FrontUi
+    // Sizes are points at the 1920×1080 reference. Gold is for a header or a selected line.
+    public static class UiType
+    {
+        public const float Small = 22f;
+        public const float Body = 27f;
+        public const float Hud = 31f;
+        public const float Header = 38f;
+        public const float Bar = 76f;
+        public const float Space = 16f;
+        public const float Gap = 24f;
+        public const float SpaceLarge = 32f;
+        public const float BoneEdge = 38f;
+        public const float CardMinW = 520f;
+        public const float CardMinH = 260f;
+        public static readonly Color Cream = new Color(0.918f, 0.863f, 0.753f, 1f);
+        public static readonly Color Umber = new Color(0.45f, 0.28f, 0.16f, 1f);
+        public static readonly Color Backdrop = new Color(0f, 0f, 0f, 0.55f);
+        public static readonly Color Rod = new Color(0.86f, 0.72f, 0.42f, 1f);
+        public static readonly Color Shade = new Color(0.08f, 0.05f, 0.02f, 0.9f);
+
+        // Sliced border in reference pixels is sprite.border / (pixelsPerUnit / 100) / multiplier.
+        public static float Tuck(Sprite sprite, float edgePx)
+        {
+            if (sprite == null || edgePx <= 0f)
+                return 1f;
+            float unit = Mathf.Max(sprite.pixelsPerUnit / 100f, 0.0001f);
+            float raw = Mathf.Max(sprite.border.x, sprite.border.y) / unit;
+            if (raw <= edgePx)
+                return 1f;
+            return raw / edgePx;
+        }
+    }
+
+    public static class FrontUi
     {
         public static readonly Color Gold = new Color(0.91f, 0.78f, 0.42f, 1f);
         public static readonly Color GoldBright = new Color(0.98f, 0.88f, 0.55f, 1f);
@@ -118,7 +151,7 @@ namespace Caravans.FrontDoor
             button.interactable = enabled;
             if (click != null)
                 button.onClick.AddListener(click);
-            var label = Label(rect, text, 28f, true, enabled ? Gold : Disabled, new Vector2(280f, 84f));
+            var label = Label(rect, text, UiType.Body, true, enabled ? Gold : Disabled, new Vector2(280f, 84f));
             var host = (RectTransform)label.transform.parent;
             host.anchorMin = Vector2.zero;
             host.anchorMax = Vector2.one;
@@ -129,6 +162,37 @@ namespace Caravans.FrontDoor
                 hostElement.ignoreLayout = true;
             rect.gameObject.AddComponent<PlatePress>().Bind(label);
             return button;
+        }
+
+        // One bone edge over a dark hide sheet. The hide rim is tucked under the bone.
+        public static Image FrameSheet(RectTransform rect)
+        {
+            var sheet = rect.gameObject.AddComponent<Image>();
+            Sprite hide = FrontArt.HidePanel();
+            sheet.sprite = hide;
+            sheet.type = hide != null ? Image.Type.Sliced : Image.Type.Simple;
+            sheet.color = Color.white;
+            sheet.raycastTarget = true;
+            if (hide != null)
+                sheet.pixelsPerUnitMultiplier = UiType.Tuck(hide, 28f);
+
+            var boneGo = new GameObject("Bone", typeof(RectTransform));
+            boneGo.transform.SetParent(rect, false);
+            var boneRt = boneGo.GetComponent<RectTransform>();
+            boneRt.anchorMin = Vector2.zero;
+            boneRt.anchorMax = Vector2.one;
+            boneRt.offsetMin = Vector2.zero;
+            boneRt.offsetMax = Vector2.zero;
+            var bone = boneGo.AddComponent<Image>();
+            Sprite frame = FrontArt.BoneFrame();
+            bone.sprite = frame;
+            bone.type = frame != null ? Image.Type.Sliced : Image.Type.Simple;
+            bone.fillCenter = false;
+            bone.raycastTarget = false;
+            bone.color = Color.white;
+            bone.pixelsPerUnitMultiplier = UiType.Tuck(frame, UiType.BoneEdge);
+            boneGo.AddComponent<LayoutElement>().ignoreLayout = true;
+            return sheet;
         }
     }
 

@@ -49,7 +49,7 @@ namespace Caravans.FrontDoor
             layout.childForceExpandHeight = false;
 
             FrontUi.Label(column, "Caravans of the Cutting Sands", 42f, true, FrontUi.TitleGold, new Vector2(1400f, 64f));
-            FrontUi.Label(column, "Buy on knowledge. Risk the journey.", 16f, false, FrontUi.Subtitle, new Vector2(1400f, 28f));
+            FrontUi.Label(column, "Buy on knowledge. Risk the journey.", UiType.Small, false, FrontUi.Subtitle, new Vector2(1400f, 36f));
 
             var frame = FrontUi.Box(column, "MenuFrame", new Vector2(400f, 520f));
             var frameElement = frame.gameObject.AddComponent<LayoutElement>();
@@ -110,36 +110,42 @@ namespace Caravans.FrontDoor
             root.offsetMin = Vector2.zero;
             root.offsetMax = Vector2.zero;
             var backdrop = root.gameObject.AddComponent<Image>();
-            backdrop.color = new Color(0.04f, 0.03f, 0.02f, 0.55f);
+            backdrop.color = UiType.Backdrop;
             var backdropButton = root.gameObject.AddComponent<Button>();
             backdropButton.targetGraphic = backdrop;
             backdropButton.transition = Selectable.Transition.None;
             backdropButton.onClick.AddListener(CloseOptions);
 
-            var frame = FrontUi.Box(root, "MenuFrame", new Vector2(400f, 520f));
+            var frame = FrontUi.Box(root, "MenuFrame", new Vector2(UiType.CardMinW, UiType.CardMinH));
             frame.anchorMin = frame.anchorMax = new Vector2(0.5f, 0.5f);
             frame.pivot = new Vector2(0.5f, 0.5f);
             frame.anchoredPosition = Vector2.zero;
-            var frameImage = frame.gameObject.AddComponent<Image>();
-            frameImage.sprite = FrontArt.MenuFrame();
-            frameImage.preserveAspect = true;
-            frameImage.raycastTarget = false;
-            frameImage.color = frameImage.sprite != null ? Color.white : new Color(0.42f, 0.32f, 0.2f, 0.92f);
+            FrontUi.FrameSheet(frame);
 
-            var column = FrontUi.Box(frame, "Buttons", new Vector2(320f, 420f));
+            var column = FrontUi.Box(frame, "Buttons", new Vector2(360f, 180f));
             column.anchorMin = column.anchorMax = new Vector2(0.5f, 0.5f);
             column.pivot = new Vector2(0.5f, 0.5f);
             column.anchoredPosition = Vector2.zero;
             var layout = column.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.childAlignment = TextAnchor.MiddleCenter;
-            layout.spacing = 16f;
+            layout.spacing = UiType.Space;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
 
-            FrontUi.Label(column, "Options", 28f, true, FrontUi.TitleGold, new Vector2(320f, 48f));
-            FrontUi.MenuButton(column, "CLOSE", true, CloseOptions);
+            FrontUi.Label(column, "Options", UiType.Header, true, FrontUi.Gold, new Vector2(360f, 56f));
+            var close = FrontUi.Box(column, "CLOSE", new Vector2(280f, 72f));
+            var closeFit = close.gameObject.AddComponent<LayoutElement>();
+            closeFit.preferredWidth = 280f;
+            closeFit.preferredHeight = 72f;
+            var closeHit = close.gameObject.AddComponent<Image>();
+            closeHit.color = new Color(1f, 1f, 1f, 0.01f);
+            var closeButton = close.gameObject.AddComponent<Button>();
+            closeButton.targetGraphic = closeHit;
+            closeButton.transition = Selectable.Transition.None;
+            closeButton.onClick.AddListener(CloseOptions);
+            FrontUi.Label(close, "CLOSE", UiType.Body, true, FrontUi.Gold, new Vector2(280f, 72f));
 
             optionsRoot = root.gameObject;
             optionsRoot.SetActive(false);
