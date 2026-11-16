@@ -143,31 +143,7 @@ namespace Caravans.Play
         public CaravanSession()
         {
             ResetCaravan();
-            SitAt(HouseId.Kharun);
-        }
-
-        public static PlaceId HomeOf(HouseId house)
-        {
-            switch (house)
-            {
-                case HouseId.Zamath:
-                    return PlaceId.Zamath;
-                case HouseId.Thalor:
-                    return PlaceId.Thalor;
-                case HouseId.Veythar:
-                    return PlaceId.Veythar;
-                case HouseId.Ghorath:
-                    return PlaceId.Ghorath;
-                default:
-                    return PlaceId.Kharun;
-            }
-        }
-
-        public static CaravanSession AtHouse(HouseId house)
-        {
-            var session = new CaravanSession();
-            session.BeginAt(house);
-            return session;
+            SitAtKharun();
         }
 
         public int CargoOf(GoodId good)
@@ -1759,16 +1735,10 @@ namespace Caravans.Play
             SpawnNpcs();
         }
 
-        void BeginAt(HouseId house)
+        void SitAtKharun()
         {
-            SitAt(house);
-            Touch();
-        }
-
-        void SitAt(HouseId house)
-        {
-            House = house;
-            Dock = HomeOf(house);
+            House = HouseId.Kharun;
+            Dock = PlaceId.Kharun;
             Traveling = false;
             HoldTravel = false;
             CampPending = false;

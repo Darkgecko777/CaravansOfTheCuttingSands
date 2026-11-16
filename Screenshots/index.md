@@ -1,13 +1,11 @@
 # UI screenshots
 
-Captured 2026-11-15 at commit a4e38e4 (working tree).
+Captured 2026-11-15 at commit 901e08d (working tree).
 
 | File | Scene | State |
 | --- | --- | --- |
 | 01_title.png | TitleScreen | Main menu. Options closed. The sand is blowing. |
 | 02_title_options.png | TitleScreen | Options panel open over the main menu. |
-| 03_house_select.png | HouseSelect | Choose Your House. No house is selected. |
-| 04_house_selected.png | HouseSelect | House Kharûn is selected. |
 | 10_market_empty.png | SampleScene | Market at Kharûn. No cell is selected. The wagon holds the seeded cargo. |
 | 11_market_selected_buy.png | SampleScene | Market at Kharûn. A shop cell with stock is selected. |
 | 12_market_sort_menu.png | SampleScene | Market at Kharûn. The sort menu is open. |
@@ -26,14 +24,6 @@ Captured 2026-11-15 at commit a4e38e4 (working tree).
 | 33_encounter.png | SampleScene | Encounter card WD-01 open on the Draven road. |
 | 34_camp.png | SampleScene | Make camp card open on the Draven road. |
 | 35_resume_pace.png | SampleScene | Pace card after camp on the Draven road. Dawn and dusk are offered. The camp has advanced the clock. |
-| 90_market.png | CargoSounds | Asset-testing Market page. Reference sheet. |
-| 91_front_door.png | CargoSounds | Asset-testing Front door page. Reference sheet. |
-| 92_map.png | CargoSounds | Asset-testing Map page. Reference sheet. |
-| 93_mounts.png | CargoSounds | Asset-testing Mounts page. Reference sheet. |
-| 94_ui_kit.png | CargoSounds | Asset-testing UI Kit page. Reference sheet. |
-| 95_layers.png | CargoSounds | Asset-testing Layers page. Reference sheet. |
-| 96_card.png | CargoSounds | Asset-testing Card page. Reference sheet. |
-| 97_seals.png | CargoSounds | Asset-testing Seals page. Reference sheet. |
 
 The encounter card, the camp card, and the after-camp pace card are part of play. They are 33_encounter.png, 34_camp.png, and 35_resume_pace.png. Play has no tooltip type and no separate dialog type.
 

@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 namespace Caravans.FrontDoor
 {
-    // Wind outlives house select and keeps tapering if the player leaves early.
+    // Wind keeps tapering if the player leaves the title early.
     // The sand does not. It is taken down on the same frame the fade begins.
     public sealed class StormDirector : MonoBehaviour
     {
@@ -114,19 +114,6 @@ namespace Caravans.FrontDoor
             if (scene.name == Gate.TitleScene)
             {
                 HarmonizeListeners();
-                return;
-            }
-
-            // Buy clips are sampled here. The title wind stops at once.
-            if (scene.name == Gate.CargoSoundsScene)
-            {
-                HideVisuals();
-                wind.Stop();
-                wind.volume = 0f;
-                fade.Finish();
-                listenersSettled = false;
-                HarmonizeListeners();
-                fadeSettled = true;
                 return;
             }
 

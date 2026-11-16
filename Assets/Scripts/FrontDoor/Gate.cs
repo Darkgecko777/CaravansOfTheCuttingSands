@@ -6,12 +6,9 @@ namespace Caravans.FrontDoor
     public static class Gate
     {
         public const string TitleScene = "TitleScreen";
-        public const string HouseScene = "HouseSelect";
         public const string PlayScene = "SampleScene";
-        public const string CargoSoundsScene = "CargoSounds";
 
         public static bool RunConfirmed { get; private set; }
-        public static string ChosenHouse { get; private set; } = "";
 
         // Enter Play Mode keeps statics when domain reload is off. This still runs.
         static bool sessionRouted;
@@ -31,7 +28,6 @@ namespace Caravans.FrontDoor
         static void ClearRun()
         {
             RunConfirmed = false;
-            ChosenHouse = "";
             sessionRouted = false;
         }
 
@@ -48,17 +44,6 @@ namespace Caravans.FrontDoor
             ShowTitle();
         }
 
-        public static void ShowHouse()
-        {
-            if (Application.CanStreamedLevelBeLoaded(HouseScene))
-            {
-                SceneManager.LoadScene(HouseScene);
-                return;
-            }
-
-            HouseSelectScreen.Spawn();
-        }
-
         public static void ShowTitle()
         {
             if (Application.CanStreamedLevelBeLoaded(TitleScene))
@@ -70,15 +55,8 @@ namespace Caravans.FrontDoor
             TitleScreen.Spawn();
         }
 
-        public static void ShowCargoSounds()
+        public static void ConfirmRun()
         {
-            if (Application.CanStreamedLevelBeLoaded(CargoSoundsScene))
-                SceneManager.LoadScene(CargoSoundsScene);
-        }
-
-        public static void ConfirmRun(string houseId)
-        {
-            ChosenHouse = houseId ?? "";
             RunConfirmed = true;
             SceneManager.LoadScene(PlayScene);
         }

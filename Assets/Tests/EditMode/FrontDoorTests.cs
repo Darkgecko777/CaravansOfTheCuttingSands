@@ -91,14 +91,5 @@ namespace Caravans.Play.Tests
                 Assert.Less(vertices[i].x, 60000f);
             }
         }
-
-        [Test]
-        public void EveryHouseIsOpen()
-        {
-            Assert.AreEqual(5, Houses.All.Length);
-            for (int i = 0; i < Houses.All.Length; i++)
-                Assert.IsTrue(Houses.All[i].Available);
-        }
-
     }
 }

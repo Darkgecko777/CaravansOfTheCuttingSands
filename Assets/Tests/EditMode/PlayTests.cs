@@ -182,7 +182,7 @@ namespace Caravans.Play.Tests
         [Test]
         public void AHouseStartIsFreeAtThatCityWithTheSharedPurse()
         {
-            var session = CaravanSession.AtHouse(HouseId.Kharun);
+            var session = new CaravanSession();
             Assert.IsTrue(session.House.HasValue);
             Assert.AreEqual(HouseId.Kharun, session.House.Value);
             Assert.AreEqual(PlaceId.Kharun, session.Dock);
@@ -193,14 +193,13 @@ namespace Caravans.Play.Tests
         }
 
         [Test]
-        public void EachHouseStartsInItsOwnCity()
+        public void TheOnlyStartIsKharun()
         {
-            Assert.AreEqual(PlaceId.Kharun, CaravanSession.AtHouse(HouseId.Kharun).Dock);
-            Assert.AreEqual(PlaceId.Zamath, CaravanSession.AtHouse(HouseId.Zamath).Dock);
-            Assert.AreEqual(PlaceId.Thalor, CaravanSession.AtHouse(HouseId.Thalor).Dock);
-            Assert.AreEqual(PlaceId.Veythar, CaravanSession.AtHouse(HouseId.Veythar).Dock);
-            Assert.AreEqual(PlaceId.Ghorath, CaravanSession.AtHouse(HouseId.Ghorath).Dock);
-            Assert.AreEqual(HouseId.Zamath, CaravanSession.AtHouse(HouseId.Zamath).House.Value);
+            var session = new CaravanSession();
+            Assert.AreEqual(HouseId.Kharun, session.House.Value);
+            Assert.AreEqual(PlaceId.Kharun, session.Dock);
+            Assert.AreEqual(TravelScale.StartingCoin, session.Coin);
+            Assert.AreEqual(0, session.CargoCount);
         }
 
         [Test]
@@ -408,7 +407,8 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(0, session.StockOf(PlaceId.Kharun, GoodId.SeaWater));
             Assert.AreEqual(session.BuyCost(PlaceId.Zamath, GoodId.Water), session.BuyCost(PlaceId.Zamath, GoodId.SeaWater));
 
-            var zamath = CaravanSession.AtHouse(HouseId.Zamath);
+            var zamath = new CaravanSession();
+            zamath.ShotDockAt(PlaceId.Zamath);
             zamath.SetShelf(PlaceId.Zamath, GoodId.SeaWater, 4);
             int waterAtZamath = zamath.StockOf(PlaceId.Zamath, GoodId.Water);
             Assert.IsTrue(zamath.TryBuy(GoodId.SeaWater));
@@ -557,7 +557,8 @@ namespace Caravans.Play.Tests
         [Test]
         public void ASeaOpeningSpendsNoTravelHours()
         {
-            var session = CaravanSession.AtHouse(HouseId.Zamath);
+            var session = new CaravanSession();
+            session.ShotDockAt(PlaceId.Zamath);
             float hours = session.TravelHours;
             session.SplitUntilStop(PlaceId.Neth, RoadPace.Steady, out float day, out float night);
             Assert.AreEqual(0f, day, 0.001f);
@@ -859,7 +860,8 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(1, session.StretchChecks);
             Assert.IsFalse(session.EncounterPending);
 
-            var sea = CaravanSession.AtHouse(HouseId.Zamath);
+            var sea = new CaravanSession();
+            sea.ShotDockAt(PlaceId.Zamath);
             Assert.IsTrue(sea.DepartTo(PlaceId.Neth));
             Assert.AreEqual(0, sea.StretchChecks);
             Assert.IsFalse(sea.EncounterPending);
@@ -918,7 +920,8 @@ namespace Caravans.Play.Tests
             notes.NoteShownBuy(GoodId.FrostIron);
             Assert.AreEqual(notes.BuyCost(PlaceId.Kharun, GoodId.FrostIron), notes.LoggedBuy(GoodId.FrostIron));
 
-            var dry = CaravanSession.AtHouse(HouseId.Ghorath);
+            var dry = new CaravanSession();
+            dry.ShotDockAt(PlaceId.Ghorath);
             dry.SetShelf(PlaceId.Ghorath, GoodId.Water, 4);
             Assert.IsTrue(dry.TryBuy(GoodId.Water));
             dry.NoteShownSale(0);

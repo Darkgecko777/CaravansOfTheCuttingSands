@@ -174,8 +174,7 @@ namespace Caravans.Play
 
         void Awake()
         {
-            HouseId house = HouseFromGate();
-            session = CaravanSession.AtHouse(house);
+            session = new CaravanSession();
             EnsureEventSystem();
             quad = MakeSprite(false);
             disc = MakeSprite(true);
@@ -1025,23 +1024,6 @@ namespace Caravans.Play
             roadLit = false;
             lookingAtMap = false;
             session.DepartTo(dest);
-        }
-
-        static HouseId HouseFromGate()
-        {
-            switch (Gate.ChosenHouse)
-            {
-                case "house_zamath":
-                    return HouseId.Zamath;
-                case "house_thalor":
-                    return HouseId.Thalor;
-                case "house_veythar":
-                    return HouseId.Veythar;
-                case "house_ghorath":
-                    return HouseId.Ghorath;
-                default:
-                    return HouseId.Kharun;
-            }
         }
 
         void BuildOptions(RectTransform root)

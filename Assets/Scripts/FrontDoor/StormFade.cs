@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Caravans.FrontDoor
 {
     // Smoothstep fade of the title storm. A second Begin does not restart the
-    // clock: leaving house select early has to let the fade already running finish.
+    // clock, so a fade already running finishes.
     public sealed class StormFade
     {
         public bool Active { get; private set; }

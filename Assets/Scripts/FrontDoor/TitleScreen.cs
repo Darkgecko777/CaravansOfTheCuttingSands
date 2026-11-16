@@ -11,13 +11,6 @@ namespace Caravans.FrontDoor
         Button newGame;
         public static void Spawn()
         {
-            var house = FindAnyObjectByType<HouseSelectScreen>();
-            if (house != null)
-            {
-                house.gameObject.SetActive(false);
-                Destroy(house.gameObject);
-            }
-
             var existing = FindAnyObjectByType<TitleScreen>();
             if (existing != null)
             {
@@ -73,33 +66,15 @@ namespace Caravans.FrontDoor
             buttonLayout.childForceExpandWidth = false;
             buttonLayout.childForceExpandHeight = false;
 
-            newGame = FrontUi.MenuButton(buttons, "NEW GAME", true, Gate.ShowHouse);
+            newGame = FrontUi.MenuButton(buttons, "NEW GAME", true, Gate.ConfirmRun);
             FrontUi.MenuButton(buttons, "CONTINUE", false, null);
             FrontUi.MenuButton(buttons, "OPTIONS", true, OpenOptions);
             FrontUi.MenuButton(buttons, "EXIT", true, Quit);
-            PlaceCargoSounds(canvas);
             BuildOptions(canvas);
             if (EventSystem.current != null)
                 EventSystem.current.SetSelectedGameObject(newGame.gameObject);
 
             StormDirector.Ensure().Resume();
-        }
-
-        static void PlaceCargoSounds(RectTransform canvas)
-        {
-            var button = FrontUi.MenuButton(canvas, "ASSET TESTING", true, Gate.ShowCargoSounds);
-            var rect = button.GetComponent<RectTransform>();
-            var element = button.GetComponent<LayoutElement>();
-            if (element != null)
-                element.ignoreLayout = true;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.zero;
-            rect.pivot = Vector2.zero;
-            rect.sizeDelta = new Vector2(360f, 84f);
-            rect.anchoredPosition = new Vector2(28f, 28f);
-            var nav = button.navigation;
-            nav.mode = Navigation.Mode.None;
-            button.navigation = nav;
         }
 
         void BuildOptions(RectTransform canvas)

@@ -20,19 +20,19 @@ The paper target is the mockup `Npz0d.jpg` in the project root. It is a referenc
 
 A document is aged cream parchment: visible fiber, foxing, faint cracks, and a torn deckled edge. There is no ink corner and no medallion. The fill is the paper itself. Text is never painted on the sheet. The picture is `Assets/Resources/Ui/parchment-plain.png`. The logbook uses it. The older scrollwork sheet `Assets/Resources/Ui/parchment.png` stays on disk and is not shown.
 
-The world is the background. A settlement screen uses the blurred picture `Assets/Art/Approved/bg_settlement_generic.png`. The sharp file beside it stays out of the game. House select reuses the title sand. On the road the painted map is the view. The accepted play sheet is `Assets/Art/Approved/ui_hide_panel.png`: dark tanned Giant Duzhu hide. Play tucks that sheet's own rim under one thin Hulv-bone edge. A rectangle carries one decorative border. That bone edge is the market panel, the gates road list, a modal card, and each house-select card. It is drawn at about 38 reference pixels, about two-fifths of the full slice. The top bar and the bottom bar are plain dark strips, 76 reference pixels tall, with no bone. The map's edge is a thin shimmersteel rod. Text on the hide is cream, about `#EADCC0`. At 1080p the sizes are 22, 27, 31, and 38: the minimum, the body, the HUD values, and the header. Gold is the header and the selected line. Text on the painted sand keeps a dark shadow. The title menu frame stays gilded metal. The older even-grain hide `Assets/Resources/Ui/duzhu-hide-panel.png` and the shimmersteel rail `Assets/Resources/Ui/banner.png` stay on the asset-testing bench. The bar file `Assets/Art/Approved/ui_hide_bar.png` stays on disk. Play does not draw it.
+The world is the background. A settlement screen uses the blurred picture `Assets/Art/Approved/bg_settlement_generic.png`. The sharp file beside it stays out of the game. On the road the painted map is the view. The accepted play sheet is `Assets/Art/Approved/ui_hide_panel.png`: dark tanned Giant Duzhu hide. Play tucks that sheet's own rim under one thin Hulv-bone edge. A rectangle carries one decorative border. That bone edge is the market panel, the gates road list, and a modal card. It is drawn at about 38 reference pixels, about two-fifths of the full slice. The top bar and the bottom bar are plain dark strips, 76 reference pixels tall, with no bone. The map's edge is a thin shimmersteel rod. Text on the hide is cream, about `#EADCC0`. At 1080p the sizes are 22, 27, 31, and 38: the minimum, the body, the HUD values, and the header. Gold is the header and the selected line. Text on the painted sand keeps a dark shadow. The title menu frame stays gilded metal. The older even-grain hide `Assets/Resources/Ui/duzhu-hide-panel.png` and the shimmersteel rail `Assets/Resources/Ui/banner.png` stay on disk and are not shown. The bar file `Assets/Art/Approved/ui_hide_bar.png` stays on disk. Play does not draw it.
 
-Play tabs are the approved scrubcast resin seals in `Assets/Art/Approved/`. Market, Inn, House, Gates, Buy, and Sell each have a signet, a brighter hover, and a darker press. Other buttons use the blank seal `ui_seal_base.png` with Unity text and no signet. A goods slot uses `ui_goods_cell.png`, and a selected slot uses `ui_goods_cell_selected.png`. The wagon capacity frame is `ui_meter_frame.png`, sliced just inside the talons, and the fill is `ui_meter_fill.png`. The older resin seals, one drip and a bead, remain the Seals tab samples.
+Play tabs are the approved scrubcast resin seals in `Assets/Art/Approved/`. Market, Inn, House, Gates, Buy, and Sell each have a signet, a brighter hover, and a darker press. Other buttons use the blank seal `ui_seal_base.png` with Unity text and no signet. A goods slot uses `ui_goods_cell.png`, and a selected slot uses `ui_goods_cell_selected.png`. The wagon capacity frame is `ui_meter_frame.png`, sliced just inside the talons, and the fill is `ui_meter_fill.png`. The older resin seals, one drip and a bead, stay on disk and are not shown.
 
 The market seal is `Assets/Resources/Ui/resin-seal.png`. Hover is `Assets/Resources/Ui/resin-seal-hover.png`. Selected is `Assets/Resources/Ui/resin-seal-selected.png`. The market device is a thick upright, a level beam, and two pans joined to the beam.
 
-The gate device is two thick uprights joined by a beam across the top, with one opening between the uprights. The picture is `Assets/Resources/Ui/resin-seal-gate.png`. Hover is `Assets/Resources/Ui/resin-seal-gate-hover.png`. The pressed line is `Assets/Resources/Ui/resin-seal-gate-selected.png`. It is on the Seals tab with the market seal.
+The gate device is two thick uprights joined by a beam across the top, with one opening between the uprights. The picture is `Assets/Resources/Ui/resin-seal-gate.png`. Hover is `Assets/Resources/Ui/resin-seal-gate-hover.png`. The pressed line is `Assets/Resources/Ui/resin-seal-gate-selected.png`.
 
-UI Kit shows the dark hide as the panel, the plain parchment as the document sheet, a slim dark strip as the top bar, and the bone frame at two sizes. The torn edge of the document sheet sits inside the slice border.
+Play shows the dark hide as the panel, the plain parchment as the document sheet, a slim dark strip as the top bar, and the bone frame on the market, the gates list, and a modal card. The torn edge of the document sheet sits inside the slice border.
 
-The accepted header on that same tab is ash-ivory scraped Giant Duzhu hide, `Assets/Resources/Ui/hide-header.png`. It is not this sheet. The centre is blank. Each end is one short curl of the same sheet, the end tucked. It replaces the sand stand-in.
+The accepted header is ash-ivory scraped Giant Duzhu hide, `Assets/Resources/Ui/hide-header.png`. It is not this sheet. The centre is blank. Each end is one short curl of the same sheet, the end tucked. It replaces the sand stand-in.
 
-The accepted road frame is `Assets/Resources/Ui/bone-frame.png`. It is four Hulv bone beams, one continuous Zar'Kun sinew lashing at each corner, honeycomb at the cut ends. The center is empty. UI Kit shows it sliced at two sizes. Card shows it with the title and the body as text.
+The accepted road frame is `Assets/Resources/Ui/bone-frame.png`. It is four Hulv bone beams, one continuous Zar'Kun sinew lashing at each corner, honeycomb at the cut ends. The center is empty. Play draws it on the market, the gates list, and a modal card. Text on those cards is Unity text.
 
 A physical UI piece uses a material from this world. Bone is Hulv bone: porous ivory beams. Wood is living lumber: faceted grain, bark, moss, a grain-eye, dark sap. Metal hardware is shimmersteel, sand-bronze crystal with grit in the crevices, or frost iron, dark iron under a pale rime, when the piece is cold. Cord is Zar'Kun sinew. Do not paint bronze, generic timber, or polished ivory.
 
@@ -40,7 +40,7 @@ A physical UI piece uses a material from this world. Bone is Hulv bone: porous i
 
 The duzhu is the starter mount, an eight-legged reptile. The giant is the oversized animal the hide comes from. These prompts are the mount a rider uses.
 
-The bare picture is `Assets/Resources/Mounts/Duzhu.jpg`. It is the file on the Mounts page. The hide is small scales of even size and even spacing across the body, legs, and tail, with a row of larger plates along the spine. Each bronze ring sits where leather straps meet, and those straps run into the girth. The near side shows four legs. The second leg of each pair is not separated in this picture.
+The bare picture is `Assets/Resources/Mounts/Duzhu.jpg`. The hide is small scales of even size and even spacing across the body, legs, and tail, with a row of larger plates along the spine. Each bronze ring sits where leather straps meet, and those straps run into the girth. The near side shows four legs. The second leg of each pair is not separated in this picture.
 
 ### Bare
 
@@ -65,9 +65,9 @@ A cord in a goods picture is Zar'Kun sinew: one continuous pale grey cord, sucke
 
 A bulky rolled hide from the giant, the oversized animal. The picture is `Assets/Resources/Goods/GiantDuzhuHide.png`. It is the file on the Giant Duzhu Hide cell. The leather is matte sand with ochre patches and a fine grain over the whole roll. The open end is one continuous sheet wound in a spiral, the inner end tucked at the center. No animal, no harness.
 
-Scraped Giant Duzhu hide is a writing surface. The large plates are worn down to a faint grain, and the centre of the sheet is flat and blank. The accepted header is ash-ivory, not the matte sand of the cargo roll. Each end is one short curl of that same sheet, the end tucked. The picture is `Assets/Resources/Ui/hide-header.png`, shown across the full width of the UI Kit tab. The rolled cargo picture is the sand hide on the Giant Duzhu Hide cell.
+Scraped Giant Duzhu hide is a writing surface. The large plates are worn down to a faint grain, and the centre of the sheet is flat and blank. The accepted header is ash-ivory, not the matte sand of the cargo roll. Each end is one short curl of that same sheet, the end tucked. The picture is `Assets/Resources/Ui/hide-header.png`. The rolled cargo picture is the sand hide on the Giant Duzhu Hide cell.
 
-`Assets/Resources/Ui/banner.png` is a pale honey faceted shimmersteel bar between two sand-bronze knobs. There is no living lumber and no moss. Layers on the asset-testing bench shows this rail with the vellum. Play does not draw it. The place name is Unity text on the hide bar. House select reuses `Assets/Resources/FrontDoor/title_screen.png`, which has no baked lettering.
+`Assets/Resources/Ui/banner.png` is a pale honey faceted shimmersteel bar between two sand-bronze knobs. There is no living lumber and no moss. Play does not draw it. The place name is Unity text on the top bar. The title uses `Assets/Resources/FrontDoor/title_screen.png`, which has no baked lettering.
 
 ### Shimmersteel
 
@@ -129,7 +129,7 @@ A slightly warped living cask. The picture is `Assets/Resources/Goods/SarnsBaneL
 
 The pincer beast is the larger mount, a giant hairy docile land crab. It carries more than the duzhu. Kelkris eat its molt. There is no pack system yet.
 
-The mount picture is `Assets/Resources/Mounts/PincerBeast.jpg`. It is the file on the Mounts page. A howdah, a small cloth shelter, sits on the saddle. Its poles and straps run into the shell. The claws are held low. Coarse hair grows from the legs and the rim of the shell. No rider.
+The mount picture is `Assets/Resources/Mounts/PincerBeast.jpg`. A howdah, a small cloth shelter, sits on the saddle. Its poles and straps run into the shell. The claws are held low. Coarse hair grows from the legs and the rim of the shell. No rider.
 
 ### Pincer Beast Fur
 

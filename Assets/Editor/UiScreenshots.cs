@@ -22,7 +22,7 @@ public static class UiScreenshots
     const int Height = 1080;
     const double StepSeconds = 40d;
 
-    enum Kind { Title, House, Play, PlayMap, Bench, BenchMarket }
+    enum Kind { Title, Play, PlayMap }
     enum Phase { Wait, Apply, Settle, Refresh, AfterRefresh, Capture, WaitFile }
 
     struct Shot
@@ -39,10 +39,7 @@ public static class UiScreenshots
     {
         ShotOf("title", "01_title.png", "TitleScreen", "Main menu. Options closed. The sand is blowing.", Kind.Title, Kind.Title),
         ShotOf("title-options", "02_title_options.png", "TitleScreen", "Options panel open over the main menu.", Kind.Title, Kind.Title),
-        ShotOf("show-house", null, null, null, Kind.Title, Kind.House),
-        ShotOf("house-clear", "03_house_select.png", "HouseSelect", "Choose Your House. No house is selected.", Kind.House, Kind.House),
-        ShotOf("house-selected", "04_house_selected.png", "HouseSelect", "House Kharûn is selected.", Kind.House, Kind.House),
-        ShotOf("show-play", null, null, null, Kind.House, Kind.Play),
+        ShotOf("show-play", null, null, null, Kind.Title, Kind.Play),
         ShotOf("seed", null, null, null, Kind.Play, Kind.Play),
         ShotOf("market-empty", "10_market_empty.png", "SampleScene", "Market at Kharûn. No cell is selected. The wagon holds the seeded cargo.", Kind.Play, Kind.Play),
         ShotOf("market-buy", "11_market_selected_buy.png", "SampleScene", "Market at Kharûn. A shop cell with stock is selected.", Kind.Play, Kind.Play),
@@ -62,15 +59,6 @@ public static class UiScreenshots
         ShotOf("encounter", "33_encounter.png", "SampleScene", "Encounter card WD-01 open on the Draven road.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("camp", "34_camp.png", "SampleScene", "Make camp card open on the Draven road.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("resume", "35_resume_pace.png", "SampleScene", "Pace card after camp on the Draven road. Dawn and dusk are offered. The camp has advanced the clock.", Kind.PlayMap, Kind.PlayMap),
-        ShotOf("show-bench", null, null, null, Kind.PlayMap, Kind.Bench),
-        ShotOf("bench-market", "90_market.png", "CargoSounds", "Asset-testing Market page. Reference sheet.", Kind.BenchMarket, Kind.BenchMarket),
-        ShotOf("bench-door", "91_front_door.png", "CargoSounds", "Asset-testing Front door page. Reference sheet.", Kind.Bench, Kind.Bench),
-        ShotOf("bench-map", "92_map.png", "CargoSounds", "Asset-testing Map page. Reference sheet.", Kind.Bench, Kind.Bench),
-        ShotOf("bench-mounts", "93_mounts.png", "CargoSounds", "Asset-testing Mounts page. Reference sheet.", Kind.Bench, Kind.Bench),
-        ShotOf("bench-ui", "94_ui_kit.png", "CargoSounds", "Asset-testing UI Kit page. Reference sheet.", Kind.Bench, Kind.Bench),
-        ShotOf("bench-layers", "95_layers.png", "CargoSounds", "Asset-testing Layers page. Reference sheet.", Kind.Bench, Kind.Bench),
-        ShotOf("bench-card", "96_card.png", "CargoSounds", "Asset-testing Card page. Reference sheet.", Kind.Bench, Kind.Bench),
-        ShotOf("bench-seals", "97_seals.png", "CargoSounds", "Asset-testing Seals page. Reference sheet.", Kind.Bench, Kind.Bench),
     };
 
     const string Notes =
@@ -399,35 +387,9 @@ public static class UiScreenshots
                 return TitleOptions(false);
             case "title-options":
                 return TitleOptions(true);
-            case "show-house":
-                Gate.ShowHouse();
-                return true;
-            case "house-clear":
-                return House(false);
-            case "house-selected":
-                return House(true);
             case "show-play":
-                Gate.ConfirmRun("house_kharun");
+                Gate.ConfirmRun();
                 return true;
-            case "show-bench":
-                Gate.ShowCargoSounds();
-                return true;
-            case "bench-market":
-                return Bench("Market");
-            case "bench-door":
-                return Bench("FrontDoor");
-            case "bench-map":
-                return Bench("Map");
-            case "bench-mounts":
-                return Bench("Mounts");
-            case "bench-ui":
-                return Bench("UiKit");
-            case "bench-layers":
-                return Bench("Layers");
-            case "bench-card":
-                return Bench("Card");
-            case "bench-seals":
-                return Bench("Seals");
             default:
                 PlayPresenter play = UnityEngine.Object.FindAnyObjectByType<PlayPresenter>();
                 return play != null && play.Shot(shot.Apply);
@@ -443,27 +405,6 @@ public static class UiScreenshots
         return true;
     }
 
-    static bool House(bool selected)
-    {
-        HouseSelectScreen house = UnityEngine.Object.FindAnyObjectByType<HouseSelectScreen>();
-        if (house == null || !house.ShotReady)
-            return false;
-        if (selected)
-            house.ShotSelect("house_kharun");
-        else
-            house.ShotClear();
-        return true;
-    }
-
-    static bool Bench(string page)
-    {
-        CargoSoundScreen bench = UnityEngine.Object.FindAnyObjectByType<CargoSoundScreen>();
-        if (bench == null || !bench.ShotReady)
-            return false;
-        bench.ShotPage(page);
-        return true;
-    }
-
     static bool Ready(Kind kind)
     {
         if (!FadeIdle())
@@ -474,20 +415,11 @@ public static class UiScreenshots
             case Kind.Title:
                 TitleScreen title = UnityEngine.Object.FindAnyObjectByType<TitleScreen>();
                 return title != null && title.ShotReady && scene == Gate.TitleScene;
-            case Kind.House:
-                HouseSelectScreen house = UnityEngine.Object.FindAnyObjectByType<HouseSelectScreen>();
-                return house != null && house.ShotReady && scene == Gate.HouseScene;
             case Kind.Play:
                 return scene == Gate.PlayScene && UnityEngine.Object.FindAnyObjectByType<PlayPresenter>() != null;
             case Kind.PlayMap:
                 PlayPresenter play = UnityEngine.Object.FindAnyObjectByType<PlayPresenter>();
                 return scene == Gate.PlayScene && play != null && play.ShotMapReady;
-            case Kind.Bench:
-                CargoSoundScreen bench = UnityEngine.Object.FindAnyObjectByType<CargoSoundScreen>();
-                return scene == Gate.CargoSoundsScene && bench != null && bench.ShotReady;
-            case Kind.BenchMarket:
-                CargoSoundScreen market = UnityEngine.Object.FindAnyObjectByType<CargoSoundScreen>();
-                return scene == Gate.CargoSoundsScene && market != null && market.ShotMarketFitted;
             default:
                 return false;
         }
