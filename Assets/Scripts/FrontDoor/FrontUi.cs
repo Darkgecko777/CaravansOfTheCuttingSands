@@ -10,8 +10,13 @@ namespace Caravans.FrontDoor
     public static class UiType
     {
         public const float Small = 22f;
+        public const float LogRow = 24f;
+        public const float Price = 24f;
+        public const float Tab = 26f;
+        public const float Trade = 26f;
         public const float Body = 27f;
-        public const float Hud = 31f;
+        public const float DetailName = 28f;
+        public const float Hud = 30f;
         public const float Header = 38f;
         public const float Bar = 76f;
         public const float Space = 16f;
@@ -257,6 +262,46 @@ namespace Caravans.FrontDoor
             target = over ? Vector3.one * 1.05f : Vector3.one;
             if (label != null)
                 label.color = over ? FrontUi.GoldBright : FrontUi.Gold;
+        }
+    }
+
+    // Master rides on the listener. Music scales the title wind. SFX scales goods clicks.
+    public static class SessionSettings
+    {
+        const string MasterKey = "caravans.vol.master";
+        const string MusicKey = "caravans.vol.music";
+        const string SfxKey = "caravans.vol.sfx";
+
+        public static float Master { get; private set; } = 1f;
+        public static float Music { get; private set; } = 1f;
+        public static float Sfx { get; private set; } = 1f;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void Boot()
+        {
+            Master = Mathf.Clamp01(PlayerPrefs.GetFloat(MasterKey, 1f));
+            Music = Mathf.Clamp01(PlayerPrefs.GetFloat(MusicKey, 1f));
+            Sfx = Mathf.Clamp01(PlayerPrefs.GetFloat(SfxKey, 1f));
+            AudioListener.volume = Master;
+        }
+
+        public static void SetMaster(float value)
+        {
+            Master = Mathf.Clamp01(value);
+            AudioListener.volume = Master;
+            PlayerPrefs.SetFloat(MasterKey, Master);
+        }
+
+        public static void SetMusic(float value)
+        {
+            Music = Mathf.Clamp01(value);
+            PlayerPrefs.SetFloat(MusicKey, Music);
+        }
+
+        public static void SetSfx(float value)
+        {
+            Sfx = Mathf.Clamp01(value);
+            PlayerPrefs.SetFloat(SfxKey, Sfx);
         }
     }
 }

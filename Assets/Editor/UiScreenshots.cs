@@ -38,7 +38,7 @@ public static class UiScreenshots
     static readonly Shot[] Shots =
     {
         ShotOf("title", "01_title.png", "TitleScreen", "Main menu. Options closed. The sand is blowing.", Kind.Title, Kind.Title),
-        ShotOf("title-options", "02_title_options.png", "TitleScreen", "Options panel open over the main menu.", Kind.Title, Kind.Title),
+        ShotOf("title-options", "02_title_options.png", "TitleScreen", "Options panel open over the main menu. Master, music, and SFX sliders, fullscreen, resolution, and Close.", Kind.Title, Kind.Title),
         ShotOf("show-play", null, null, null, Kind.Title, Kind.Play),
         ShotOf("seed", null, null, null, Kind.Play, Kind.Play),
         ShotOf("market-empty", "10_market_empty.png", "SampleScene", "Market at Kharûn. No cell is selected. The wagon holds the seeded cargo.", Kind.Play, Kind.Play),
@@ -47,16 +47,12 @@ public static class UiScreenshots
         ShotOf("market-wagon", "13_market_selected_wagon.png", "SampleScene", "Market at Kharûn. A wagon cell is selected.", Kind.Play, Kind.Play),
         ShotOf("ridgewatch", "15_market_ridgewatch.png", "SampleScene", "Market parked at Ridgewatch, so the top bar shows that longer name. The wagon still holds the seeded cargo.", Kind.Play, Kind.Play),
         ShotOf("inn", "20_plaza_inn.png", "SampleScene", "Plaza, Inn, at Kharûn.", Kind.Play, Kind.Play),
-        ShotOf("gates", "21_plaza_gates.png", "SampleScene", "Plaza, Gates, at Kharûn. No road is lit. Neighbour road buttons are on the gates panel.", Kind.PlayMap, Kind.PlayMap),
-        ShotOf("tavern", "22_plaza_tavern.png", "SampleScene", "Plaza, Tavern, at Kharûn.", Kind.Play, Kind.Play),
-        ShotOf("stables", "23_plaza_stables.png", "SampleScene", "Plaza, Stables, at Kharûn.", Kind.Play, Kind.Play),
-        ShotOf("house", "50_house.png", "SampleScene", "House room at Kharûn.", Kind.Play, Kind.Play),
-        ShotOf("logbook", "40_logbook.png", "SampleScene", "Logbook open over the market at Kharûn. Seeded buy and sale figures are on the rows.", Kind.Play, Kind.Play),
-        ShotOf("options", "60_options.png", "SampleScene", "Gear options open over the market at Kharûn.", Kind.Play, Kind.Play),
+        ShotOf("gates", "21_plaza_gates.png", "SampleScene", "Plaza, Gates, at Kharûn. No road is lit. Neighbour road buttons sit inside the gates panel.", Kind.PlayMap, Kind.PlayMap),
+        ShotOf("logbook", "40_logbook.png", "SampleScene", "Logbook open over the market at Kharûn, between the bars. Seeded buy and sale figures are on the rows. An unseen price is a dash.", Kind.Play, Kind.Play),
         ShotOf("travel", "30_travel_map.png", "SampleScene", "Gates at Kharûn with the Draven road lit. The painted trail and the destination circle are up. Neighbour road buttons stay on the gates panel.", Kind.PlayMap, Kind.PlayMap),
-        ShotOf("road", "31_road_choice.png", "SampleScene", "The pace card drawn over the lit Kharûn to Draven road, including Back. Steady is pressed.", Kind.PlayMap, Kind.PlayMap),
+        ShotOf("road", "31_road_choice.png", "SampleScene", "Gates at Kharûn with the Draven road lit. Careful, Steady, and Rush sit on the panel. Embark is live. No card covers the map.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("depart", "32_departure.png", "SampleScene", "En route to Draven, paused at the Kharûn dock. The route line is drawn and the wagon has not moved.", Kind.PlayMap, Kind.PlayMap),
-        ShotOf("encounter", "33_encounter.png", "SampleScene", "Encounter card WD-01 open on the Draven road.", Kind.PlayMap, Kind.PlayMap),
+        ShotOf("encounter", "33_encounter.png", "SampleScene", "Encounter card open on the Draven road. The title is On the Road.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("camp", "34_camp.png", "SampleScene", "Make camp card open on the Draven road.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("resume", "35_resume_pace.png", "SampleScene", "Pace card after camp on the Draven road. Dawn and dusk are offered. The camp has advanced the clock.", Kind.PlayMap, Kind.PlayMap),
     };
@@ -64,8 +60,9 @@ public static class UiScreenshots
     const string Notes =
         "The encounter card, the camp card, and the after-camp pace card are part of play. They are 33_encounter.png, 34_camp.png, and 35_resume_pace.png. Play has no tooltip type and no separate dialog type.\n\n"
         + "21_plaza_gates.png is the gates with no road lit. 30_travel_map.png is those same gates with the Kharûn to Draven road lit. That gates view is the travel map the player opens, and the neighbour road buttons stay on its panel.\n\n"
-        + "31_road_choice.png is the pace card the presenter draws when a road is being chosen, Back included. During play the pace card opens after camp, which is 35_resume_pace.png.\n\n"
-        + "15_market_ridgewatch.png is the long dock name. Sarn's Rest is a landmark. The house tab is hidden at a post.\n\n"
+        + "31_road_choice.png is the gates panel with the Draven road lit. Careful, Steady, and Rush are on that panel, and Embark leaves. No card covers the map. The pace card opens after camp, which is 35_resume_pace.png, in the order Careful, Steady, Rush.\n\n"
+        + "Tavern, Stables, House, and Gear stay off the layout while ShowUnfinishedFeatures is off, so this capture does not include those rooms.\n\n"
+        + "15_market_ridgewatch.png is the long dock name. Sarn's Rest is a landmark. House, Tavern, and Stables are off the bar in this capture.\n\n"
         + "The caravan is House Kharûn. This run buys the first goods Kharûn will sell until four units are aboard, and it records the buy and sale figures the market would show. The clock stays at the new-game hour until the camp card.\n";
 
     static bool updateHooked;

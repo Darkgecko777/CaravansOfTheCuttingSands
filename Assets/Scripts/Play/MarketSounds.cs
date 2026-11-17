@@ -44,6 +44,7 @@ namespace Caravans.Play
             AudioClip clip = Resources.Load<AudioClip>(resource);
             if (clip == null)
                 return;
+            source.volume = Caravans.FrontDoor.SessionSettings.Sfx;
             source.PlayOneShot(clip);
         }
     }

@@ -57,7 +57,7 @@ namespace Caravans.FrontDoor
             if (wind.clip == null)
                 wind.clip = FrontArt.Wind();
             wind.loop = true;
-            wind.volume = DbToLinear(WindBaseDb);
+            wind.volume = WindLevel(WindBaseDb);
             wind.pitch = WindPitchMin;
             if (wind.clip != null && !wind.isPlaying)
                 wind.Play();
@@ -197,7 +197,7 @@ namespace Caravans.FrontDoor
             wind.loop = true;
             wind.spatialBlend = 0f;
             wind.dopplerLevel = 0f;
-            wind.volume = DbToLinear(WindBaseDb);
+            wind.volume = WindLevel(WindBaseDb);
 
             int quads = sim.GrainCount;
             vertices = new Vector3[quads * 4];
@@ -257,7 +257,7 @@ namespace Caravans.FrontDoor
         void ApplyGust(float gust)
         {
             gust = Mathf.Clamp01(gust);
-            wind.volume = DbToLinear(WindBaseDb + gust * WindGustDb);
+            wind.volume = WindLevel(WindBaseDb + gust * WindGustDb);
             wind.pitch = WindPitchMin + gust * WindPitchRange;
         }
 
@@ -316,6 +316,11 @@ namespace Caravans.FrontDoor
                 listener.enabled = false;
             }
             listenersSettled = true;
+        }
+
+        static float WindLevel(float db)
+        {
+            return DbToLinear(db) * SessionSettings.Music;
         }
 
         static float DbToLinear(float db)

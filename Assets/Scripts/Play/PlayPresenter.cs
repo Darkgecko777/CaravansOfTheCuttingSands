@@ -25,6 +25,11 @@ namespace Caravans.Play
         const float WagonCellH = 140f;
         const float RoadPanelWidth = 540f;
         const float GatesPanelRight = UiType.Gap + RoadPanelWidth;
+        const float LogGoodW = 240f;
+        const float LogPriceW = 300f;
+
+        // Off hides the tavern, the stables, the house room, and Gear. Those rooms are still placeholders.
+        public static bool ShowUnfinishedFeatures;
         const int ShopColumns = 8;
         const int WagonColumns = 2;
 
@@ -277,12 +282,12 @@ namespace Caravans.Play
             row.childForceExpandWidth = false;
             row.childForceExpandHeight = false;
             ApprovedArt art = ApprovedArt.Load();
-            marketTab = BarSeal(tabs.rectTransform, "Market", art != null ? art.sealMarket : null, art != null ? art.sealMarketHover : null, art != null ? art.sealMarketPressed : null, OpenMarket);
-            innTab = BarSeal(tabs.rectTransform, "Inn", art != null ? art.sealInn : null, art != null ? art.sealInnHover : null, art != null ? art.sealInnPressed : null, OpenInn);
-            houseTab = BarSeal(tabs.rectTransform, "House", art != null ? art.sealHouse : null, art != null ? art.sealHouseHover : null, art != null ? art.sealHousePressed : null, OpenHouse);
-            gatesTab = BarSeal(tabs.rectTransform, "Gates", art != null ? art.sealGates : null, art != null ? art.sealGatesHover : null, art != null ? art.sealGatesPressed : null, OpenGates);
-            tavernTab = BarSeal(tabs.rectTransform, "Tavern", null, null, null, OpenTavern);
-            stablesTab = BarSeal(tabs.rectTransform, "Stables", null, null, null, OpenStables);
+            marketTab = BarSeal(tabs.rectTransform, "Market", art != null ? art.sealMarket : null, art != null ? art.sealMarketHover : null, art != null ? art.sealMarketPressed : null, OpenMarket, UiType.Tab);
+            innTab = BarSeal(tabs.rectTransform, "Inn", art != null ? art.sealInn : null, art != null ? art.sealInnHover : null, art != null ? art.sealInnPressed : null, OpenInn, UiType.Tab);
+            houseTab = BarSeal(tabs.rectTransform, "House", art != null ? art.sealHouse : null, art != null ? art.sealHouseHover : null, art != null ? art.sealHousePressed : null, OpenHouse, UiType.Tab);
+            gatesTab = BarSeal(tabs.rectTransform, "Gates", art != null ? art.sealGates : null, art != null ? art.sealGatesHover : null, art != null ? art.sealGatesPressed : null, OpenGates, UiType.Tab);
+            tavernTab = BarSeal(tabs.rectTransform, "Tavern", null, null, null, OpenTavern, UiType.Tab);
+            stablesTab = BarSeal(tabs.rectTransform, "Stables", null, null, null, OpenStables, UiType.Tab);
         }
 
         GameObject BuildMarket(RectTransform body)
@@ -372,13 +377,14 @@ namespace Caravans.Play
             previewFit.preferredHeight = 168f;
             previewFit.preferredWidth = 168f;
             detailIcon = GoodsPicture(detailCell.rectTransform, null);
-            detailName = Body(detail, UiType.Body, TextAlignmentOptions.Center);
-            detailName.color = FrontUi.Gold;
+            detailName = Body(detail, UiType.DetailName, TextAlignmentOptions.Center);
+            detailName.color = Quiet;
+            detailName.text = "Select a good";
             detailName.overflowMode = TextOverflowModes.Ellipsis;
             var nameFit = detailName.gameObject.AddComponent<LayoutElement>();
             nameFit.preferredHeight = 80f;
             nameFit.preferredWidth = 268f;
-            detailText = Body(detail, UiType.Body, TextAlignmentOptions.Center);
+            detailText = Body(detail, UiType.Price, TextAlignmentOptions.Center);
             detailText.color = Ink;
             detailText.overflowMode = TextOverflowModes.Ellipsis;
             var lineFit = detailText.gameObject.AddComponent<LayoutElement>();
@@ -531,7 +537,7 @@ namespace Caravans.Play
             FrameSheet(gatesColumn, true);
             var gatesLayout = gatesColumn.gameObject.AddComponent<VerticalLayoutGroup>();
             gatesLayout.spacing = UiType.Space;
-            gatesLayout.padding = new RectOffset(44, 44, 44, 44);
+            gatesLayout.padding = new RectOffset(24, 24, 24, 24);
             gatesLayout.childAlignment = TextAnchor.UpperCenter;
             gatesLayout.childControlWidth = true;
             gatesLayout.childControlHeight = true;
@@ -833,8 +839,8 @@ namespace Caravans.Play
             logbookRoot = Child(root, "Logbook");
             logbookRoot.anchorMin = Vector2.zero;
             logbookRoot.anchorMax = Vector2.one;
-            logbookRoot.offsetMin = new Vector2(36f, 28f);
-            logbookRoot.offsetMax = new Vector2(-36f, -(TopBarHeight + 16f));
+            logbookRoot.offsetMin = new Vector2(UiType.Gap, TabHeight + UiType.Gap);
+            logbookRoot.offsetMax = new Vector2(-UiType.Gap, -(TopBarHeight + UiType.Gap));
             DocumentOn(logbookRoot, true);
             RaiseCanvas(logbookRoot.gameObject, 18);
 
@@ -853,16 +859,16 @@ namespace Caravans.Play
             var headerRow = header.gameObject.AddComponent<HorizontalLayoutGroup>();
             headerRow.padding = new RectOffset(16, 16, 8, 8);
             headerRow.spacing = 12f;
-            headerRow.childAlignment = TextAnchor.MiddleLeft;
+            headerRow.childAlignment = TextAnchor.MiddleCenter;
             headerRow.childControlWidth = true;
             headerRow.childControlHeight = true;
             headerRow.childForceExpandWidth = false;
             headerRow.childForceExpandHeight = true;
             var iconGap = Child(header, "IconGap");
-            iconGap.gameObject.AddComponent<LayoutElement>().preferredWidth = 40f;
-            ChartLabel(header, "Good", 1f, 0f);
-            ChartLabel(header, "Lowest buy", 0f, 420f);
-            ChartLabel(header, "Highest sale", 0f, 420f);
+            iconGap.gameObject.AddComponent<LayoutElement>().preferredWidth = 48f;
+            ChartLabel(header, "Good", LogGoodW);
+            ChartLabel(header, "Lowest buy", LogPriceW);
+            ChartLabel(header, "Highest sale", LogPriceW);
 
             var scrollRt = Child(logbookRoot, "Scroll");
             scrollRt.anchorMin = Vector2.zero;
@@ -930,9 +936,9 @@ namespace Caravans.Play
             bodyRt.pivot = new Vector2(0.5f, 1f);
             bodyRt.sizeDelta = new Vector2(-96f, 72f);
             bodyRt.anchoredPosition = new Vector2(0f, -112f);
-            rushButton = ChoiceButton(panel, "Rush", new Vector2(-240f, 10f), () => PickPace(RoadPace.Rush));
+            carefulButton = ChoiceButton(panel, "Careful", new Vector2(-240f, 10f), () => PickPace(RoadPace.Careful));
             steadyButton = ChoiceButton(panel, "Steady", new Vector2(0f, 10f), () => PickPace(RoadPace.Steady));
-            carefulButton = ChoiceButton(panel, "Careful", new Vector2(240f, 10f), () => PickPace(RoadPace.Careful));
+            rushButton = ChoiceButton(panel, "Rush", new Vector2(240f, 10f), () => PickPace(RoadPace.Rush));
             dawnButton = ChoiceButton(panel, "Wait until dawn", new Vector2(-200f, -70f), () => session.WaitUntilDawn());
             duskButton = ChoiceButton(panel, "Wait until dusk", new Vector2(200f, -70f), () => session.WaitUntilDusk());
             confirmPaceButton = ChoiceButton(panel, "Take the road", new Vector2(0f, -165f), ConfirmPace);
@@ -1052,6 +1058,7 @@ namespace Caravans.Play
         {
             drawn = session.Revision;
             ClearRaised();
+            HideUnfinished();
             bool gatesMap = !session.Traveling && page == Page.Plaza && plazaSpot == PlazaSpot.Gates;
             dock.gameObject.SetActive(!session.Traveling && !lookingAtMap);
             travel.gameObject.SetActive(session.Traveling || lookingAtMap || gatesMap);
@@ -1060,12 +1067,15 @@ namespace Caravans.Play
             plazaPage.SetActive(page == Page.Plaza);
             housePage.SetActive(page == Page.House);
             ShowPlazaSpot();
-            houseTab.gameObject.SetActive(EconomyCatalog.IsCity(session.Dock));
+            houseTab.gameObject.SetActive(ShowUnfinishedFeatures && EconomyCatalog.IsCity(session.Dock));
+            tavernTab.gameObject.SetActive(ShowUnfinishedFeatures);
+            stablesTab.gameObject.SetActive(ShowUnfinishedFeatures);
+            gearButton.gameObject.SetActive(ShowUnfinishedFeatures);
             TintPace(marketTab, page == Page.Market);
             TintPace(houseTab, page == Page.House);
             paceBar.SetActive(session.Traveling && !session.CampPending && !session.AwaitingPace && !session.EncounterPending);
             backButton.gameObject.SetActive(lookingAtMap && !session.Traveling);
-            bool roadChoice = choosingRoad || session.CampPending || session.AwaitingPace || session.EncounterPending;
+            bool roadChoice = session.CampPending || session.AwaitingPace || session.EncounterPending;
             cardRoot.gameObject.SetActive(roadChoice);
             optionsRoot.gameObject.SetActive(optionsOpen);
             logbookRoot.gameObject.SetActive(logbookOpen);
@@ -1100,7 +1110,36 @@ namespace Caravans.Play
                 ApplyFreeButtons();
             }
 
+            PaintTrade(buyButton);
+            PaintTrade(sellButton);
             UpdateLive();
+        }
+
+        void HideUnfinished()
+        {
+            if (ShowUnfinishedFeatures)
+                return;
+            optionsOpen = false;
+            if (page == Page.House)
+                page = Page.Market;
+            if (plazaSpot == PlazaSpot.Tavern || plazaSpot == PlazaSpot.Stables)
+                plazaSpot = PlazaSpot.Inn;
+        }
+
+        void PaintTrade(Button button)
+        {
+            if (button == null)
+                return;
+            bool on = button.interactable;
+            var label = button.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null && !label.richText)
+                label.color = on ? Ink : FrontUi.Disabled;
+            Transform seal = button.transform.Find("Seal");
+            if (seal == null)
+                return;
+            var image = seal.GetComponent<Image>();
+            if (image != null)
+                image.color = on ? Color.white : new Color(1f, 1f, 1f, 0.35f);
         }
 
         void ShowRoadChoice(bool open)
@@ -1109,7 +1148,7 @@ namespace Caravans.Play
             bool camp = session.CampPending && !encounter;
             bool pace = open && !camp && !encounter;
             bool resume = pace && session.AwaitingPace;
-            cardTitle.text = encounter ? session.EncounterId : camp ? "Make camp" : "The road";
+            cardTitle.text = encounter ? "On the Road" : camp ? "Make camp" : "The road";
             cardBody.text = encounter ? "Nothing comes of this yet." : camp ? "The travel hours are spent." : "Choose a pace.";
             rushButton.gameObject.SetActive(pace);
             steadyButton.gameObject.SetActive(pace);
@@ -1959,44 +1998,49 @@ namespace Caravans.Play
                 var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
                 layout.spacing = 12f;
                 layout.padding = new RectOffset(8, 8, 4, 4);
-                layout.childAlignment = TextAnchor.MiddleLeft;
+                layout.childAlignment = TextAnchor.MiddleCenter;
                 layout.childControlWidth = true;
                 layout.childControlHeight = true;
                 layout.childForceExpandWidth = false;
                 layout.childForceExpandHeight = true;
                 LogbookIcon(row, good);
-                ChartLabel(row, CaravanSession.GoodName(good), 1f, 0f);
-                ChartLabel(row, LoggedBuyText(good), 0f, 420f);
-                ChartLabel(row, LoggedSaleText(good), 0f, 420f);
+                ChartLabel(row, CaravanSession.GoodName(good), LogGoodW);
+                ChartLabel(row, LoggedBuyText(good), LogPriceW).color = LogInk(session.HasLoggedBuy(good));
+                ChartLabel(row, LoggedSaleText(good), LogPriceW).color = LogInk(session.HasLoggedSale(good));
             }
         }
 
         string LoggedBuyText(GoodId good)
         {
             if (!session.HasLoggedBuy(good))
-                return string.Empty;
+                return "\u2014";
             return session.LoggedBuy(good) + " coin, " + CaravanSession.PlaceName(session.LoggedBuyPlace(good));
         }
 
         string LoggedSaleText(GoodId good)
         {
             if (!session.HasLoggedSale(good))
-                return string.Empty;
+                return "\u2014";
             return session.LoggedSale(good) + " coin, " + CaravanSession.PlaceName(session.LoggedSalePlace(good));
         }
 
-        TextMeshProUGUI ChartLabel(RectTransform parent, string label, float flex, float width)
+        static Color LogInk(bool filled)
         {
-            var text = Body(parent, UiType.Small, TextAlignmentOptions.MidlineLeft);
+            return filled
+                ? ParchmentInk
+                : new Color(ParchmentInk.r, ParchmentInk.g, ParchmentInk.b, 0.45f);
+        }
+
+        TextMeshProUGUI ChartLabel(RectTransform parent, string label, float width)
+        {
+            var text = Body(parent, UiType.LogRow, TextAlignmentOptions.MidlineLeft);
             text.color = ParchmentInk;
             text.text = label;
             text.textWrappingMode = TextWrappingModes.NoWrap;
             text.overflowMode = TextOverflowModes.Ellipsis;
             var element = text.gameObject.AddComponent<LayoutElement>();
-            if (flex > 0f)
-                element.flexibleWidth = flex;
-            else
-                element.preferredWidth = width;
+            element.preferredWidth = width;
+            element.minWidth = 0f;
             return text;
         }
 
@@ -2045,7 +2089,7 @@ namespace Caravans.Play
             }
         }
 
-        Button BarSeal(RectTransform parent, string label, Sprite normal, Sprite hover, Sprite pressed, UnityEngine.Events.UnityAction action)
+        Button BarSeal(RectTransform parent, string label, Sprite normal, Sprite hover, Sprite pressed, UnityEngine.Events.UnityAction action, float labelSize = 0f)
         {
             Sprite quiet;
             Sprite hot;
@@ -2063,7 +2107,8 @@ namespace Caravans.Play
             nav.mode = Navigation.Mode.None;
             button.navigation = nav;
             button.onClick.AddListener(action);
-            float textW = Mathf.Ceil(label.Length * UiType.Body * 0.72f);
+            float size = labelSize > 0f ? labelSize : UiType.Body;
+            float textW = Mathf.Ceil(label.Length * size * 0.62f);
             var element = go.AddComponent<LayoutElement>();
             element.preferredHeight = 64f;
             element.minWidth = 64f + textW;
@@ -2077,7 +2122,7 @@ namespace Caravans.Play
             row.childForceExpandWidth = false;
             row.childForceExpandHeight = false;
             Image seal = SealIcon(go.transform, quiet, 52f);
-            var text = Body(go.GetComponent<RectTransform>(), UiType.Body, TextAlignmentOptions.MidlineLeft);
+            var text = Body(go.GetComponent<RectTransform>(), size, TextAlignmentOptions.MidlineLeft);
             text.text = label;
             text.color = Ink;
             text.raycastTarget = false;
@@ -2120,12 +2165,12 @@ namespace Caravans.Play
             column.childForceExpandWidth = false;
             column.childForceExpandHeight = false;
             Image seal = SealIcon(go.transform, quiet, 72f);
-            var text = Body(go.GetComponent<RectTransform>(), UiType.Small, TextAlignmentOptions.Center);
+            var text = Body(go.GetComponent<RectTransform>(), UiType.Trade, TextAlignmentOptions.Center);
             text.text = label;
             text.color = Ink;
             Shade(text);
             text.raycastTarget = false;
-            text.gameObject.AddComponent<LayoutElement>().preferredHeight = 28f;
+            text.gameObject.AddComponent<LayoutElement>().preferredHeight = 32f;
             go.AddComponent<SealSwap>().Bind(seal, quiet, hot, down);
             buttons.Add(button);
             return button;
@@ -2166,7 +2211,24 @@ namespace Caravans.Play
         Button RoadRow(RectTransform parent, string label, UnityEngine.Events.UnityAction action)
         {
             Button button = BarSeal(parent, label, null, null, null, action);
-            button.GetComponent<LayoutElement>().preferredHeight = 72f;
+            var element = button.GetComponent<LayoutElement>();
+            element.minWidth = 0f;
+            element.preferredWidth = 0f;
+            element.flexibleWidth = 1f;
+            element.preferredHeight = 72f;
+            var text = button.GetComponentInChildren<TextMeshProUGUI>();
+            if (text != null)
+            {
+                text.overflowMode = TextOverflowModes.Ellipsis;
+                text.textWrappingMode = TextWrappingModes.NoWrap;
+                var textFit = text.GetComponent<LayoutElement>();
+                if (textFit != null)
+                {
+                    textFit.minWidth = 0f;
+                    textFit.flexibleWidth = 1f;
+                }
+            }
+
             return button;
         }
 
@@ -2556,7 +2618,8 @@ namespace Caravans.Play
             if (detailName == null)
                 return;
             bool live = SelectionLive();
-            detailName.text = live ? CaravanSession.GoodName(SelectedGood()) : string.Empty;
+            detailName.text = live ? CaravanSession.GoodName(SelectedGood()) : "Select a good";
+            detailName.color = live ? FrontUi.Gold : Quiet;
             if (detailCell != null)
             {
                 ApprovedArt art = ApprovedArt.Load();
@@ -2697,7 +2760,7 @@ namespace Caravans.Play
                 case "travel":
                     return ShotPlaza(PlazaSpot.Gates, true, false);
                 case "road":
-                    return ShotPlaza(PlazaSpot.Gates, true, true);
+                    return ShotPlaza(PlazaSpot.Gates, true, false);
                 case "depart":
                     ShotClearOverlays();
                     if (!session.Traveling)
@@ -2755,10 +2818,10 @@ namespace Caravans.Play
                 draftPace = RoadPace.Steady;
             }
 
-            choosingRoad = choice;
+            choosingRoad = false;
             FinishShot();
             if (choice)
-                return choosingRoad && roadLit && pendingDest == PlaceId.Draven;
+                return false;
             if (lit)
                 return roadLit && pendingDest == PlaceId.Draven && !choosingRoad;
             return plazaSpot == spot && !roadLit;
