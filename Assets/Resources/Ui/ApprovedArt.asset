@@ -39,4 +39,5 @@ MonoBehaviour:
   iconCapacity: {fileID: 21300000, guid: 81768cf61fc6cd840a253e38a22d0ba5, type: 3}
   meterFrame: {fileID: 21300000, guid: e57039a199425454e853a91ca171148f, type: 3}
   meterFill: {fileID: 21300000, guid: c9d43a253d0400843b0fe783a83bacce, type: 3}
+  logoTitle: {fileID: 21300000, guid: 4762968ef7289ba449a75ea8dc03f4ef, type: 3}
   settlementGeneric: {fileID: 2800000, guid: fe35af980e9139a4ba760ff191fd55cd, type: 3}

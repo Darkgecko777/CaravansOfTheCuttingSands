@@ -1,0 +1,181 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+
+// UI and goods art is drawn much smaller than the source files. Mipmaps and
+// uncompressed RGBA keep that reduction from turning into speckles.
+public class UiTextureImporter : AssetPostprocessor
+{
+    public override int GetPostprocessOrder()
+    {
+        return 0;
+    }
+
+    static readonly string[] Roots =
+    {
+        "Assets/Art/Approved/",
+        "Assets/Resources/Ui/",
+        "Assets/Resources/FrontDoor/",
+        "Assets/Resources/Goods/",
+    };
+
+    void OnPreprocessTexture()
+    {
+        if (!InScope(assetPath))
+            return;
+        Apply((TextureImporter)assetImporter);
+    }
+
+    [InitializeOnLoadMethod]
+    static void CatchUpOnLoad()
+    {
+        EditorApplication.delayCall += CatchUp;
+    }
+
+    public static void CatchUp()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling)
+            return;
+
+        string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[]
+        {
+            "Assets/Art/Approved",
+            "Assets/Resources/Ui",
+            "Assets/Resources/FrontDoor",
+            "Assets/Resources/Goods",
+        });
+        var dirty = new List<string>();
+        for (int i = 0; i < guids.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            if (!InScope(path))
+                continue;
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null || Matches(importer))
+                continue;
+            dirty.Add(path);
+        }
+
+        if (dirty.Count == 0)
+            return;
+
+        AssetDatabase.StartAssetEditing();
+        try
+        {
+            for (int i = 0; i < dirty.Count; i++)
+                AssetDatabase.ImportAsset(dirty[i], ImportAssetOptions.ForceUpdate);
+        }
+        finally
+        {
+            AssetDatabase.StopAssetEditing();
+        }
+    }
+
+    static bool InScope(string path)
+    {
+        if (string.IsNullOrEmpty(path) || !path.EndsWith(".png"))
+            return false;
+        if (path.IndexOf("/_Source/", System.StringComparison.Ordinal) >= 0)
+            return false;
+        if (path.IndexOf("/Reference/", System.StringComparison.Ordinal) >= 0)
+            return false;
+        for (int i = 0; i < Roots.Length; i++)
+        {
+            if (path.StartsWith(Roots[i]))
+                return true;
+        }
+
+        return false;
+    }
+
+    static bool NeedsReadable(string path)
+    {
+        string name = Path.GetFileName(path);
+        if (name == "button_panel.png" || name == "menu_frame.png"
+            || name == "plate_quiet.png" || name == "plate_hot.png" || name == "plate_pressed.png")
+            return true;
+        if (name == "parchment-plain.png" || name == "duzhu-hide-panel.png"
+            || name == "banner.png" || name == "hide-header.png" || name == "bone-frame.png")
+            return true;
+        return name.StartsWith("resin-seal");
+    }
+
+    static void Apply(TextureImporter importer)
+    {
+        importer.textureType = TextureImporterType.Sprite;
+        importer.spriteImportMode = SpriteImportMode.Single;
+        importer.mipmapEnabled = true;
+        importer.streamingMipmaps = false;
+        importer.filterMode = FilterMode.Trilinear;
+        importer.anisoLevel = 1;
+        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.npotScale = TextureImporterNPOTScale.None;
+        importer.alphaIsTransparency = true;
+        importer.isReadable = NeedsReadable(importer.assetPath);
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
+        importer.crunchedCompression = false;
+        importer.compressionQuality = 100;
+        importer.maxTextureSize = 4096;
+
+        var settings = new TextureImporterSettings();
+        importer.ReadTextureSettings(settings);
+        settings.textureType = TextureImporterType.Sprite;
+        settings.spriteMode = (int)SpriteImportMode.Single;
+        settings.spriteMeshType = SpriteMeshType.FullRect;
+        settings.mipmapEnabled = true;
+        settings.filterMode = FilterMode.Trilinear;
+        settings.wrapMode = TextureWrapMode.Clamp;
+        settings.alphaIsTransparency = true;
+        settings.readable = importer.isReadable;
+        settings.npotScale = TextureImporterNPOTScale.None;
+        importer.SetTextureSettings(settings);
+
+        SetPlatform(importer.GetDefaultPlatformTextureSettings(), importer);
+        var standalone = importer.GetPlatformTextureSettings("Standalone");
+        standalone.name = "Standalone";
+        standalone.overridden = true;
+        SetPlatform(standalone, importer);
+    }
+
+    static void SetPlatform(TextureImporterPlatformSettings platform, TextureImporter importer)
+    {
+        platform.maxTextureSize = 4096;
+        platform.textureCompression = TextureImporterCompression.Uncompressed;
+        platform.crunchedCompression = false;
+        platform.compressionQuality = 100;
+        platform.format = TextureImporterFormat.RGBA32;
+        importer.SetPlatformTextureSettings(platform);
+    }
+
+    static bool Matches(TextureImporter importer)
+    {
+        if (importer.textureType != TextureImporterType.Sprite)
+            return false;
+        if (importer.spriteImportMode != SpriteImportMode.Single)
+            return false;
+        if (!importer.mipmapEnabled || importer.filterMode != FilterMode.Trilinear)
+            return false;
+        if (importer.wrapMode != TextureWrapMode.Clamp)
+            return false;
+        if (importer.textureCompression != TextureImporterCompression.Uncompressed || importer.crunchedCompression)
+            return false;
+        if (importer.isReadable != NeedsReadable(importer.assetPath))
+            return false;
+        if (importer.maxTextureSize < 4096)
+            return false;
+        if (importer.assetPath.EndsWith("ui_meter_frame.png"))
+        {
+            float border = importer.spriteBorder.x;
+            if (border < 78f || border > 80f)
+                return false;
+        }
+
+        TextureImporterPlatformSettings standalone = importer.GetPlatformTextureSettings("Standalone");
+        return standalone.overridden
+            && standalone.textureCompression == TextureImporterCompression.Uncompressed
+            && !standalone.crunchedCompression
+            && standalone.maxTextureSize >= 4096;
+    }
+}

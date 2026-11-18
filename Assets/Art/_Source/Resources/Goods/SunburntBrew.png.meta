@@ -1,0 +1,847 @@
+fileFormatVersion: 2
+guid: 6701459486d13a447b9b1ef1e8b480f5
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -1372462464312963739
+    second: SunburntBrew_0
+  - first:
+      213: 4769946877284438917
+    second: SunburntBrew_1
+  - first:
+      213: 5405898385702242495
+    second: SunburntBrew_2
+  - first:
+      213: -3525557197663613949
+    second: SunburntBrew_3
+  - first:
+      213: 6787900286760490625
+    second: SunburntBrew_4
+  - first:
+      213: 2200305079646885598
+    second: SunburntBrew_5
+  - first:
+      213: -3904890714279551186
+    second: SunburntBrew_6
+  - first:
+      213: 3132758249558480759
+    second: SunburntBrew_7
+  - first:
+      213: 2573228873864127309
+    second: SunburntBrew_8
+  - first:
+      213: -3388546989398913326
+    second: SunburntBrew_9
+  - first:
+      213: -6017052926723520450
+    second: SunburntBrew_10
+  - first:
+      213: -7836466073638901263
+    second: SunburntBrew_11
+  - first:
+      213: -654362448851197608
+    second: SunburntBrew_12
+  - first:
+      213: 2118536307938477709
+    second: SunburntBrew_13
+  - first:
+      213: -1335384164231811799
+    second: SunburntBrew_14
+  - first:
+      213: 1549312366748699831
+    second: SunburntBrew_15
+  - first:
+      213: -2371186166795272524
+    second: SunburntBrew_16
+  - first:
+      213: 1986648715462298996
+    second: SunburntBrew_17
+  - first:
+      213: 5269824119023444783
+    second: SunburntBrew_18
+  - first:
+      213: -1744438734889310853
+    second: SunburntBrew_19
+  - first:
+      213: -4346538444272664083
+    second: SunburntBrew_20
+  - first:
+      213: -8371466121924719747
+    second: SunburntBrew_21
+  - first:
+      213: 6081291780912628983
+    second: SunburntBrew_22
+  - first:
+      213: 3196440367053718952
+    second: SunburntBrew_23
+  - first:
+      213: 8625202759308804103
+    second: SunburntBrew_24
+  - first:
+      213: 8236193857058824992
+    second: SunburntBrew_25
+  - first:
+      213: -5509636912273408513
+    second: SunburntBrew_26
+  - first:
+      213: -8054296988230073856
+    second: SunburntBrew_27
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SunburntBrew_0
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 81
+        width: 1025
+        height: 1026
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56d811b09a804fce0800000000000000
+      internalID: -1372462464312963739
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_1
+      rect:
+        serializedVersion: 2
+        x: 333
+        y: 381
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 583d502a961423240800000000000000
+      internalID: 4769946877284438917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_2
+      rect:
+        serializedVersion: 2
+        x: 274
+        y: 362
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb8c3aba0fb950b40800000000000000
+      internalID: 5405898385702242495
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_3
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 359
+        width: 20
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30c40fd6864b21fc0800000000000000
+      internalID: -3525557197663613949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_4
+      rect:
+        serializedVersion: 2
+        x: 920
+        y: 317
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1869123d857733e50800000000000000
+      internalID: 6787900286760490625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_5
+      rect:
+        serializedVersion: 2
+        x: 907
+        y: 287
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed617ddefcd098e10800000000000000
+      internalID: 2200305079646885598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_6
+      rect:
+        serializedVersion: 2
+        x: 924
+        y: 299
+        width: 23
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2f55a8959a0fc9c0800000000000000
+      internalID: -3904890714279551186
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_7
+      rect:
+        serializedVersion: 2
+        x: 871
+        y: 267
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7779b18a70bc97b20800000000000000
+      internalID: 3132758249558480759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_8
+      rect:
+        serializedVersion: 2
+        x: 898
+        y: 273
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d432378f602f5b320800000000000000
+      internalID: 2573228873864127309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_9
+      rect:
+        serializedVersion: 2
+        x: 851
+        y: 251
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2de8828677679f0d0800000000000000
+      internalID: -3388546989398913326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_10
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 232
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e388beb2e322f7ca0800000000000000
+      internalID: -6017052926723520450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_11
+      rect:
+        serializedVersion: 2
+        x: 803
+        y: 236
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f96a5a10a74f3390800000000000000
+      internalID: -7836466073638901263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_12
+      rect:
+        serializedVersion: 2
+        x: 809
+        y: 230
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 851aed9d1dc3be6f0800000000000000
+      internalID: -654362448851197608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_13
+      rect:
+        serializedVersion: 2
+        x: 823
+        y: 235
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d86c07e2c8d866d10800000000000000
+      internalID: 2118536307938477709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_14
+      rect:
+        serializedVersion: 2
+        x: 832
+        y: 235
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92de7448d23c77de0800000000000000
+      internalID: -1335384164231811799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_15
+      rect:
+        serializedVersion: 2
+        x: 794
+        y: 224
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7bc0d229363408510800000000000000
+      internalID: 1549312366748699831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_16
+      rect:
+        serializedVersion: 2
+        x: 826
+        y: 225
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bef8df8ebad71fd0800000000000000
+      internalID: -2371186166795272524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_17
+      rect:
+        serializedVersion: 2
+        x: 837
+        y: 223
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47dcd922b7ef19b10800000000000000
+      internalID: 1986648715462298996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_18
+      rect:
+        serializedVersion: 2
+        x: 699
+        y: 212
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f23ad239d1d222940800000000000000
+      internalID: 5269824119023444783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_19
+      rect:
+        serializedVersion: 2
+        x: 706
+        y: 208
+        width: 23
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b75ad7a86328ac7e0800000000000000
+      internalID: -1744438734889310853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_20
+      rect:
+        serializedVersion: 2
+        x: 761
+        y: 215
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de18c8a505efda3c0800000000000000
+      internalID: -4346538444272664083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_21
+      rect:
+        serializedVersion: 2
+        x: 787
+        y: 217
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7bc5718ae392db80800000000000000
+      internalID: -8371466121924719747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_22
+      rect:
+        serializedVersion: 2
+        x: 789
+        y: 213
+        width: 17
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f4ccc897a6156450800000000000000
+      internalID: 6081291780912628983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_23
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 209
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a5c4ff04990c5c20800000000000000
+      internalID: 3196440367053718952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_24
+      rect:
+        serializedVersion: 2
+        x: 664
+        y: 198
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70002581630e2b770800000000000000
+      internalID: 8625202759308804103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_25
+      rect:
+        serializedVersion: 2
+        x: 680
+        y: 195
+        width: 21
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 023ee3ffca6dc4270800000000000000
+      internalID: 8236193857058824992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_26
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 201
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffd309a6b66d983b0800000000000000
+      internalID: -5509636912273408513
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SunburntBrew_27
+      rect:
+        serializedVersion: 2
+        x: 728
+        y: 193
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0024c0d0093693090800000000000000
+      internalID: -8054296988230073856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      SunburntBrew_0: -1372462464312963739
+      SunburntBrew_1: 4769946877284438917
+      SunburntBrew_10: -6017052926723520450
+      SunburntBrew_11: -7836466073638901263
+      SunburntBrew_12: -654362448851197608
+      SunburntBrew_13: 2118536307938477709
+      SunburntBrew_14: -1335384164231811799
+      SunburntBrew_15: 1549312366748699831
+      SunburntBrew_16: -2371186166795272524
+      SunburntBrew_17: 1986648715462298996
+      SunburntBrew_18: 5269824119023444783
+      SunburntBrew_19: -1744438734889310853
+      SunburntBrew_2: 5405898385702242495
+      SunburntBrew_20: -4346538444272664083
+      SunburntBrew_21: -8371466121924719747
+      SunburntBrew_22: 6081291780912628983
+      SunburntBrew_23: 3196440367053718952
+      SunburntBrew_24: 8625202759308804103
+      SunburntBrew_25: 8236193857058824992
+      SunburntBrew_26: -5509636912273408513
+      SunburntBrew_27: -8054296988230073856
+      SunburntBrew_3: -3525557197663613949
+      SunburntBrew_4: 6787900286760490625
+      SunburntBrew_5: 2200305079646885598
+      SunburntBrew_6: -3904890714279551186
+      SunburntBrew_7: 3132758249558480759
+      SunburntBrew_8: 2573228873864127309
+      SunburntBrew_9: -3388546989398913326
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

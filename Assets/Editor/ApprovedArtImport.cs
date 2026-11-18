@@ -5,24 +5,21 @@ using UnityEngine;
 
 public class ApprovedArtImport : AssetPostprocessor
 {
+    public override int GetPostprocessOrder()
+    {
+        return 100;
+    }
+
     const string Root = "Assets/Art/Approved/";
 
     void OnPreprocessTexture()
     {
         if (!assetPath.StartsWith(Root) || !assetPath.EndsWith(".png"))
             return;
+        if (assetPath.Contains("/_Source/") || assetPath.Contains("/Reference/"))
+            return;
 
         var importer = (TextureImporter)assetImporter;
-        importer.textureType = TextureImporterType.Sprite;
-        importer.spriteImportMode = SpriteImportMode.Single;
-        importer.mipmapEnabled = false;
-        importer.npotScale = TextureImporterNPOTScale.None;
-        importer.alphaIsTransparency = true;
-        importer.isReadable = false;
-        importer.textureCompression = TextureImporterCompression.Uncompressed;
-        importer.wrapMode = TextureWrapMode.Clamp;
-        importer.filterMode = FilterMode.Bilinear;
-        importer.maxTextureSize = 2048;
         importer.spritePixelsPerUnit = PixelsPerUnit(assetPath);
         importer.spriteBorder = Border(assetPath);
 
@@ -32,16 +29,7 @@ public class ApprovedArtImport : AssetPostprocessor
         settings.spriteMode = (int)SpriteImportMode.Single;
         settings.spritePixelsPerUnit = importer.spritePixelsPerUnit;
         settings.spriteBorder = importer.spriteBorder;
-        settings.filterMode = FilterMode.Bilinear;
-        settings.alphaIsTransparency = true;
         importer.SetTextureSettings(settings);
-
-        TextureImporterPlatformSettings platform = importer.GetDefaultPlatformTextureSettings();
-        platform.textureCompression = TextureImporterCompression.Uncompressed;
-        platform.compressionQuality = 100;
-        platform.maxTextureSize = 2048;
-        platform.crunchedCompression = false;
-        importer.SetPlatformTextureSettings(platform);
     }
 
     static float PixelsPerUnit(string path)
@@ -51,8 +39,9 @@ public class ApprovedArtImport : AssetPostprocessor
             return 187f / 128f;
         if (name == "ui_hide_panel.png")
             return 2f;
+        // Downscaled to 144 px tall, two times the 72-point meter.
         if (name == "ui_meter_frame.png")
-            return 319f / 72f;
+            return 2f;
         return 100f;
     }
 
@@ -64,8 +53,9 @@ public class ApprovedArtImport : AssetPostprocessor
             return new Vector4(150f, 150f, 150f, 150f);
         if (name == "ui_hide_bar.png")
             return new Vector4(145f, 45f, 145f, 45f);
+        // Same screen width as the 175 px border on the full-size source.
         if (name == "ui_meter_frame.png")
-            return new Vector4(175f, 0f, 175f, 0f);
+            return new Vector4(79f, 0f, 79f, 0f);
         return Vector4.zero;
     }
 
@@ -136,6 +126,7 @@ public static class ApprovedArtBind
             catalog.iconCapacity = SpriteAt("ui_icon_capacity.png");
             catalog.meterFrame = SpriteAt("ui_meter_frame.png");
             catalog.meterFill = SpriteAt("ui_meter_fill.png");
+            catalog.logoTitle = SpriteAt("logo_title.png");
             catalog.settlementGeneric = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Approved/bg_settlement_generic.png");
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();

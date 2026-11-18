@@ -125,7 +125,9 @@ namespace Caravans.Play
         GridLayoutGroup wagonGrid;
         RectTransform sortMenu;
         RectTransform hoverChip;
+        RectTransform hoverSource;
         TextMeshProUGUI hoverLabel;
+        bool shotHidesHover;
         TextMeshProUGUI detailText;
         TextMeshProUGUI detailName;
         TextMeshProUGUI weightText;
@@ -795,19 +797,21 @@ namespace Caravans.Play
 
             placeText = Body(bar.rectTransform, UiType.Header, TextAlignmentOptions.MidlineLeft);
             placeText.color = FrontUi.Gold;
+            FitLine(placeText, UiType.Header);
             var placeRt = placeText.rectTransform;
             placeRt.anchorMin = Vector2.zero;
-            placeRt.anchorMax = new Vector2(0.32f, 1f);
-            placeRt.offsetMin = new Vector2(UiType.Gap, 8f);
-            placeRt.offsetMax = new Vector2(-8f, -8f);
+            placeRt.anchorMax = new Vector2(0.30f, 1f);
+            placeRt.offsetMin = new Vector2(UiType.Gap, 4f);
+            placeRt.offsetMax = new Vector2(-8f, -4f);
 
             clockText = Body(bar.rectTransform, UiType.Hud, TextAlignmentOptions.Center);
             clockText.color = Ink;
+            FitLine(clockText, UiType.Hud);
             var clockRt = clockText.rectTransform;
-            clockRt.anchorMin = new Vector2(0.32f, 0f);
+            clockRt.anchorMin = new Vector2(0.30f, 0f);
             clockRt.anchorMax = new Vector2(0.62f, 1f);
-            clockRt.offsetMin = new Vector2(8f, 8f);
-            clockRt.offsetMax = new Vector2(-8f, -8f);
+            clockRt.offsetMin = new Vector2(8f, 4f);
+            clockRt.offsetMax = new Vector2(-8f, -4f);
 
             var cluster = Child(bar.rectTransform, "Resources");
             cluster.anchorMin = new Vector2(0.62f, 0f);
@@ -1535,8 +1539,15 @@ namespace Caravans.Play
 
         public void ShowCellName(string name, RectTransform cell)
         {
+            if (shotHidesHover)
+            {
+                HideHover();
+                return;
+            }
+
             if (hoverChip == null || string.IsNullOrEmpty(name) || cell == null)
                 return;
+            hoverSource = cell;
             hoverLabel.text = name;
             var panel = (RectTransform)hoverChip.parent;
             Vector3 top = cell.TransformPoint(new Vector3(cell.rect.center.x, cell.rect.yMax, 0f));
@@ -1551,8 +1562,16 @@ namespace Caravans.Play
             hoverChip.SetAsLastSibling();
         }
 
+        public void HideHoverFrom(RectTransform cell)
+        {
+            if (hoverSource != null && cell != null && hoverSource != cell)
+                return;
+            HideHover();
+        }
+
         public void HideHover()
         {
+            hoverSource = null;
             if (hoverChip != null)
                 hoverChip.gameObject.SetActive(false);
         }
@@ -2328,6 +2347,15 @@ namespace Caravans.Play
             return button;
         }
 
+        static void FitLine(TextMeshProUGUI text, float maxSize)
+        {
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.enableAutoSizing = true;
+            text.fontSizeMin = UiType.Small;
+            text.fontSizeMax = maxSize;
+        }
+
         TextMeshProUGUI HudText(RectTransform parent, float width, TextAlignmentOptions alignment)
         {
             var text = Body(parent, UiType.Hud, alignment);
@@ -2698,6 +2726,8 @@ namespace Caravans.Play
 
         public bool Shot(string id)
         {
+            shotHidesHover = true;
+            HideHover();
             switch (id)
             {
                 case "seed":
@@ -2896,7 +2926,13 @@ namespace Caravans.Play
         public void OnPointerExit(PointerEventData eventData)
         {
             if (owner != null)
-                owner.HideHover();
+                owner.HideHoverFrom((RectTransform)transform);
+        }
+
+        void OnDisable()
+        {
+            if (owner != null)
+                owner.HideHoverFrom((RectTransform)transform);
         }
     }
 

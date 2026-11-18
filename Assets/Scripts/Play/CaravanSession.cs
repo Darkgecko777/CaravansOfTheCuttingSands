@@ -1758,13 +1758,13 @@ namespace Caravans.Play
             switch (kind)
             {
                 case WeatherKind.Heat:
-                    return lead + "Heat. The leg takes longer. Cargo loss is not rated yet.";
+                    return lead + "Heat. The leg takes longer.";
                 case WeatherKind.Wind:
-                    return lead + "Wind. The leg takes longer. Cargo loss is not rated yet.";
+                    return lead + "Wind. The leg takes longer.";
                 case WeatherKind.Sandstorm:
-                    return lead + "Sandstorm. The leg takes longer. Cargo loss is not rated yet.";
+                    return lead + "Sandstorm. The leg takes longer.";
                 default:
-                    return lead + "Clear. Cargo loss is not rated yet.";
+                    return lead + "Clear.";
             }
         }
 

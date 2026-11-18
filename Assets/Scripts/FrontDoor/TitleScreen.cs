@@ -46,8 +46,24 @@ namespace Caravans.FrontDoor
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
 
-            FrontUi.Label(column, "Caravans of the Cutting Sands", 42f, true, FrontUi.TitleGold, new Vector2(1400f, 64f));
-            FrontUi.Label(column, "Buy on knowledge. Risk the journey.", UiType.Small, false, FrontUi.Subtitle, new Vector2(1400f, 36f));
+            ApprovedArt art = ApprovedArt.Load();
+            if (art != null && art.logoTitle != null)
+            {
+                var logo = FrontUi.Box(column, "Logo", new Vector2(980f, 240f));
+                var logoFit = logo.gameObject.AddComponent<LayoutElement>();
+                logoFit.preferredWidth = 980f;
+                logoFit.preferredHeight = 240f;
+                var logoImage = logo.gameObject.AddComponent<Image>();
+                logoImage.sprite = art.logoTitle;
+                logoImage.preserveAspect = true;
+                logoImage.raycastTarget = false;
+            }
+            else
+            {
+                FrontUi.Label(column, "Caravans of the Cutting Sands", 42f, true, FrontUi.TitleGold, new Vector2(1400f, 64f));
+            }
+
+            FrontUi.Label(column, "Every road has a price.", UiType.Small, false, FrontUi.Subtitle, new Vector2(1400f, 36f));
 
             var frame = FrontUi.Box(column, "MenuFrame", new Vector2(400f, 520f));
             var frameElement = frame.gameObject.AddComponent<LayoutElement>();

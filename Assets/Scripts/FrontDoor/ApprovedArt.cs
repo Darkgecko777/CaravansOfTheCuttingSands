@@ -32,6 +32,7 @@ namespace Caravans.FrontDoor
         public Sprite iconCapacity;
         public Sprite meterFrame;
         public Sprite meterFill;
+        public Sprite logoTitle;
         public Texture2D settlementGeneric;
 
         static ApprovedArt loaded;
