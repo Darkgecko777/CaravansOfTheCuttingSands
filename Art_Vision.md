@@ -59,6 +59,8 @@ Add gear and baggage plus a saddle (no rider) appropriate for several days deser
 
 ## Market goods
 
+All 41 goods icons were replaced with final art on Nov 19, 2026. The PNG is the reference wherever an older per-good description disagrees with it.
+
 A cord in a goods picture is Zar'Kun sinew: one continuous pale grey cord, suckers visible, the end tucked or joined to what it binds. A sack, pouch, or wrap is Clack Fiend molt-skin, pale and thin enough that the contents almost show. A crate, haft, or wooden body is living lumber, planed, with moss along the edges, as on the Shimmersteel Jars crate. A liquid vessel is low-grade shimmersteel: thick faceted crystal, a sand-bronze lip, grit in the crevices. The mouth is closed by a scrubcast resin plug pressed into it, and the drips stay joined to the lip. An off-list trade item may appear only as packaging. The water bladder is that package. Glass, cork, hemp, burlap, generic rope, generic timber, and bronze are not used.
 
 ### Giant Duzhu Hide
@@ -147,9 +149,9 @@ One large swollen beast bladder of fresh water. The picture is `Assets/Resources
 
 The same bladder. The picture is `Assets/Resources/Goods/SeaWater.png`. It is the file on the Sea water cell. A dry salt crust covers the hide, and the gathered neck carries a paler brine stain. The cord is the same sling and knot.
 
-### Tiger Cactus Flesh
+### Lurkthorn Flesh
 
-A modest dense cut of reddish plant flesh. The picture is `Assets/Resources/Goods/TigerCactusFlesh.png`. It is the file on the Tiger Cactus Flesh cell. Pale molt-skin wraps the middle, and one suckered cord ties it. The free end is a wrapped plug.
+A wedge of dense, juicy crimson fruit-like pulp with glistening cells, pale branching fibre veins and dark glossy seeds, under a thick olive-green rind studded with hooked brown thorns, on a scrap of dark brown hide. There is no wrap, cord, or plug. The picture is `Assets/Resources/Goods/TigerCactusFlesh.png`. It is the file on the Lurkthorn Flesh cell.
 
 ### Khor Crafted Tools
 

@@ -1,6 +1,6 @@
 # UI screenshots
 
-Captured 2026-11-18 at commit 2c50edd (working tree).
+Captured 2026-11-19 at commit 779b82a (working tree).
 
 | File | Scene | State |
 | --- | --- | --- |

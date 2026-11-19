@@ -24,7 +24,7 @@ Not locked numbers.
 
 **Sea water.** Shore cargo, not an origin good. Westmark, Neth, Sorel, Zamath, Ghûl, Kaleth, and Brineford draw it. The price is the local pure-water price. A place that buys a unit puts it on the pure-water shelf. Those shores do not buy it, and neither do Ghorath or Rukh. The caravan does not desalt it.
 
-Edible on the current sheet: Tiger Cactus Flesh, Moon Soaked Zethi-Bulb, Finger Fungus, Fire Salt, Sweetrock, Clack Fiend Larvae, Kel Eel Flesh. Sweet Bliss is food until it turns toxic.
+Edible on the current sheet: Lurkthorn Flesh, Moon Soaked Zethi-Bulb, Finger Fungus, Fire Salt, Sweetrock, Clack Fiend Larvae, Kel Eel Flesh. Sweet Bliss is food until it turns toxic.
 
 ## Shimmersteel
 
@@ -41,7 +41,7 @@ Four origin goods each. House seat. The house is named for the city.
 Scrubstone comes out of the ground here and becomes coin. The city does not mine shimmersteel. It buys organ oil from Rukh.
 
 - **Shimmersteel Jars.** Lowest grade, basic resilient jars. A crate, a bit heavy for the space. Plain, thick-walled, meant to survive the road.
-- **Tiger Cactus Flesh.** Cut flesh of a carnivorous plant that moves. Edible. A modest cut, ordinary heft, meat more than salad.
+- **Lurkthorn Flesh.** The flesh of the Lurkthorn, a squat, barrel-bodied carnivorous plant of the Kharûn scrub that drags itself on root-legs and ambushes prey. Its dense, dark crimson, meat-like pulp sits under a thick spined rind. Edible. A modest cut, ordinary heft, meat more than salad.
 - **Khor Crafted Tools.** A bundle of practical tools. Solid, not precious. Exact faces not fixed.
 - **Scrubcast Resin.** Byproduct of pulling scrubstone. A pot or cake. Industrial, sticky. Not the coin.
 

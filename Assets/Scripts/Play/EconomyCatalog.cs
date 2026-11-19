@@ -30,7 +30,7 @@ namespace Caravans.Play
             "Titan's Heart-rock", "Palestone Bricks", "Living Lumber", "Hulv Bone",
             "Water Witching Rods", "Khor Crafted Tools", "Vek-kilned Pottery", "Zar'Kun Sinew",
             "Scrubcast Resin", "Brine Scrub", "Mor Root", "Giant Duzhu Hide",
-            "Pincer Beast Fur", "Clack Fiend Molt-skin", "Tiger Cactus Flesh", "Kel Eel Flesh",
+            "Pincer Beast Fur", "Clack Fiend Molt-skin", "Lurkthorn Flesh", "Kel Eel Flesh",
             "Clack Fiend Larvae", "Moon Soaked Zethi-Bulb", "Fire Salt", "Sweetrock",
             "Sweet Bliss Pomegranates", "Sunburnt Brew", "Crimson Eyed Melon Juice", "Dream Lotus Nectar",
             "Sarn's Bane Liver", "Numbspindle", "Dune Mollusk Pearls", "Eyes of Arkhul",
@@ -661,6 +661,7 @@ namespace Caravans.Play
             map["Giant Duzhu Hide"] = GoodId.GiantDuzhuHide;
             map["Pincer Beast Fur"] = GoodId.PincerBeastFur;
             map["Clack Fiend Molt-skin"] = GoodId.ClackFiendMoltSkin;
+            map["Lurkthorn Flesh"] = GoodId.TigerCactusFlesh;
             map["Tiger Cactus Flesh"] = GoodId.TigerCactusFlesh;
             map["Kel Eel Flesh"] = GoodId.KelEelFlesh;
             map["Clack Fiend Larvae"] = GoodId.ClackFiendLarvae;
