@@ -75,6 +75,8 @@ Use one or two. Not all three every time. House kin is "of House Kharûn" and is
 
 Names are drawn once per save from `Name_List.md` and not reused in that save. The first build does not need the whole reservoir.
 
+**Reserved.** Kulva, once of Neth, is a written road figure. A later per-save name draw does not hand that name out.
+
 ## Map, do not quietly rename
 
 Seats: Kharûn, Zamath, Thalor, Veythar, Ghorath.

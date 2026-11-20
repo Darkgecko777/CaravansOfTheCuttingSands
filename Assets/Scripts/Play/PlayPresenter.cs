@@ -104,6 +104,7 @@ namespace Caravans.Play
         RectTransform token;
         Image dimmer;
         RectTransform cardRoot;
+        RectTransform cardPanel;
         TextMeshProUGUI cardTitle;
         TextMeshProUGUI cardBody;
         Button rushButton;
@@ -114,6 +115,8 @@ namespace Caravans.Play
         Button duskButton;
         Button campButton;
         Button continueButton;
+        Button encounterChoiceA;
+        Button encounterChoiceB;
         Button backPaceButton;
         Canvas topBarCanvas;
         RectTransform optionsRoot;
@@ -952,6 +955,7 @@ namespace Caravans.Play
             RaiseCanvas(cardRoot.gameObject, 36);
             ImageOn(cardRoot, UiType.Backdrop, true);
             var panel = Child(cardRoot, "Panel");
+            cardPanel = panel;
             Center(panel, new Vector2(860f, 520f));
             FrameSheet(panel, true);
             cardTitle = Body(panel, UiType.Header, TextAlignmentOptions.Center);
@@ -988,6 +992,14 @@ namespace Caravans.Play
             backPaceButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(300f, -165f);
             campButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
             continueButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
+            encounterChoiceA = ChoiceButton(panel, "ChoiceA", new Vector2(0f, -180f), () => session.ChooseEncounter(0));
+            encounterChoiceB = ChoiceButton(panel, "ChoiceB", new Vector2(0f, -250f), () => session.ChooseEncounter(1));
+            encounterChoiceA.GetComponent<RectTransform>().sizeDelta = new Vector2(640f, 64f);
+            encounterChoiceB.GetComponent<RectTransform>().sizeDelta = new Vector2(640f, 64f);
+            SplitSealLabel(encounterChoiceA, 48f);
+            SplitSealLabel(encounterChoiceB, 48f);
+            encounterChoiceA.gameObject.SetActive(false);
+            encounterChoiceB.gameObject.SetActive(false);
             backPaceButton.GetComponent<RectTransform>().sizeDelta = new Vector2(160f, 56f);
             var confirmImage = confirmPaceButton.GetComponent<Image>();
             Sprite paceSeal = confirmImage.sprite;
@@ -1396,8 +1408,20 @@ namespace Caravans.Play
             bool camp = session.CampPending && !encounter;
             bool pace = open && !camp && !encounter;
             bool resume = pace && session.AwaitingPace;
-            cardTitle.text = encounter ? "On the Road" : camp ? "Make camp" : "The road";
-            cardBody.text = encounter ? "Nothing comes of this yet." : camp ? "The travel hours are spent." : "Choose a pace.";
+            bool choices = encounter && session.EncounterWritten && !session.EncounterResolved && session.EncounterChoiceCount >= 2;
+            if (encounter)
+            {
+                cardTitle.text = session.EncounterTitle;
+                cardBody.text = session.EncounterBody;
+            }
+            else
+            {
+                cardTitle.text = camp ? "Make camp" : "The road";
+                cardBody.text = camp ? "The travel hours are spent." : "Choose a pace.";
+            }
+
+            cardTitle.font = FrontArt.Display();
+            cardBody.font = FrontArt.Regular();
             rushButton.gameObject.SetActive(pace);
             steadyButton.gameObject.SetActive(pace);
             carefulButton.gameObject.SetActive(pace);
@@ -1406,13 +1430,90 @@ namespace Caravans.Play
             confirmPaceButton.gameObject.SetActive(pace);
             backPaceButton.gameObject.SetActive(choosingRoad && !session.AwaitingPace && !encounter);
             campButton.gameObject.SetActive(camp);
-            continueButton.gameObject.SetActive(encounter);
+            continueButton.gameObject.SetActive(encounter && !choices);
+            if (encounterChoiceA != null)
+                encounterChoiceA.gameObject.SetActive(choices);
+            if (encounterChoiceB != null)
+                encounterChoiceB.gameObject.SetActive(choices);
+            if (choices)
+            {
+                SetChoiceLabel(encounterChoiceA, session.EncounterChoiceLabel(0));
+                SetChoiceLabel(encounterChoiceB, session.EncounterChoiceLabel(1));
+            }
+
+            FitEncounterCard(encounter, choices);
             ShowDeparture(pace);
             if (!pace)
                 return;
             TintPace(rushButton, draftPace == RoadPace.Rush);
             TintPace(steadyButton, draftPace == RoadPace.Steady);
             TintPace(carefulButton, draftPace == RoadPace.Careful);
+        }
+
+        void FitEncounterCard(bool encounter, bool choices)
+        {
+            if (cardPanel == null || cardBody == null || continueButton == null)
+                return;
+            var bodyRt = cardBody.rectTransform;
+            var continueRt = continueButton.GetComponent<RectTransform>();
+            if (!encounter || !session.EncounterWritten)
+            {
+                cardPanel.sizeDelta = new Vector2(860f, 520f);
+                bodyRt.sizeDelta = new Vector2(-96f, 72f);
+                bodyRt.anchoredPosition = new Vector2(0f, -112f);
+                continueRt.anchorMin = continueRt.anchorMax = new Vector2(0.5f, 0.5f);
+                continueRt.pivot = new Vector2(0.5f, 0.5f);
+                continueRt.sizeDelta = new Vector2(280f, 56f);
+                continueRt.anchoredPosition = new Vector2(0f, -20f);
+                return;
+            }
+
+            const float width = 764f;
+            string copy = cardBody.text ?? "";
+            float textH = cardBody.GetPreferredValues(copy, width, 0f).y;
+            float line = UiType.Body * 1.25f;
+            float guess = Mathf.Max(line, Mathf.Ceil(Mathf.Max(copy.Length, 1) / 42f) * line);
+            if (textH < guess * 0.6f)
+                textH = guess;
+            textH = Mathf.Max(96f, textH + 8f);
+            bodyRt.sizeDelta = new Vector2(-96f, textH);
+            bodyRt.anchoredPosition = new Vector2(0f, -112f);
+            float buttonBlock = choices ? 140f : 64f;
+            float panelH = 112f + textH + 28f + buttonBlock + 56f;
+            if (panelH < 520f)
+                panelH = 520f;
+            cardPanel.sizeDelta = new Vector2(860f, panelH);
+            float top = -112f - textH - 24f;
+            PlaceEncounterChoice(encounterChoiceA, top);
+            PlaceEncounterChoice(encounterChoiceB, top - 76f);
+            continueRt.anchorMin = continueRt.anchorMax = new Vector2(0.5f, 1f);
+            continueRt.pivot = new Vector2(0.5f, 1f);
+            continueRt.sizeDelta = new Vector2(320f, 56f);
+            continueRt.anchoredPosition = new Vector2(0f, top);
+        }
+
+        static void PlaceEncounterChoice(Button button, float top)
+        {
+            if (button == null)
+                return;
+            var rect = button.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.sizeDelta = new Vector2(640f, 64f);
+            rect.anchoredPosition = new Vector2(0f, top);
+        }
+
+        static void SetChoiceLabel(Button button, string label)
+        {
+            var text = button.GetComponentInChildren<TextMeshProUGUI>();
+            if (text == null)
+                return;
+            text.text = label;
+            text.font = FrontArt.Regular();
+            text.fontSize = UiType.Body;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.alignment = TextAlignmentOptions.MidlineLeft;
         }
 
         void ShowDeparture(bool pace)
@@ -1445,7 +1546,14 @@ namespace Caravans.Play
         {
             if (session.EncounterPending)
             {
-                continueButton.interactable = true;
+                bool choices = session.EncounterWritten && !session.EncounterResolved && session.EncounterChoiceCount >= 2;
+                if (choices)
+                {
+                    encounterChoiceA.interactable = true;
+                    encounterChoiceB.interactable = true;
+                }
+                else
+                    continueButton.interactable = true;
                 return;
             }
 
@@ -3044,12 +3152,17 @@ namespace Caravans.Play
                     return session.Traveling && session.Pace == 0 && session.TravelDistance <= 0.000001f;
                 case "encounter":
                     ShotClearOverlays();
-                    if (!session.EncounterPending)
-                        session.ShotEncounter("WD-01");
+                    if (!session.Traveling)
+                    {
+                        if (!session.ShotDepartPaused(PlaceId.Draven))
+                            return false;
+                    }
+
+                    session.ShotEncounter("CA-03");
                     page = Page.Plaza;
                     plazaSpot = PlazaSpot.Gates;
                     FinishShot();
-                    return session.EncounterPending && session.EncounterId == "WD-01";
+                    return session.EncounterPending && !session.EncounterResolved && session.EncounterId == "CA-03";
                 case "camp":
                     ShotClearOverlays();
                     if (!session.CampPending)

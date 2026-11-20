@@ -569,7 +569,7 @@ namespace Caravans.Play.Tests
         static void Release(CaravanSession session)
         {
             if (session.EncounterPending)
-                session.ContinueEncounter();
+                session.SkipEncounter();
         }
 
         static void Ride(CaravanSession session)
@@ -804,26 +804,14 @@ namespace Caravans.Play.Tests
         }
 
         [Test]
-        public void TheEncounterChartHasEightyIdsAndStoresDayAndNight()
+        public void TheEncounterChartStoresDayAndNightAndTheWrittenRows()
         {
             IReadOnlyList<EncounterRow> rows = EncounterTable.All;
-            Assert.AreEqual(80, rows.Count);
+            Assert.AreEqual(87, rows.Count);
             var seen = new HashSet<string>();
             int day = 0;
             int night = 0;
             int either = 0;
-            var categories = (EncounterCategory[])System.Enum.GetValues(typeof(EncounterCategory));
-            for (int c = 0; c < categories.Length; c++)
-            {
-                IReadOnlyList<EncounterRow> group = EncounterTable.Rows(categories[c]);
-                Assert.AreEqual(5, group.Count);
-                Assert.AreEqual(DayNight.Day, group[0].When);
-                Assert.AreEqual(DayNight.Night, group[1].When);
-                Assert.AreEqual(DayNight.Either, group[2].When);
-                Assert.AreEqual(DayNight.Day, group[3].When);
-                Assert.AreEqual(DayNight.Night, group[4].When);
-            }
-
             for (int i = 0; i < rows.Count; i++)
             {
                 Assert.IsTrue(seen.Add(rows[i].Id));
@@ -835,11 +823,25 @@ namespace Caravans.Play.Tests
                     either++;
             }
 
-            Assert.AreEqual(32, day);
-            Assert.AreEqual(32, night);
-            Assert.AreEqual(16, either);
+            Assert.AreEqual(33, day);
+            Assert.AreEqual(34, night);
+            Assert.AreEqual(20, either);
             Assert.AreEqual("SS-01", EncounterTable.Rows(EncounterCategory.WeatherSandstorm)[0].Id);
             Assert.AreEqual("WS-01", EncounterTable.Rows(EncounterCategory.WildlifeSea)[0].Id);
+            Assert.AreEqual(DayNight.Night, ChartWhen("CA-06"));
+            Assert.AreEqual(DayNight.Night, ChartWhen("CA-07"));
+            Assert.AreEqual(DayNight.Either, ChartWhen("CA-08"));
+            Assert.AreEqual(DayNight.Either, ChartWhen("CA-09"));
+            Assert.AreEqual(DayNight.Either, ChartWhen("CA-10"));
+            Assert.AreEqual(DayNight.Day, ChartWhen("CA-11"));
+            Assert.AreEqual(DayNight.Either, ChartWhen("FU-01"));
+            Assert.AreEqual(EncounterCategory.Catchall, ChartCategory("CA-11"));
+            Assert.AreEqual(EncounterCategory.WildlifeSea, ChartCategory("FU-01"));
+            Assert.IsTrue(seen.Contains("BA-04"));
+            Assert.IsTrue(seen.Contains("BA-05"));
+            Assert.IsFalse(EncounterCards.IsRoadPool("BA-04"));
+            Assert.IsFalse(EncounterCards.IsRoadPool("BA-05"));
+            Assert.IsFalse(EncounterCards.IsRoadPool("FU-01"));
         }
 
         [Test]
@@ -926,6 +928,7 @@ namespace Caravans.Play.Tests
 
             if (session.EncounterHour >= 0f)
             {
+                Assert.IsNull(session.EncounterId);
                 Assert.GreaterOrEqual(session.EncounterHour, 1f);
                 Assert.LessOrEqual(session.EncounterHour, 6f);
                 for (int i = 0; i < 4000 && !session.EncounterPending; i++)
@@ -936,28 +939,36 @@ namespace Caravans.Play.Tests
                 Assert.Greater(session.TravelDistance, 0f);
             }
 
-            if (!session.EncounterPending)
-                session.OpenEncounter("CA-03");
-            string id = session.EncounterId;
-            int coin = session.Coin;
-            float travel = session.TravelHours;
-            float water = session.WaterLitres;
-            float food = session.RationKg;
-            float hour = session.Hour;
-            int day = session.Day;
-            float distance = session.TravelDistance;
-            Assert.IsTrue(session.HoldTravel);
-            session.ContinueEncounter();
-            Assert.IsFalse(session.EncounterPending);
-            Assert.IsFalse(session.HoldTravel);
-            Assert.AreEqual(coin, session.Coin);
-            Assert.AreEqual(travel, session.TravelHours, 0.001f);
-            Assert.AreEqual(water, session.WaterLitres, 0.001f);
-            Assert.AreEqual(food, session.RationKg, 0.001f);
-            Assert.AreEqual(hour, session.Hour, 0.001f);
-            Assert.AreEqual(day, session.Day);
-            Assert.AreEqual(distance, session.TravelDistance, 0.001f);
-            Assert.IsFalse(string.IsNullOrEmpty(id));
+            if (session.EncounterPending)
+            {
+                Assert.IsTrue(EncounterCards.IsRoadPool(session.EncounterId));
+                Assert.AreEqual(2, session.EncounterChoiceCount);
+                Assert.IsFalse(session.EncounterResolved);
+                int coin = session.Coin;
+                float travel = session.TravelHours;
+                float water = session.WaterLitres;
+                float food = session.RationKg;
+                float hour = session.Hour;
+                int day = session.Day;
+                float distance = session.TravelDistance;
+                session.ContinueEncounter();
+                Assert.IsTrue(session.EncounterPending);
+                Assert.AreEqual(coin, session.Coin);
+                Assert.AreEqual(travel, session.TravelHours, 0.001f);
+                Assert.AreEqual(water, session.WaterLitres, 0.001f);
+                Assert.AreEqual(food, session.RationKg, 0.001f);
+                Assert.AreEqual(hour, session.Hour, 0.001f);
+                Assert.AreEqual(day, session.Day);
+                Assert.AreEqual(distance, session.TravelDistance, 0.001f);
+                session.SkipEncounter();
+            }
+
+            var stub = new CaravanSession();
+            int stubCoin = stub.Coin;
+            stub.OpenEncounter("WD-01");
+            stub.ContinueEncounter();
+            Assert.IsFalse(stub.EncounterPending);
+            Assert.AreEqual(stubCoin, stub.Coin);
 
             for (int i = 0; i < 4000 && !session.CampPending; i++)
             {
@@ -980,6 +991,174 @@ namespace Caravans.Play.Tests
             Assert.IsFalse(sea.EncounterPending);
             Assert.AreEqual(-1f, sea.EncounterHour, 0.001f);
             Assert.AreEqual(PlaceId.Neth, sea.Dock);
+        }
+
+        [Test]
+        public void EncounterCardsLoadSixteenWrittenRows()
+        {
+            IReadOnlyList<EncounterCard> cards = EncounterCards.All;
+            Assert.AreEqual(16, cards.Count);
+            var seen = new HashSet<string>();
+            for (int i = 0; i < cards.Count; i++)
+            {
+                EncounterCard card = cards[i];
+                Assert.IsTrue(seen.Add(card.id));
+                Assert.IsFalse(string.IsNullOrEmpty(card.title));
+                Assert.IsFalse(string.IsNullOrEmpty(card.scene));
+                Assert.AreEqual(2, card.choices.Length);
+                for (int c = 0; c < card.choices.Length; c++)
+                {
+                    Assert.IsFalse(string.IsNullOrEmpty(card.choices[c].label));
+                    Assert.AreEqual(2, card.choices[c].outcomes.Length);
+                    int weight = card.choices[c].outcomes[0].weight + card.choices[c].outcomes[1].weight;
+                    Assert.AreEqual(100, weight);
+                }
+            }
+
+            string path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "data", "config", "encounter_cards.json"));
+            string bad = File.ReadAllText(path).Replace("\"skillTag\": \"Scout\"", "\"skillTag\": \"Courier\"");
+            Assert.Throws<System.InvalidOperationException>(() => EncounterCards.LoadText(bad));
+            Assert.AreEqual(16, EncounterCards.All.Count);
+        }
+
+        [Test]
+        public void RoadFiltersKeepWrittenCardsOnTheirRoads()
+        {
+            Assert.IsTrue(EncounterCards.Fits(EncounterCards.Find("CA-03"), PlaceId.Kharun, PlaceId.Draven, 8f, flag => false));
+            Assert.IsTrue(EncounterCards.Fits(EncounterCards.Find("BA-01"), PlaceId.Kharun, PlaceId.Draven, 8f, flag => false));
+            Assert.IsFalse(EncounterCards.Fits(EncounterCards.Find("CA-01"), PlaceId.Kharun, PlaceId.Draven, 20f, flag => false));
+            EncounterCard kulva = EncounterCards.Find("CZ-03");
+            Assert.IsTrue(EncounterCards.Fits(kulva, PlaceId.Kaleth, PlaceId.Zamath, 10f, flag => false));
+            Assert.IsTrue(EncounterCards.Fits(kulva, PlaceId.Zamath, PlaceId.Southmark, 10f, flag => false));
+            Assert.IsFalse(EncounterCards.Fits(kulva, PlaceId.Kharun, PlaceId.Draven, 10f, flag => false));
+            Assert.IsFalse(EncounterCards.Fits(kulva, PlaceId.Kaleth, PlaceId.Zamath, 10f, flag => flag == "prophet_ignored"));
+            Assert.AreEqual("scripted", EncounterCards.Find("FU-01").pool);
+            Assert.IsFalse(EncounterCards.IsRoadPool("FU-01"));
+
+            var random = new System.Random(3);
+            List<EncounterCategory> pool = EncounterTable.Eligible(PlaceId.Kharun, PlaceId.Draven, WeatherKind.Clear);
+            for (int i = 0; i < 24; i++)
+            {
+                string id = EncounterCards.Pick(pool, PlaceId.Kharun, PlaceId.Draven, 8f, flag => false, random);
+                EncounterCard card = EncounterCards.Find(id);
+                EncounterCategory category = EncounterCards.CategoryOf(card);
+                Assert.IsTrue(category == EncounterCategory.Catchall || category == EncounterCategory.Bandits);
+                Assert.AreNotEqual("FU-01", id);
+                Assert.AreNotEqual("BA-04", id);
+                Assert.AreNotEqual("WD-01", id);
+            }
+        }
+
+        [Test]
+        public void BanditsTakeTheMostValuableUnitOrCoin()
+        {
+            var loaded = new CaravanSession();
+            loaded.GiveCargo(GoodId.ShimmersteelJars, 1f);
+            loaded.GiveCargo(GoodId.ShimmersteelJars, 0.4f);
+            loaded.OpenEncounter("BA-01");
+            loaded.ResolveOutcome(0, "a2");
+            Assert.AreEqual(1, loaded.CargoCount);
+            Assert.AreEqual(0.4f, loaded.CargoIntegrityAt(0), 0.001f);
+
+            var empty = new CaravanSession();
+            int coin = empty.Coin;
+            empty.OpenEncounter("BA-03");
+            empty.ResolveOutcome(0, "a2");
+            Assert.AreEqual(0, empty.CargoCount);
+            Assert.AreEqual(coin - 25, empty.Coin);
+        }
+
+        [Test]
+        public void TheGodUnderTheWaterReplacesTheRollOnlyAfterKulvaIsIgnored()
+        {
+            var plain = new CaravanSession();
+            plain.ShotDockAt(PlaceId.Kaleth);
+            Assert.IsTrue(plain.DepartTo(PlaceId.Zamath));
+            Assert.AreNotEqual("FU-01", plain.EncounterId);
+            Assert.AreEqual(1, plain.StretchChecks);
+
+            var armed = new CaravanSession();
+            armed.SetRunFlag("prophet_ignored");
+            armed.ShotDockAt(PlaceId.Kaleth);
+            Assert.IsTrue(armed.DepartTo(PlaceId.Zamath));
+            Assert.AreEqual("FU-01", armed.EncounterId);
+            Assert.GreaterOrEqual(armed.EncounterHour, 1f);
+            Assert.LessOrEqual(armed.EncounterHour, 6f);
+            Assert.IsFalse(armed.EncounterPending);
+            Assert.AreEqual(1, armed.StretchChecks);
+
+            var other = new CaravanSession();
+            other.SetRunFlag("prophet_ignored");
+            Assert.IsTrue(other.DepartTo(PlaceId.Draven));
+            Assert.AreNotEqual("FU-01", other.EncounterId);
+            Assert.IsTrue(other.HasRunFlag("prophet_ignored"));
+
+            var sea = new CaravanSession();
+            sea.SetRunFlag("prophet_ignored");
+            sea.ShotDockAt(PlaceId.Zamath);
+            Assert.IsTrue(sea.DepartTo(PlaceId.Neth));
+            Assert.AreEqual(0, sea.StretchChecks);
+            Assert.AreNotEqual("FU-01", sea.EncounterId);
+            Assert.IsTrue(sea.HasRunFlag("prophet_ignored"));
+            Assert.AreEqual(PlaceId.Neth, sea.Dock);
+
+            var resolved = new CaravanSession();
+            resolved.SetRunFlag("prophet_ignored");
+            resolved.GiveCargo(GoodId.Water, 1f);
+            resolved.GiveCargo(GoodId.ShimmersteelJars, 1f);
+            resolved.OpenEncounter("FU-01");
+            resolved.ResolveOutcome(0, "a2");
+            Assert.IsFalse(resolved.HasRunFlag("prophet_ignored"));
+            Assert.AreEqual(GoodId.Water, resolved.CargoGoodAt(0));
+            Assert.AreEqual(1f, resolved.CargoIntegrityAt(0), 0.001f);
+            Assert.AreEqual(0.75f, resolved.CargoIntegrityAt(1), 0.001f);
+        }
+
+        [Test]
+        public void CardKitLossStopsAtTheSixHourReserve()
+        {
+            var session = new CaravanSession();
+            session.ChooseRoadPace(RoadPace.Steady);
+            float kit = TravelScale.Kit(RoadPace.Steady);
+            float waterReserve = (6f / EconomyRates.DayHours) * EconomyRates.WaterLitresPerDay * kit;
+            float foodReserve = (6f / EconomyRates.DayHours) * EconomyRates.RationsKgPerDay * kit;
+            session.ApplyCardKit(-1000f, -1000f);
+            Assert.AreEqual(waterReserve, session.WaterLitres, 0.02f);
+            Assert.AreEqual(foodReserve, session.RationKg, 0.02f);
+            session.ApplyCardKit(-5f, -5f);
+            Assert.AreEqual(waterReserve, session.WaterLitres, 0.02f);
+            Assert.AreEqual(foodReserve, session.RationKg, 0.02f);
+            session.SetKit(1f, 0.5f);
+            session.ApplyCardKit(-5f, -5f);
+            Assert.AreEqual(1f, session.WaterLitres, 0.001f);
+            Assert.AreEqual(0.5f, session.RationKg, 0.001f);
+        }
+
+        [Test]
+        public void HeedingKulvaBanksAMapLeadAndAFriendCamps()
+        {
+            var heed = new CaravanSession();
+            heed.OpenEncounter("CZ-03");
+            heed.ResolveOutcome(0, "a1");
+            Assert.IsTrue(heed.HasRunFlag("prophet_heeded"));
+            Assert.IsFalse(heed.HasRunFlag("prophet_ignored"));
+            Assert.AreEqual(1, heed.MapPieceLeads);
+            heed.OpenEncounter("CZ-03");
+            heed.ResolveOutcome(0, "a1");
+            Assert.AreEqual(1, heed.MapPieceLeads);
+
+            var friend = new CaravanSession();
+            friend.SetFriendOfBandits(true);
+            friend.SetKit(10f, 1f);
+            friend.GiveCargo(GoodId.ShimmersteelJars, 1f);
+            friend.OpenEncounter("BA-01");
+            friend.ResolveOutcome(0, "t1");
+            Assert.IsFalse(friend.HasSkill("Guard"));
+            Assert.IsTrue(friend.HasTrait("FriendOfBandits"));
+            Assert.AreEqual(1, friend.CargoCount);
+            Assert.IsTrue(friend.CampPending);
+            Assert.AreEqual(EconomyRates.CanteenLitres, friend.WaterLitres, 0.01f);
+            Assert.AreEqual(EconomyRates.RationBagKg, friend.RationKg, 0.01f);
         }
 
         [Test]
@@ -1088,6 +1267,29 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(0.17f, TravelScale.VisionDay, 0.0001f);
             Assert.AreEqual(0.09f, TravelScale.VisionNight, 0.0001f);
             Assert.AreEqual(0.07f, TravelScale.VisionSandstorm, 0.0001f);
+        }
+
+        static DayNight ChartWhen(string id)
+        {
+            return ChartRow(id).When;
+        }
+
+        static EncounterCategory ChartCategory(string id)
+        {
+            return ChartRow(id).Category;
+        }
+
+        static EncounterRow ChartRow(string id)
+        {
+            IReadOnlyList<EncounterRow> rows = EncounterTable.All;
+            for (int i = 0; i < rows.Count; i++)
+            {
+                if (rows[i].Id == id)
+                    return rows[i];
+            }
+
+            Assert.Fail("Missing chart row " + id);
+            return null;
         }
 
         static float DistanceUntilCamp(RoadPace pace)

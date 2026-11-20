@@ -62,6 +62,7 @@ namespace Caravans.Play
         {
             loaded = false;
             EconomyCatalog.ForgetLoaded();
+            EncounterCards.ForgetLoaded();
         }
 
         public static void EnsureLoaded()
@@ -93,6 +94,7 @@ namespace Caravans.Play
                 "fireHourMin", "fireHourMax", "seed");
             workshops = ReadWorkshops();
             abundance = ReadAbundance();
+            EncounterCards.EnsureLoaded();
             loaded = true;
         }
 

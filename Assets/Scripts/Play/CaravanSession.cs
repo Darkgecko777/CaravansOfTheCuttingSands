@@ -105,6 +105,9 @@ namespace Caravans.Play
         public bool AwaitingPace { get; private set; }
         public bool EncounterPending { get; private set; }
         public string EncounterId { get; private set; }
+        public bool EncounterResolved { get; private set; }
+        public string EncounterResult { get; private set; }
+        public int MapPieceLeads { get; private set; }
         public int StretchChecks { get; private set; }
         public float LegTravelHours { get; private set; }
         public float EncounterHour { get; private set; }
@@ -120,6 +123,8 @@ namespace Caravans.Play
         bool roadDrink;
         bool encounterArmed;
         System.Random encounterRandom;
+        bool friendOfBandits;
+        readonly HashSet<string> runFlags = new HashSet<string>(System.StringComparer.Ordinal);
 
         public IReadOnlyList<WeatherMass> Masses
         {
@@ -183,6 +188,11 @@ namespace Caravans.Play
         public GoodId CargoGoodAt(int index)
         {
             return stacks[index].Good;
+        }
+
+        internal float CargoIntegrityAt(int index)
+        {
+            return stacks[index].Integrity;
         }
 
         public int SellValueAt(int index)
@@ -595,7 +605,156 @@ namespace Caravans.Play
         {
             if (!EncounterPending)
                 return;
+            if (EncounterCards.Find(EncounterId) != null && !EncounterResolved)
+                return;
+            DismissEncounter();
+        }
+
+        internal void SkipEncounter()
+        {
+            if (!EncounterPending)
+                return;
+            DismissEncounter();
+        }
+
+        public void ChooseEncounter(int choice)
+        {
+            if (!EncounterPending || EncounterResolved)
+                return;
+            EncounterCard card = EncounterCards.Find(EncounterId);
+            if (card == null || card.choices == null || choice < 0 || choice >= card.choices.Length)
+                return;
+            EncounterOutcome[] outcomes = EncounterCards.Adjust(card, card.choices[choice], HasTrait(card.traitTag), HasSkill(card.skillTag));
+            EncounterOutcome picked = EncounterCards.Roll(outcomes, encounterRandom);
+            if (picked == null)
+                return;
+            ApplyOutcome(picked);
+        }
+
+        internal string ResolveOutcome(int choice, string key)
+        {
+            EncounterCard card = EncounterCards.Find(EncounterId);
+            if (card == null || card.choices == null || choice < 0 || choice >= card.choices.Length)
+                throw new System.InvalidOperationException("No encounter choice to resolve.");
+            EncounterOutcome[] outcomes = EncounterCards.Adjust(card, card.choices[choice], HasTrait(card.traitTag), HasSkill(card.skillTag));
+            for (int i = 0; i < outcomes.Length; i++)
+            {
+                if (outcomes[i].key != key)
+                    continue;
+                ApplyOutcome(outcomes[i]);
+                return outcomes[i].key;
+            }
+
+            throw new System.InvalidOperationException("Encounter " + card.id + " has no outcome " + key + ".");
+        }
+
+        internal void GiveCargo(GoodId good, float integrity)
+        {
+            stacks.Add(new CargoUnit
+            {
+                Good = good,
+                Integrity = integrity,
+                DecayedOnDay = DecayStamp()
+            });
+            Touch();
+        }
+
+        internal void SetKit(float water, float rations)
+        {
+            WaterLitres = water < 0f ? 0f : water;
+            RationKg = rations < 0f ? 0f : rations;
+        }
+
+        internal void ApplyCardKit(float waterLitres, float rationKg)
+        {
+            ApplyKitDelta(waterLitres, rationKg);
+        }
+
+        internal void SetFriendOfBandits(bool on)
+        {
+            friendOfBandits = on;
+        }
+
+        internal bool HasRunFlag(string id)
+        {
+            return !string.IsNullOrEmpty(id) && runFlags.Contains(id);
+        }
+
+        internal void SetRunFlag(string id)
+        {
+            if (!string.IsNullOrEmpty(id))
+                runFlags.Add(id);
+        }
+
+        public bool HasSkill(string tag)
+        {
+            // TODO: consult the riding agents once that system exists. Agents are not wired, so every skill check fails closed.
+            return false;
+        }
+
+        public bool HasTrait(string tag)
+        {
+            // TODO: the merchant has no way to gain traits yet. FriendOfBandits stays off unless a test turns it on.
+            if (tag == "FriendOfBandits")
+                return friendOfBandits;
+            return false;
+        }
+
+        public bool EncounterWritten
+        {
+            get { return EncounterCards.Find(EncounterId) != null; }
+        }
+
+        public string EncounterTitle
+        {
+            get
+            {
+                EncounterCard card = EncounterCards.Find(EncounterId);
+                if (card != null && !string.IsNullOrEmpty(card.title))
+                    return card.title;
+                return "On the Road";
+            }
+        }
+
+        public string EncounterBody
+        {
+            get
+            {
+                if (EncounterResolved && !string.IsNullOrEmpty(EncounterResult))
+                    return EncounterResult;
+                EncounterCard card = EncounterCards.Find(EncounterId);
+                if (card != null && !string.IsNullOrEmpty(card.scene))
+                    return card.scene;
+                return "Nothing comes of this yet.";
+            }
+        }
+
+        public int EncounterChoiceCount
+        {
+            get
+            {
+                if (EncounterResolved)
+                    return 0;
+                EncounterCard card = EncounterCards.Find(EncounterId);
+                if (card == null || card.choices == null)
+                    return 0;
+                return card.choices.Length;
+            }
+        }
+
+        public string EncounterChoiceLabel(int index)
+        {
+            EncounterCard card = EncounterCards.Find(EncounterId);
+            if (card == null || card.choices == null || index < 0 || index >= card.choices.Length)
+                return "";
+            return card.choices[index].label;
+        }
+
+        void DismissEncounter()
+        {
             EncounterPending = false;
+            EncounterResolved = false;
+            EncounterResult = null;
             EncounterId = null;
             if (!CampPending)
                 HoldTravel = false;
@@ -604,8 +763,11 @@ namespace Caravans.Play
 
         internal void OpenEncounter(string id)
         {
+            encounterArmed = false;
             EncounterId = id;
             EncounterPending = true;
+            EncounterResolved = false;
+            EncounterResult = null;
             HoldTravel = true;
             Touch();
         }
@@ -726,7 +888,31 @@ namespace Caravans.Play
         void OpenScheduledEncounter()
         {
             encounterArmed = false;
+            string id = EncounterId;
+            if (string.IsNullOrEmpty(id))
+            {
+                id = EncounterCards.Pick(
+                    EncounterTable.Eligible(travelFrom, travelTo, LegWeather),
+                    travelFrom,
+                    travelTo,
+                    Hour,
+                    HasRunFlag,
+                    encounterRandom);
+            }
+
+            if (string.IsNullOrEmpty(id))
+            {
+                EncounterPending = false;
+                EncounterId = null;
+                HoldTravel = false;
+                Touch();
+                return;
+            }
+
+            EncounterId = id;
             EncounterPending = true;
+            EncounterResolved = false;
+            EncounterResult = null;
             HoldTravel = true;
             Touch();
         }
@@ -904,6 +1090,13 @@ namespace Caravans.Play
             StretchChecks++;
             if (encounterRandom == null)
                 encounterRandom = new System.Random(GameConfig.Encounters.seed);
+            string scripted;
+            if (EncounterCards.ScriptedReplacement(travelFrom, travelTo, HasRunFlag, out scripted))
+            {
+                ArmEncounter(scripted);
+                return;
+            }
+
             float chance = EncounterTable.Chance(ChosenPace);
             if (encounterRandom.NextDouble() >= chance)
             {
@@ -911,29 +1104,356 @@ namespace Caravans.Play
                 return;
             }
 
-            List<EncounterCategory> categories = EncounterTable.Eligible(travelFrom, travelTo, LegWeather);
-            EncounterCategory category = categories[encounterRandom.Next(categories.Count)];
-            IReadOnlyList<EncounterRow> found = EncounterTable.Rows(category);
-            EncounterRow row = found[encounterRandom.Next(found.Count)];
+            ArmEncounter(null);
+        }
+
+        void ArmEncounter(string lockedId)
+        {
             int min = GameConfig.Encounters.fireHourMin;
             int max = GameConfig.Encounters.fireHourMax;
             if (min < 1)
                 min = 1;
             if (max < min)
                 max = min;
-            EncounterId = row.Id;
+            EncounterId = lockedId;
             EncounterHour = encounterRandom.Next(min, max + 1);
             encounterArmed = true;
             EncounterPending = false;
+            EncounterResolved = false;
+            EncounterResult = null;
             HoldTravel = false;
         }
 
+        // Arrive drops an arm that has not fired. The flag stays, so the next matching departure arms it again.
         void ClearEncounter()
         {
             encounterArmed = false;
             EncounterPending = false;
+            EncounterResolved = false;
+            EncounterResult = null;
             EncounterId = null;
             EncounterHour = -1f;
+        }
+
+        void ApplyOutcome(EncounterOutcome outcome)
+        {
+            bool camp = false;
+            EncounterEffects effects = outcome == null ? null : outcome.effects;
+            if (effects != null)
+            {
+                if (effects.coin != 0)
+                {
+                    Coin += effects.coin;
+                    if (Coin < 0)
+                        Coin = 0;
+                }
+
+                float waterBefore = WaterLitres;
+                float foodBefore = RationKg;
+                ApplyKitDelta(effects.waterLitres, effects.rationKg);
+                if (effects.delayHours > 0f)
+                {
+                    float room = TravelHours - TravelScale.ReserveHours;
+                    if (room < 0f)
+                        room = 0f;
+                    float spend = effects.delayHours;
+                    if (spend > room)
+                        spend = room;
+                    if (spend > 0f)
+                        SpendWindow(spend, TravelScale.Kit(ChosenPace), true);
+                    if (TravelHours <= TravelScale.ReserveHours + 0.001f)
+                        camp = true;
+                }
+
+                HoldKitFloor(waterBefore, foodBefore);
+                if (effects.shortcutHours > 0f && Traveling && edgeLength > 0.000001f)
+                {
+                    TravelDistance += DistanceForHours(effects.shortcutHours);
+                    if (TravelDistance > edgeLength)
+                        TravelDistance = edgeLength;
+                }
+
+                if (effects.camp)
+                    camp = true;
+                if (effects.fillKit)
+                {
+                    WaterLitres = EconomyRates.CanteenLitres;
+                    RationKg = EconomyRates.RationBagKg;
+                }
+
+                if (effects.cargo != null)
+                {
+                    for (int i = 0; i < effects.cargo.Length; i++)
+                        ApplyCargo(effects.cargo[i]);
+                }
+
+                // TODO: each lead is a discount on the next piece of Sarn's map bought at a Tavern.
+                if (effects.rumourStars > 0 && MapPieceLeads < 1)
+                    MapPieceLeads = 1;
+                if (effects.setFlags != null)
+                {
+                    for (int i = 0; i < effects.setFlags.Length; i++)
+                        SetRunFlag(effects.setFlags[i]);
+                }
+
+                if (effects.clearFlags != null)
+                {
+                    for (int i = 0; i < effects.clearFlags.Length; i++)
+                        ClearRunFlag(effects.clearFlags[i]);
+                }
+            }
+
+            EncounterResult = outcome == null ? null : outcome.result;
+            EncounterResolved = true;
+            if (camp)
+                OpenCamp();
+            else
+                Touch();
+        }
+
+        void ApplyKitDelta(float waterDelta, float rationDelta)
+        {
+            WaterLitres = AdjustStore(WaterLitres, waterDelta, EconomyRates.CanteenLitres, KitReserve(EconomyRates.WaterLitresPerDay));
+            RationKg = AdjustStore(RationKg, rationDelta, EconomyRates.RationBagKg, KitReserve(EconomyRates.RationsKgPerDay));
+        }
+
+        void HoldKitFloor(float waterBefore, float foodBefore)
+        {
+            WaterLitres = HoldFloor(WaterLitres, waterBefore, EconomyRates.CanteenLitres, KitReserve(EconomyRates.WaterLitresPerDay));
+            RationKg = HoldFloor(RationKg, foodBefore, EconomyRates.RationBagKg, KitReserve(EconomyRates.RationsKgPerDay));
+        }
+
+        float KitReserve(float perDay)
+        {
+            float day = EconomyRates.DayHours;
+            if (day <= 0f || perDay <= 0f)
+                return 0f;
+            return (6f / day) * perDay * TravelScale.Kit(ChosenPace);
+        }
+
+        static float AdjustStore(float store, float delta, float max, float reserve)
+        {
+            if (delta < 0f && store <= reserve + 0.0001f)
+                return store;
+            float next = store + delta;
+            if (next > max)
+                next = max;
+            if (next < 0f)
+                next = 0f;
+            if (delta < 0f && next < reserve)
+                next = reserve;
+            return next;
+        }
+
+        static float HoldFloor(float now, float before, float max, float reserve)
+        {
+            if (now > max)
+                now = max;
+            if (before <= reserve + 0.0001f)
+            {
+                if (now < before)
+                    return before;
+                return now;
+            }
+
+            if (now < reserve)
+                return reserve;
+            return now;
+        }
+
+        void ApplyCargo(EncounterCargoOp op)
+        {
+            if (op == null || string.IsNullOrEmpty(op.select))
+                return;
+            if (op.select == "mostValuable" || op.select == "heaviest")
+            {
+                int need = op.units < 0 ? -op.units : 0;
+                int removed = 0;
+                for (int n = 0; n < need; n++)
+                {
+                    int index = op.select == "heaviest" ? HeaviestIndex() : ValuableIndex();
+                    if (index < 0)
+                        break;
+                    stacks.RemoveAt(index);
+                    removed++;
+                }
+
+                TakeFallback(need - removed, op.fallbackCoin);
+                if (op.integrityHit > 0f && need == 0)
+                {
+                    int index = op.select == "heaviest" ? HeaviestIndex() : ValuableIndex();
+                    HitIntegrity(index, op.integrityHit);
+                }
+
+                return;
+            }
+
+            GoodId pinned = GoodId.Water;
+            bool random = op.select == "random" && TryPickCargoGood(out pinned);
+            List<int> indexes = CollectCargo(op, random, pinned);
+            int take = op.units < 0 ? -op.units : 0;
+            int gone = 0;
+            for (int n = indexes.Count - 1; n >= 0 && gone < take; n--)
+            {
+                int index = indexes[n];
+                if (index < 0 || index >= stacks.Count)
+                    continue;
+                stacks.RemoveAt(index);
+                gone++;
+            }
+
+            TakeFallback(take - gone, op.fallbackCoin);
+            if (op.integrityHit <= 0f)
+                return;
+            List<int> again = CollectCargo(op, random, pinned);
+            for (int n = again.Count - 1; n >= 0; n--)
+                HitIntegrity(again[n], op.integrityHit);
+        }
+
+        List<int> CollectCargo(EncounterCargoOp op, bool random, GoodId pinned)
+        {
+            var indexes = new List<int>();
+            if (op.select == "random")
+            {
+                if (random)
+                    AddGood(indexes, pinned);
+                return indexes;
+            }
+
+            if (op.select == "food")
+            {
+                for (int i = 0; i < stacks.Count; i++)
+                {
+                    if (EconomyCatalog.IsEncounterFood(stacks[i].Good))
+                        indexes.Add(i);
+                }
+
+                return indexes;
+            }
+
+            if (op.select == "all")
+            {
+                for (int i = 0; i < stacks.Count; i++)
+                    indexes.Add(i);
+                return indexes;
+            }
+
+            if (op.select == "good")
+            {
+                GoodId good;
+                if (System.Enum.TryParse(op.good, false, out good))
+                    AddGood(indexes, good);
+            }
+
+            return indexes;
+        }
+
+        void AddGood(List<int> indexes, GoodId good)
+        {
+            for (int i = 0; i < stacks.Count; i++)
+            {
+                if (stacks[i].Good == good)
+                    indexes.Add(i);
+            }
+        }
+
+        bool TryPickCargoGood(out GoodId good)
+        {
+            var goods = new List<GoodId>();
+            for (int i = 0; i < stacks.Count; i++)
+            {
+                GoodId item = stacks[i].Good;
+                bool seen = false;
+                for (int g = 0; g < goods.Count; g++)
+                {
+                    if (goods[g] == item)
+                    {
+                        seen = true;
+                        break;
+                    }
+                }
+
+                if (!seen)
+                    goods.Add(item);
+            }
+
+            if (goods.Count == 0)
+            {
+                good = GoodId.Water;
+                return false;
+            }
+
+            if (encounterRandom == null)
+                encounterRandom = new System.Random(GameConfig.Encounters.seed);
+            good = goods[encounterRandom.Next(goods.Count)];
+            return true;
+        }
+
+        int ValuableIndex()
+        {
+            int best = -1;
+            float score = float.MinValue;
+            for (int i = 0; i < stacks.Count; i++)
+            {
+                float value = EconomyCatalog.BasePrice(stacks[i].Good) * stacks[i].Integrity;
+                if (value > score)
+                {
+                    score = value;
+                    best = i;
+                }
+            }
+
+            return best;
+        }
+
+        int HeaviestIndex()
+        {
+            int best = -1;
+            int weight = int.MinValue;
+            int price = int.MinValue;
+            for (int i = 0; i < stacks.Count; i++)
+            {
+                int unitWeight = EconomyCatalog.Weight(stacks[i].Good);
+                int unitPrice = EconomyCatalog.BasePrice(stacks[i].Good);
+                if (unitWeight > weight || (unitWeight == weight && unitPrice > price))
+                {
+                    weight = unitWeight;
+                    price = unitPrice;
+                    best = i;
+                }
+            }
+
+            return best;
+        }
+
+        void HitIntegrity(int index, float loss)
+        {
+            if (loss <= 0f || index < 0 || index >= stacks.Count)
+                return;
+            GoodId good = stacks[index].Good;
+            if (good == GoodId.Water || good == GoodId.SeaWater)
+                return;
+            CargoUnit unit = stacks[index];
+            unit.Integrity -= loss;
+            if (unit.Integrity <= 0.001f)
+                stacks.RemoveAt(index);
+            else
+                stacks[index] = unit;
+        }
+
+        void TakeFallback(int missing, int fallback)
+        {
+            if (missing <= 0 || fallback <= 0)
+                return;
+            Coin -= fallback * missing;
+            if (Coin < 0)
+                Coin = 0;
+        }
+
+        void ClearRunFlag(string id)
+        {
+            if (!string.IsNullOrEmpty(id))
+                runFlags.Remove(id);
         }
 
         void Arrive(PlaceId place)
@@ -1768,9 +2288,14 @@ namespace Caravans.Play
             CampPending = false;
             AwaitingPace = false;
             EncounterPending = false;
+            EncounterResolved = false;
+            EncounterResult = null;
             EncounterId = null;
             EncounterHour = -1f;
             encounterArmed = false;
+            runFlags.Clear();
+            friendOfBandits = false;
+            MapPieceLeads = 0;
             LegTravelHours = 0f;
             StretchChecks = 0;
             encounterRandom = new System.Random(GameConfig.Encounters.seed);
@@ -1864,6 +2389,8 @@ namespace Caravans.Play
             CampPending = false;
             AwaitingPace = false;
             EncounterPending = false;
+            EncounterResolved = false;
+            EncounterResult = null;
             EncounterId = null;
             encounterArmed = false;
             Pace = 1;
@@ -1889,6 +2416,8 @@ namespace Caravans.Play
         public void ShotCamp()
         {
             EncounterPending = false;
+            EncounterResolved = false;
+            EncounterResult = null;
             EncounterId = null;
             encounterArmed = false;
             OpenCamp();

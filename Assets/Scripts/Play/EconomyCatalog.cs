@@ -320,7 +320,7 @@ namespace Caravans.Play
             return Mathf.Max(0, makes);
         }
 
-        static bool IsOrdinaryFood(GoodId good)
+        public static bool IsOrdinaryFood(GoodId good)
         {
             switch (good)
             {
@@ -338,6 +338,11 @@ namespace Caravans.Play
                 default:
                     return false;
             }
+        }
+
+        public static bool IsEncounterFood(GoodId good)
+        {
+            return IsOrdinaryFood(good) || good == GoodId.SweetBliss;
         }
 
         static void Load()

@@ -1,0 +1,1281 @@
+{
+  "schemaVersion": 3,
+  "batch": "batch1",
+  "status": "FINAL - approved by director 2026-11-20; not wired",
+  "sources": [
+    "Google Doc 'Encounter and Mount Design Locks - Nov 2026' (1YKYuZ28HAelnsPZ_cObZ08HPjW9Une4O6ex5aljqxr4, 2026-11-19)",
+    "Director answers on Deliverable 1 and revision 2 (2026-11-20)",
+    "/workspace/Caravans_Game_Bible.md, /workspace/Lore_Brief.md",
+    "GitHub Darkgecko777/CaravansOfTheCuttingSands main @ 7af351f (2026-11-19)"
+  ],
+  "flags": [
+    {
+      "id": "prophet_ignored",
+      "scope": "run",
+      "note": "Set by CZ-03 'Ride past'. Arms FU-01. Never expires. Blocks CZ-03 while set. Cleared when FU-01 resolves."
+    },
+    {
+      "id": "prophet_heeded",
+      "scope": "run",
+      "note": "Set by CZ-03 'Share rations'. Never arms FU-01. a1 also grants rumourStars +1 (see schema 3.5)."
+    }
+  ],
+  "zones": [
+    {
+      "id": "zamath_waters",
+      "roads": [
+        "Kaleth-Zamath",
+        "Zamath-Southmark",
+        "Kharun-Kaleth",
+        "Southmark-Sorel",
+        "Southmark-Ghul"
+      ],
+      "note": "Roads with an end at Zamath or at a road-neighbour of Zamath (Kaleth, Southmark) that also reach a shore place drawing sea water. Excludes the Zamath-Neth sea opening."
+    }
+  ],
+  "cards": [
+    {
+      "id": "CA-01",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "day",
+      "skillTag": "Scout",
+      "traitTag": "",
+      "title": "The Empty Cairn",
+      "scene": "A cairn of fist stones beside the track, the kind raised over a cache. The top is pulled down. Whatever was left here is gone, or was never put.",
+      "choices": [
+        {
+          "label": "Search the stones",
+          "skillMode": "shift",
+          "skillShift": 20,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 40,
+              "tone": "good",
+              "milder": true,
+              "result": "Wedged deep, a molt-skin pouch someone forgot. Coin, a little.",
+              "effects": {
+                "coin": 15
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "Stones and sand and nothing else. An hour gone to it.",
+              "effects": {
+                "delayHours": 1
+              }
+            }
+          ]
+        },
+        {
+          "label": "Leave it standing",
+          "skillMode": "none",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 70,
+              "tone": "good",
+              "milder": true,
+              "result": "You ride on. The cairn shrinks behind you and keeps its secret."
+            },
+            {
+              "key": "b2",
+              "weight": 30,
+              "tone": "bad",
+              "milder": false,
+              "result": "The duzhu noses the stones and will not come away. An hour lost.",
+              "effects": {
+                "delayHours": 1
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Scout (discovery) shifts the search toward the find. No named good is found: a cache of goods would invent a source. 15 coin = the sale value (shelf x0.85) of one 18-coin-base good."
+    },
+    {
+      "id": "CA-02",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "night",
+      "skillTag": "Handler",
+      "traitTag": "",
+      "title": "Eyes at Night",
+      "scene": "Lamps of green light at the edge of sight, low to the ground, dozens of pairs. They keep pace with the caravan. They do not blink together.",
+      "choices": [
+        {
+          "label": "Bank the lamp, creep on",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 50,
+              "tone": "good",
+              "milder": true,
+              "result": "Kelkris, come for leavings. In the dark they lose the scent and drift off."
+            },
+            {
+              "key": "a2",
+              "weight": 50,
+              "tone": "bad",
+              "milder": false,
+              "result": "Blind going. You wander off the track and spend hours finding it.",
+              "effects": {
+                "delayHours": 2
+              }
+            }
+          ]
+        },
+        {
+          "label": "Light up and drive",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 55,
+              "tone": "bad",
+              "milder": false,
+              "result": "Kelkris, dozens, worrying at the packs till dawn. Nobody sleeps; the skins run low.",
+              "effects": {
+                "waterLitres": -8,
+                "rationKg": -4
+              }
+            },
+            {
+              "key": "b2",
+              "weight": 45,
+              "tone": "good",
+              "milder": true,
+              "result": "The light shows kelkris, nothing worse. They scatter and you make good ground.",
+              "effects": {
+                "shortcutHours": 1
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Canon proposal (schema 4.3): the eyes are kelkris trailing caravans for leavings. Handler (beasts, supplies) guarantees the milder outcome."
+    },
+    {
+      "id": "CA-03",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "either",
+      "skillTag": "Scout",
+      "traitTag": "",
+      "title": "Soft Ground",
+      "scene": "The crust gives under the lead beast. Below it the sand runs like water, and the beast sinks to the knee with the load slewing on its back.",
+      "choices": [
+        {
+          "label": "Dig the beast free",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "Three hours of digging and hauling before every foot stands on firm ground.",
+              "effects": {
+                "delayHours": 3
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 40,
+              "tone": "good",
+              "milder": true,
+              "result": "Firmer than it looked. One hour and you are moving.",
+              "effects": {
+                "delayHours": 1
+              }
+            }
+          ]
+        },
+        {
+          "label": "Lead round the long way",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "The long way is long. Two hours, and a hard pull that empties the skins.",
+              "effects": {
+                "delayHours": 2,
+                "waterLitres": -6
+              }
+            },
+            {
+              "key": "b2",
+              "weight": 40,
+              "tone": "good",
+              "milder": true,
+              "result": "A shelf of hard ground a stone's throw off. You lose nothing."
+            }
+          ]
+        }
+      ],
+      "notes": "Lock baseline 'soft ground'. Scout (spotting) guarantees the milder outcome. 'Lead beast' fits any tier (duzhu, pincer beast, or the sled's crawlers)."
+    },
+    {
+      "id": "CA-04",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "day",
+      "skillTag": "Handler",
+      "traitTag": "",
+      "title": "Glass-thorn Patch",
+      "scene": "Low grey scrub across the track, every stem set with thorns clear as glass. They snap at a touch, and the slivers ride the wind.",
+      "choices": [
+        {
+          "label": "Cut a path through",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 55,
+              "tone": "bad",
+              "milder": false,
+              "result": "Slivers work into the load. One good comes out of it scored and picked at.",
+              "effects": {
+                "cargo": [
+                  {
+                    "select": "random",
+                    "integrityHit": 0.15
+                  }
+                ]
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 45,
+              "tone": "good",
+              "milder": true,
+              "result": "Clean cuts, quick work. Straight through is shorter than around.",
+              "effects": {
+                "shortcutHours": 1
+              }
+            }
+          ]
+        },
+        {
+          "label": "Go around it",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "The patch runs on and on. Two hours skirting it.",
+              "effects": {
+                "delayHours": 2
+              }
+            },
+            {
+              "key": "b2",
+              "weight": 40,
+              "tone": "good",
+              "milder": true,
+              "result": "A gap where something large broke through before you. You lose nothing."
+            }
+          ]
+        }
+      ],
+      "notes": "Handler (cargo integrity) guarantees the milder outcome. Hit 0.15 on every unit of one random cargo good (water exempt) = 1.5 mornings of food aging."
+    },
+    {
+      "id": "CA-05",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "night",
+      "skillTag": "Scout",
+      "traitTag": "",
+      "title": "False Dawn",
+      "scene": "Light grows in the wrong quarter of the sky, grey and then rose. The beasts wake and pull toward it. The stars say morning is hours off.",
+      "choices": [
+        {
+          "label": "Trust the stars",
+          "skillMode": "shift",
+          "skillShift": 25,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 55,
+              "tone": "good",
+              "milder": true,
+              "result": "You hold your line. The false light fades, and the true one comes where it should."
+            },
+            {
+              "key": "a2",
+              "weight": 45,
+              "tone": "bad",
+              "milder": false,
+              "result": "Doubt slows you. You stop twice to check the sky.",
+              "effects": {
+                "delayHours": 2
+              }
+            }
+          ]
+        },
+        {
+          "label": "Let the beasts lead",
+          "skillMode": "shift",
+          "skillShift": 25,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "Real dawn finds you far off the road, the skins lighter.",
+              "effects": {
+                "delayHours": 3,
+                "waterLitres": -6
+              }
+            },
+            {
+              "key": "b2",
+              "weight": 40,
+              "tone": "good",
+              "milder": true,
+              "result": "They take a line of their own. Harder ground, and straighter.",
+              "effects": {
+                "shortcutHours": 2
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Canon proposal (schema 4.3): high storm dust lit by a sun still below the horizon. Scout (spotting) shifts 25 points to the milder outcome."
+    },
+    {
+      "id": "CA-06",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "night",
+      "skillTag": "Scout",
+      "traitTag": "",
+      "title": "The Night-vein Maze",
+      "scene": "Pale seams run through the ground here, faintly lit, branching and rejoining. Every one of them looks like the track. None of them is.",
+      "choices": [
+        {
+          "label": "Follow the brightest vein",
+          "skillMode": "shift",
+          "skillShift": 25,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 55,
+              "tone": "bad",
+              "milder": false,
+              "result": "It bends and bends again. Hours gone before you find the road.",
+              "effects": {
+                "delayHours": 3
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 45,
+              "tone": "good",
+              "milder": true,
+              "result": "It follows an old dry watercourse, and runs straighter than the road.",
+              "effects": {
+                "shortcutHours": 2
+              }
+            }
+          ]
+        },
+        {
+          "label": "Halt and fix on the stars",
+          "skillMode": "shift",
+          "skillShift": 25,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 55,
+              "tone": "good",
+              "milder": true,
+              "result": "A slow hour, then a sure line out of the seams.",
+              "effects": {
+                "delayHours": 1
+              }
+            },
+            {
+              "key": "b2",
+              "weight": 45,
+              "tone": "bad",
+              "milder": false,
+              "result": "The veins glare and the stars swim. Two hours to be sure.",
+              "effects": {
+                "delayHours": 2
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Canon proposal (schema 4.3): night-veins are a faint-glowing fungus in hardpan cracks. Scout shifts 25 points to the milder outcome."
+    },
+    {
+      "id": "CA-07",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "night",
+      "skillTag": "Handler",
+      "traitTag": "",
+      "title": "Heat in the Sand",
+      "scene": "Dusk is long gone, but the sand still breathes heat up into the dark. The duzhu pants, tongue grey. The skins slosh lighter than they should.",
+      "choices": [
+        {
+          "label": "Drink and push on",
+          "skillMode": "shift",
+          "skillShift": 20,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "You drink, the beasts drink, and the heat takes it back out of you.",
+              "effects": {
+                "waterLitres": -10
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 40,
+              "tone": "good",
+              "milder": true,
+              "result": "The ground cools within the hour. You drink less than you feared.",
+              "effects": {
+                "waterLitres": -5
+              }
+            }
+          ]
+        },
+        {
+          "label": "Halt until it cools",
+          "skillMode": "shift",
+          "skillShift": 20,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 50,
+              "tone": "bad",
+              "milder": false,
+              "result": "It does not cool for a long while.",
+              "effects": {
+                "delayHours": 2
+              }
+            },
+            {
+              "key": "b2",
+              "weight": 50,
+              "tone": "good",
+              "milder": true,
+              "result": "A wind comes off the dunes and the heat lifts. One hour.",
+              "effects": {
+                "delayHours": 1
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Handler (beasts, supplies) shifts 20 points. Does not stretch the leg (weather stretch already applied) and does not touch cargo."
+    },
+    {
+      "id": "CA-08",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "either",
+      "skillTag": "Handler",
+      "traitTag": "",
+      "title": "Dust-moth Rise",
+      "scene": "The ground shivers, then lifts: grey moths off the sand, thick as smoke, into the eyes and into every seam of the load.",
+      "choices": [
+        {
+          "label": "Cover the food and wait",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 50,
+              "tone": "good",
+              "milder": true,
+              "result": "They pass over like weather. An hour, and the air is clear.",
+              "effects": {
+                "delayHours": 1
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 50,
+              "tone": "bad",
+              "milder": false,
+              "result": "They find the ration bag anyway. You shake out what is left.",
+              "effects": {
+                "rationKg": -4
+              }
+            }
+          ]
+        },
+        {
+          "label": "Push through blind",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "They get into the food you carry and lay their dust in it.",
+              "effects": {
+                "cargo": [
+                  {
+                    "select": "food",
+                    "integrityHit": 0.1
+                  }
+                ]
+              }
+            },
+            {
+              "key": "b2",
+              "weight": 40,
+              "tone": "good",
+              "milder": true,
+              "result": "Through and out the far side with nothing lost."
+            }
+          ]
+        }
+      ],
+      "notes": "Handler (supplies, integrity). 'food' = edible cargo (EconomyCatalog ordinary foods + Sweet Bliss Pomegranates); 0.1 = one morning of aging."
+    },
+    {
+      "id": "CA-09",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "either",
+      "skillTag": "Scout",
+      "traitTag": "",
+      "title": "Salt-bell Rattle",
+      "scene": "A dry rattle from the ground ahead, like bells cut from salt. There is no wind to ring them. The duzhu's spines lift.",
+      "choices": [
+        {
+          "label": "Go toward the sound",
+          "skillMode": "shift",
+          "skillShift": 20,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 40,
+              "tone": "good",
+              "milder": true,
+              "result": "Salt domes over an old seep, ticking as they cool. The pan around them is hard and flat, and fast.",
+              "effects": {
+                "shortcutHours": 1
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "A dome caves under a beast's foot. It limps for two hours.",
+              "effects": {
+                "delayHours": 2
+              }
+            }
+          ]
+        },
+        {
+          "label": "Steer wide of it",
+          "skillMode": "shift",
+          "skillShift": 20,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 55,
+              "tone": "good",
+              "milder": true,
+              "result": "The rattle falls behind you."
+            },
+            {
+              "key": "b2",
+              "weight": 45,
+              "tone": "bad",
+              "milder": false,
+              "result": "The bells ring on all around you for hours. The beasts shy and pull, and drink hard.",
+              "effects": {
+                "waterLitres": -8
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Canon proposal (schema 4.3): salt-bells are hollow salt-crust domes over dried brine seeps. Not a trade good, no water found (sea or brine water comes only from the seven shores). Scout shifts 20 points."
+    },
+    {
+      "id": "CA-10",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "either",
+      "skillTag": "Handler",
+      "traitTag": "",
+      "title": "Bond Hesitation",
+      "scene": "The duzhu stops dead. Through the bond comes nothing but a flat, stubborn quiet. It will not take another step and will not say why.",
+      "choices": [
+        {
+          "label": "Wait it out",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 55,
+              "tone": "bad",
+              "milder": false,
+              "result": "Three hours of standing in the sun or the cold before it walks on.",
+              "effects": {
+                "delayHours": 3
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 45,
+              "tone": "good",
+              "milder": true,
+              "result": "An hour, then it goes on as if nothing happened.",
+              "effects": {
+                "delayHours": 1
+              }
+            }
+          ]
+        },
+        {
+          "label": "Drive it on",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 55,
+              "tone": "bad",
+              "milder": false,
+              "result": "It balks and twists under its frame. A lashing gives, and one good takes a knock.",
+              "effects": {
+                "cargo": [
+                  {
+                    "select": "random",
+                    "integrityHit": 0.15
+                  }
+                ]
+              }
+            },
+            {
+              "key": "b2",
+              "weight": 45,
+              "tone": "good",
+              "milder": true,
+              "result": "It goes. The bond warms again, the way it should."
+            }
+          ]
+        }
+      ],
+      "notes": "The merchant's duzhu (the locked psychic bond; key art: the merchant rides the one duzhu). Handler (beasts) guarantees the milder outcome."
+    },
+    {
+      "id": "BA-01",
+      "category": "Bandits",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "day",
+      "skillTag": "Guard",
+      "traitTag": "FriendOfBandits",
+      "title": "Riders on the Crest",
+      "scene": "Three riders on the dune crest, keeping pace, then not keeping pace. They come down at an easy walk. Nobody draws. Nobody needs to.",
+      "choices": [
+        {
+          "label": "Open the packs",
+          "skillMode": "guarantee",
+          "traitMode": "replace",
+          "traitReplaces": "a1",
+          "traitOutcome": {
+            "key": "t1",
+            "weight": 60,
+            "tone": "good",
+            "milder": true,
+            "result": "They know your name, or the name you gave. You share their fire and ride on with full skins.",
+            "effects": {
+              "camp": true,
+              "fillKit": true
+            }
+          },
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "They go through the load at leisure and take the best of it.",
+              "effects": {
+                "delayHours": 1,
+                "cargo": [
+                  {
+                    "select": "mostValuable",
+                    "units": -1,
+                    "fallbackCoin": 25
+                  }
+                ]
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 40,
+              "tone": "bad",
+              "milder": true,
+              "result": "A quick look, the best piece lifted, and they are gone back over the crest.",
+              "effects": {
+                "cargo": [
+                  {
+                    "select": "mostValuable",
+                    "units": -1,
+                    "fallbackCoin": 25
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "label": "Run the beasts hard",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 45,
+              "tone": "good",
+              "milder": true,
+              "result": "Three riders will not chase a caravan that means it. You leave them on the crest."
+            },
+            {
+              "key": "b2",
+              "weight": 55,
+              "tone": "bad",
+              "milder": false,
+              "result": "They ride you down within the hour, and take the best piece for the trouble.",
+              "effects": {
+                "delayHours": 2,
+                "waterLitres": -8,
+                "cargo": [
+                  {
+                    "select": "mostValuable",
+                    "units": -1,
+                    "fallbackCoin": 25
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Bandit variant. Function is identical on BA-01..BA-03 (same weights and effects, flavour only). Takes ONE unit, the most valuable by base price x integrity. If the packs hold nothing, takes 25 coin instead (= sale value of a median good after the 15% spread). Never kills (houses would retaliate). Guard (danger): guarantees the milder outcome of each choice. Merchant trait FriendOfBandits: replaces a1 with camping with them and a free kit refill; a trait outcome counts as the milder outcome of its choice. Flavour: open dunes, small band, day."
+    },
+    {
+      "id": "BA-02",
+      "category": "Bandits",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "night",
+      "skillTag": "Guard",
+      "traitTag": "FriendOfBandits",
+      "title": "Fires Across the Track",
+      "scene": "A ring of small fires across the road, a dozen shapes around them, and a voice that calls you by trade, not by name. Come in, merchant. Show us.",
+      "choices": [
+        {
+          "label": "Walk into the light",
+          "skillMode": "guarantee",
+          "traitMode": "replace",
+          "traitReplaces": "a1",
+          "traitOutcome": {
+            "key": "t1",
+            "weight": 60,
+            "tone": "good",
+            "milder": true,
+            "result": "The voice laughs and makes room at the fire. You sleep among thieves and wake with full skins.",
+            "effects": {
+              "camp": true,
+              "fillKit": true
+            }
+          },
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "A dozen hands go through the load. The best goes into the dark, and an hour with it.",
+              "effects": {
+                "delayHours": 1,
+                "cargo": [
+                  {
+                    "select": "mostValuable",
+                    "units": -1,
+                    "fallbackCoin": 25
+                  }
+                ]
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 40,
+              "tone": "bad",
+              "milder": true,
+              "result": "Their chief wants one thing from the packs. Only one.",
+              "effects": {
+                "cargo": [
+                  {
+                    "select": "mostValuable",
+                    "units": -1,
+                    "fallbackCoin": 25
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "label": "Turn and run dark",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 45,
+              "tone": "good",
+              "milder": true,
+              "result": "No lamp, no sound. The fires shrink behind you and nobody follows."
+            },
+            {
+              "key": "b2",
+              "weight": 55,
+              "tone": "bad",
+              "milder": false,
+              "result": "They have riders out past the fires. You are brought back, and you pay.",
+              "effects": {
+                "delayHours": 2,
+                "waterLitres": -8,
+                "cargo": [
+                  {
+                    "select": "mostValuable",
+                    "units": -1,
+                    "fallbackCoin": 25
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Bandit variant. Function is identical on BA-01..BA-03 (same weights and effects, flavour only). Takes ONE unit, the most valuable by base price x integrity. If the packs hold nothing, takes 25 coin instead (= sale value of a median good after the 15% spread). Never kills (houses would retaliate). Guard (danger): guarantees the milder outcome of each choice. Merchant trait FriendOfBandits: replaces a1 with camping with them and a free kit refill; a trait outcome counts as the milder outcome of its choice. Flavour: large camp, night."
+    },
+    {
+      "id": "BA-03",
+      "category": "Bandits",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "either",
+      "skillTag": "Guard",
+      "traitTag": "FriendOfBandits",
+      "title": "Toll in the Cut",
+      "scene": "The track narrows between banks of broken ground. One man stands in it, empty-handed. Others are above you. You hear them before you see them.",
+      "choices": [
+        {
+          "label": "Pay what he asks",
+          "skillMode": "guarantee",
+          "traitMode": "replace",
+          "traitReplaces": "a1",
+          "traitOutcome": {
+            "key": "t1",
+            "weight": 60,
+            "tone": "good",
+            "milder": true,
+            "result": "He knows the look of a friend. You camp in the cut with them and leave with full skins.",
+            "effects": {
+              "camp": true,
+              "fillKit": true
+            }
+          },
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "He asks for the best you carry, and takes his time choosing it.",
+              "effects": {
+                "delayHours": 1,
+                "cargo": [
+                  {
+                    "select": "mostValuable",
+                    "units": -1,
+                    "fallbackCoin": 25
+                  }
+                ]
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 40,
+              "tone": "bad",
+              "milder": true,
+              "result": "He takes one piece, the best, and steps aside.",
+              "effects": {
+                "cargo": [
+                  {
+                    "select": "mostValuable",
+                    "units": -1,
+                    "fallbackCoin": 25
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "label": "Drive through the cut",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 45,
+              "tone": "good",
+              "milder": true,
+              "result": "He jumps clear. Stones come down behind you, not on you."
+            },
+            {
+              "key": "b2",
+              "weight": 55,
+              "tone": "bad",
+              "milder": false,
+              "result": "The far end is blocked. They take their toll and keep you waiting for it.",
+              "effects": {
+                "delayHours": 2,
+                "waterLitres": -8,
+                "cargo": [
+                  {
+                    "select": "mostValuable",
+                    "units": -1,
+                    "fallbackCoin": 25
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Bandit variant. Function is identical on BA-01..BA-03 (same weights and effects, flavour only). Takes ONE unit, the most valuable by base price x integrity. If the packs hold nothing, takes 25 coin instead (= sale value of a median good after the 15% spread). Never kills (houses would retaliate). Guard (danger): guarantees the milder outcome of each choice. Merchant trait FriendOfBandits: replaces a1 with camping with them and a free kit refill; a trait outcome counts as the milder outcome of its choice. Flavour: a choke in broken ground, unseen band, either."
+    },
+    {
+      "id": "CA-11",
+      "category": "Catchall",
+      "pool": "road",
+      "drawWeight": 0.5,
+      "when": "day",
+      "skillTag": "Gossip",
+      "traitTag": "",
+      "title": "The Hermit",
+      "scene": "A man sits by the track under a hide strip on two poles. No mount, no skin you can see, and the look of having been here a long while.",
+      "choices": [
+        {
+          "label": "Share rations",
+          "skillMode": "shift",
+          "skillShift": 20,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 55,
+              "tone": "good",
+              "milder": true,
+              "result": "He eats, then draws a line in the sand with one finger: a shorter way. It is.",
+              "effects": {
+                "rationKg": -3,
+                "shortcutHours": 2
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 45,
+              "tone": "bad",
+              "milder": false,
+              "result": "He eats slowly and says nothing worth hearing. The food is gone, and an hour with it.",
+              "effects": {
+                "rationKg": -3,
+                "delayHours": 1
+              }
+            }
+          ]
+        },
+        {
+          "label": "Ride past",
+          "skillMode": "none",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 60,
+              "tone": "good",
+              "milder": true,
+              "result": "He watches you go and says nothing at all."
+            },
+            {
+              "key": "b2",
+              "weight": 40,
+              "tone": "bad",
+              "milder": false,
+              "result": "He calls a word after you. An hour later, mired, you understand it.",
+              "effects": {
+                "delayHours": 2
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Any road, rare, drawWeight 0.5. Share = 3 kg (cut from 5 so the longest road stays survivable). Unnamed, no backstory. Gossip (rumours) shifts the shared meal toward the useful word."
+    },
+    {
+      "id": "CZ-03",
+      "category": "CityZamath",
+      "pool": "road",
+      "drawWeight": 1.0,
+      "when": "either",
+      "skillTag": "Gossip",
+      "traitTag": "",
+      "blockFlag": "prophet_ignored",
+      "title": "Kulva's Warning",
+      "scene": "A gaunt woman in the road, skin blotched pale, arms open. Kulva, once of Neth. She speaks of the god under the water, and of the roads it watches, then asks for food.",
+      "choices": [
+        {
+          "label": "Share rations and listen",
+          "skillMode": "guarantee",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 55,
+              "tone": "good",
+              "milder": true,
+              "result": "She eats, tells you the hours when the water lies quiet, and where old stones lie. You remember.",
+              "effects": {
+                "rationKg": -3,
+                "rumourStars": 1,
+                "setFlags": [
+                  "prophet_heeded"
+                ]
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 45,
+              "tone": "bad",
+              "milder": false,
+              "result": "She eats, takes more, and is gone into the dunes with it.",
+              "effects": {
+                "rationKg": -6,
+                "setFlags": [
+                  "prophet_heeded"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "label": "Ride past",
+          "skillMode": "none",
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "Her words follow you a while, then the road swallows them.",
+              "effects": {
+                "setFlags": [
+                  "prophet_ignored"
+                ]
+              }
+            },
+            {
+              "key": "b2",
+              "weight": 40,
+              "tone": "bad",
+              "milder": false,
+              "result": "She will not move aside. You go round. Behind you she shouts the warning once more.",
+              "effects": {
+                "delayHours": 1,
+                "setFlags": [
+                  "prophet_ignored"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "Lock: a Neth outcast, keyed to a Zamath-connecting road, mixed outcomes, option to share rations; ignoring her arms FU-01. CityZamath draws only on Kaleth-Zamath and Zamath-Southmark. The 'Ride past' outcomes look harmless but arm FU-01, so their tone is bad (deferred). Name: Kulva (new, passes Naming.md; keep her off the per-save draw list). Gossip (rumours) guarantees a1 when sharing. Heeding (a1) grants rumourStars +1: the active expedition rumour gains a star, or the next rumour starts at 2 stars. No cult detail beyond the locks."
+    },
+    {
+      "id": "FU-01",
+      "category": "WildlifeSea",
+      "pool": "scripted",
+      "drawWeight": 1.0,
+      "when": "either",
+      "skillTag": "Handler",
+      "traitTag": "",
+      "requireFlag": "prophet_ignored",
+      "trigger": "nextMatchingLeg",
+      "requireRoads": [
+        "Kaleth-Zamath",
+        "Zamath-Southmark",
+        "Kharun-Kaleth",
+        "Southmark-Sorel",
+        "Southmark-Ghul"
+      ],
+      "title": "The God Under the Water",
+      "scene": "Where the road runs near the water, the water swells with nothing to move it. Something vast rolls beneath, the thing the shore cult feeds, and the shallows boil toward you.",
+      "choices": [
+        {
+          "label": "Lash down and hold",
+          "skillMode": "shift",
+          "skillShift": 20,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "a1",
+              "weight": 60,
+              "tone": "bad",
+              "milder": false,
+              "result": "It passes close. Water and grit drive into every lashing.",
+              "effects": {
+                "cargo": [
+                  {
+                    "select": "all",
+                    "integrityHit": 0.35
+                  }
+                ],
+                "clearFlags": [
+                  "prophet_ignored"
+                ]
+              }
+            },
+            {
+              "key": "a2",
+              "weight": 40,
+              "tone": "bad",
+              "milder": true,
+              "result": "It turns aside at the last. The spray alone ruins plenty.",
+              "effects": {
+                "cargo": [
+                  {
+                    "select": "all",
+                    "integrityHit": 0.25
+                  }
+                ],
+                "clearFlags": [
+                  "prophet_ignored"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "label": "Cut loose and run",
+          "skillMode": "shift",
+          "skillShift": 20,
+          "traitMode": "none",
+          "outcomes": [
+            {
+              "key": "b1",
+              "weight": 50,
+              "tone": "bad",
+              "milder": true,
+              "result": "You cut the heaviest piece free and run. The rest is soaked, but you are out.",
+              "effects": {
+                "delayHours": 1,
+                "cargo": [
+                  {
+                    "select": "heaviest",
+                    "units": -1
+                  },
+                  {
+                    "select": "all",
+                    "integrityHit": 0.15
+                  }
+                ],
+                "clearFlags": [
+                  "prophet_ignored"
+                ]
+              }
+            },
+            {
+              "key": "b2",
+              "weight": 50,
+              "tone": "bad",
+              "milder": false,
+              "result": "It comes up the shore after you. You get clear, barely, with everything sodden.",
+              "effects": {
+                "delayHours": 2,
+                "cargo": [
+                  {
+                    "select": "all",
+                    "integrityHit": 0.4
+                  }
+                ],
+                "clearFlags": [
+                  "prophet_ignored"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "notes": "NEW ID FU-01, never drawn. The creature the cultists worship: a god, no fixed name. Strikes once per prophet_ignored flag, on the next departure onto a Zamath-zone road, in place of that leg's normal roll. The flag never expires. Zone (schema 4.4): Kaleth-Zamath, Zamath-Southmark, Kharun-Kaleth, Southmark-Sorel, Southmark-Ghul. The Zamath-Neth crossing is not a road and is excluded. All outcomes are bad by design. Water and Sea Water are exempt from integrity hits. Handler (integrity) shifts 20 points to the milder outcome."
+    }
+  ]
+}

@@ -54,13 +54,13 @@ public static class UiScreenshots
         ShotOf("travel", "30_travel_map.png", "SampleScene", "Gates at Kharûn with the Draven road lit. The painted trail and the destination circle are up. Neighbour road buttons stay on the gates panel.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("road", "31_road_choice.png", "SampleScene", "Gates at Kharûn with the Draven road lit. Careful, Steady, and Rush sit on the panel. Embark is live. No card covers the map.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("depart", "32_departure.png", "SampleScene", "En route to Draven, paused at the Kharûn dock. The route line is drawn and the wagon has not moved.", Kind.PlayMap, Kind.PlayMap),
-        ShotOf("encounter", "33_encounter.png", "SampleScene", "Encounter card open on the Draven road. The title is On the Road.", Kind.PlayMap, Kind.PlayMap),
+        ShotOf("encounter", "33_encounter.png", "SampleScene", "Encounter card open on the Draven road. The title is Soft Ground. The scene and two choices are visible.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("camp", "34_camp.png", "SampleScene", "Make camp card open on the Draven road.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("resume", "35_resume_pace.png", "SampleScene", "Pace card after camp on the Draven road. Dawn and dusk are offered. The camp has advanced the clock.", Kind.PlayMap, Kind.PlayMap),
     };
 
     const string Notes =
-        "The encounter card, the camp card, and the after-camp pace card are part of play. They are 33_encounter.png, 34_camp.png, and 35_resume_pace.png. Play has no tooltip type and no separate dialog type.\n\n"
+        "The encounter card shows a title, a scene, and two choices. It is 33_encounter.png. The camp card and the after-camp pace card are 34_camp.png and 35_resume_pace.png. Play has no tooltip type and no separate dialog type.\n\n"
         + "21_plaza_gates.png is the gates with no road lit. 30_travel_map.png is those same gates with the Kharûn to Draven road lit. That gates view is the travel map the player opens, and the neighbour road buttons stay on its panel.\n\n"
         + "31_road_choice.png is the gates panel with the Draven road lit. Careful, Steady, and Rush are on that panel, and Embark leaves. No card covers the map. The pace card opens after camp, which is 35_resume_pace.png, in the order Careful, Steady, Rush.\n\n"
         + "House, Tavern, and Stables stay off the layout while ShowUnfinishedFeatures is off, so this capture does not include those rooms. Gear stays on the top bar and opens the pause menu, which is part of play. The title menu is a compact wood panel under the tagline. The title, title Options, and the pause menu use that wood panel and text-only items, with a bone tick and no row bars. Title Options includes Show intro again.\n\n"
