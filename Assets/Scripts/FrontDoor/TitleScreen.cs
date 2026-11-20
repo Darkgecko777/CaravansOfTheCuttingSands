@@ -109,7 +109,7 @@ namespace Caravans.FrontDoor
             backdropButton.transition = Selectable.Transition.None;
             backdropButton.onClick.AddListener(CloseOptions);
 
-            var frame = FrontUi.Box(root, "MenuFrame", new Vector2(680f, 680f));
+            var frame = FrontUi.Box(root, "MenuFrame", new Vector2(680f, 760f));
             frame.anchorMin = frame.anchorMax = new Vector2(0.5f, 0.5f);
             frame.pivot = new Vector2(0.5f, 0.5f);
             frame.anchoredPosition = Vector2.zero;

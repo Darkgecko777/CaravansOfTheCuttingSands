@@ -77,6 +77,9 @@ namespace Caravans.Play
         int wagonPick = -1;
         bool optionsOpen;
         bool optionsPage;
+        bool introOpen;
+        bool introClosedThisFrame;
+        RectTransform introRoot;
         bool lookingAtMap;
         bool logbookOpen;
         bool choosingRoad;
@@ -201,18 +204,38 @@ namespace Caravans.Play
             }
             MarketSounds.Bind(gameObject);
             Build();
+            if (SessionSettings.ShouldShowIntro())
+            {
+                introOpen = true;
+                page = Page.Market;
+            }
+
             Redraw();
         }
 
         void Update()
         {
             EnsureMap();
-            ReadEscape();
-            if (session.Traveling && !session.HoldTravel && !optionsOpen && !lookingAtMap)
+            bool readIntro;
+            bool readPause;
+            MenuReads(introOpen, introClosedThisFrame, out readIntro, out readPause);
+            if (readIntro)
+                ReadIntroKeys();
+            if (readPause && !introClosedThisFrame)
+                ReadEscape();
+            introClosedThisFrame = false;
+            if (!introOpen && session.Traveling && !session.HoldTravel && !optionsOpen && !lookingAtMap)
                 session.Tick(Time.unscaledDeltaTime);
             if (session.Revision != drawn)
                 Redraw();
             UpdateLive();
+        }
+
+        // Escape, Enter, and Space dismiss the intro. The same frame must not also open the pause menu.
+        public static void MenuReads(bool introIsOpen, bool closedThisFrame, out bool readIntro, out bool readPause)
+        {
+            readIntro = introIsOpen;
+            readPause = !introIsOpen && !closedThisFrame;
         }
 
         void EnsureEventSystem()
@@ -266,6 +289,7 @@ namespace Caravans.Play
             RaiseCanvas(dimmer.gameObject, 12);
             BuildRoadChoice(root);
             BuildOptions(root);
+            BuildIntro(root);
         }
 
         void BuildDock()
@@ -1070,12 +1094,139 @@ namespace Caravans.Play
             FrontUi.MenuItem(pauseList, "QUIT", true, TitleScreen.Quit, 440f, 64f);
 
             pauseOptionsFrame = Child(optionsRoot, "Options");
-            Center(pauseOptionsFrame, new Vector2(680f, 680f));
+            Center(pauseOptionsFrame, new Vector2(680f, 760f));
             FrontUi.WoodSheet(pauseOptionsFrame);
             optionsControls = new OptionsSheet();
             optionsControls.Build(pauseOptionsFrame, ClosePauseOptions);
             pauseOptionsFrame.gameObject.SetActive(false);
             optionsRoot.gameObject.SetActive(false);
+        }
+
+        void BuildIntro(RectTransform root)
+        {
+            introRoot = Child(root, "Intro");
+            Stretch(introRoot);
+            RaiseCanvas(introRoot.gameObject, 56);
+            ImageOn(introRoot, UiType.Backdrop, true);
+
+            var panel = Child(introRoot, "Panel");
+            panel.anchorMin = panel.anchorMax = new Vector2(0.5f, 0.5f);
+            panel.pivot = new Vector2(0.5f, 0.5f);
+            panel.anchoredPosition = Vector2.zero;
+            panel.sizeDelta = new Vector2(860f, 480f);
+            FrontUi.WoodSheet(panel);
+            var layout = panel.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(72, 72, 72, 72);
+            layout.spacing = 20f;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            var fitter = panel.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            const float lineW = 716f;
+            IntroLine(panel, IntroCardCopy.Header, UiType.Header, FrontArt.Display(), FontStyles.Normal, lineW);
+            IntroLine(panel, IntroCardCopy.Body, UiType.Body, FrontArt.Regular(), FontStyles.Normal, lineW);
+            IntroLine(panel, IntroCardCopy.Tagline, UiType.Small, FrontArt.Regular(), FontStyles.Italic, lineW);
+            IntroBegin(panel, lineW);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(panel);
+            introRoot.gameObject.SetActive(false);
+        }
+
+        TextMeshProUGUI IntroLine(RectTransform parent, string copy, float size, TMP_FontAsset face, FontStyles style, float width)
+        {
+            var host = Child(parent, "Line");
+            var element = host.gameObject.AddComponent<LayoutElement>();
+            var shadow = AddIntroText(host, copy, size, face, style, FrontUi.Shadow);
+            var label = AddIntroText(host, copy, size, face, style, UiType.Cream);
+            Pin(shadow.rectTransform, new Vector2(2f, -2f));
+            Pin(label.rectTransform, Vector2.zero);
+            float height = label.GetPreferredValues(copy, width, 0f).y;
+            float line = size * 1.35f;
+            float guess = Mathf.Max(line, Mathf.Ceil(Mathf.Max(copy.Length, 1) / 46f) * line);
+            if (height < guess * 0.6f)
+                height = guess;
+            element.preferredWidth = width;
+            element.preferredHeight = height + 4f;
+            element.minHeight = element.preferredHeight;
+            return label;
+        }
+
+        void IntroBegin(RectTransform parent, float width)
+        {
+            var rect = Child(parent, "Begin");
+            var element = rect.gameObject.AddComponent<LayoutElement>();
+            element.preferredWidth = width;
+            element.preferredHeight = 64f;
+            var hit = rect.gameObject.AddComponent<Image>();
+            hit.sprite = quad;
+            hit.color = new Color(1f, 1f, 1f, 0f);
+            hit.raycastTarget = true;
+            var shadow = AddIntroText(rect, IntroCardCopy.Begin, UiType.Body, FrontArt.Display(), FontStyles.Normal, FrontUi.Shadow);
+            var label = AddIntroText(rect, IntroCardCopy.Begin, UiType.Body, FrontArt.Display(), FontStyles.Normal, FrontUi.Gold);
+            shadow.textWrappingMode = TextWrappingModes.NoWrap;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+            Pin(shadow.rectTransform, new Vector2(2f, -2f));
+            Pin(label.rectTransform, Vector2.zero);
+            var button = rect.gameObject.AddComponent<Button>();
+            button.targetGraphic = hit;
+            button.transition = Selectable.Transition.None;
+            var nav = button.navigation;
+            nav.mode = Navigation.Mode.None;
+            button.navigation = nav;
+            button.onClick.AddListener(CloseIntro);
+            rect.gameObject.AddComponent<IntroWord>().Bind(label);
+        }
+
+        static TextMeshProUGUI AddIntroText(RectTransform parent, string copy, float size, TMP_FontAsset face, FontStyles style, Color color)
+        {
+            var rect = Child(parent, "Text");
+            var label = rect.gameObject.AddComponent<TextMeshProUGUI>();
+            label.font = face;
+            label.fontSize = size;
+            label.fontStyle = style;
+            label.color = color;
+            label.alignment = TextAlignmentOptions.Center;
+            label.textWrappingMode = TextWrappingModes.Normal;
+            label.overflowMode = TextOverflowModes.Overflow;
+            label.richText = false;
+            label.raycastTarget = false;
+            label.text = copy;
+            return label;
+        }
+
+        static void Pin(RectTransform rect, Vector2 shift)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = shift;
+            rect.offsetMax = shift;
+        }
+
+        void ReadIntroKeys()
+        {
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+                return;
+            bool dismiss = keyboard.enterKey.wasPressedThisFrame
+                || keyboard.numpadEnterKey.wasPressedThisFrame
+                || keyboard.spaceKey.wasPressedThisFrame
+                || keyboard.escapeKey.wasPressedThisFrame;
+            if (dismiss)
+                CloseIntro();
+        }
+
+        void CloseIntro()
+        {
+            if (!introOpen)
+                return;
+            SessionSettings.MarkIntroSeen();
+            introOpen = false;
+            introClosedThisFrame = true;
+            Redraw();
         }
 
         void ReadEscape()
@@ -1160,15 +1311,17 @@ namespace Caravans.Play
             paceBar.SetActive(session.Traveling && !session.CampPending && !session.AwaitingPace && !session.EncounterPending);
             backButton.gameObject.SetActive(lookingAtMap && !session.Traveling);
             bool roadChoice = session.CampPending || session.AwaitingPace || session.EncounterPending;
-            cardRoot.gameObject.SetActive(roadChoice);
-            optionsRoot.gameObject.SetActive(optionsOpen);
+            cardRoot.gameObject.SetActive(roadChoice && !introOpen);
+            optionsRoot.gameObject.SetActive(optionsOpen && !introOpen);
             if (topBarCanvas != null)
-                topBarCanvas.sortingOrder = optionsOpen ? 60 : 20;
+                topBarCanvas.sortingOrder = optionsOpen && !introOpen ? 60 : 20;
             if (pauseList != null)
                 pauseList.gameObject.SetActive(!optionsPage);
             if (pauseOptionsFrame != null)
                 pauseOptionsFrame.gameObject.SetActive(optionsPage);
-            logbookRoot.gameObject.SetActive(logbookOpen);
+            logbookRoot.gameObject.SetActive(logbookOpen && !introOpen);
+            if (introRoot != null)
+                introRoot.gameObject.SetActive(introOpen);
             dimmer.gameObject.SetActive(false);
             ShowRoadChoice(roadChoice);
 
@@ -1184,7 +1337,13 @@ namespace Caravans.Play
             RebuildLogbook();
             SyncRoads();
             PlaceRoadButtons();
-            if (roadChoice && !optionsOpen)
+            if (introOpen)
+            {
+                LockButtons();
+                if (introRoot != null)
+                    EnableUnder(introRoot);
+            }
+            else if (roadChoice && !optionsOpen)
             {
                 LockButtons();
                 EnableRoadChoice();
@@ -2803,6 +2962,7 @@ namespace Caravans.Play
             switch (id)
             {
                 case "seed":
+                    ShotClearOverlays();
                     if (!shotSeeded)
                     {
                         session.ShotSeed();
@@ -2810,7 +2970,13 @@ namespace Caravans.Play
                     }
 
                     FinishShot();
-                    return session.CargoCount > 0;
+                    return session.CargoCount > 0 && !introOpen;
+                case "intro":
+                    ShotClearOverlays();
+                    page = Page.Market;
+                    introOpen = true;
+                    FinishShot();
+                    return introOpen && page == Page.Market && introRoot != null && introRoot.gameObject.activeSelf;
                 case "market-empty":
                     ShotMarket(false, false, false);
                     return page == Page.Market && !shopSelected && wagonPick < 0 && !sortMenuOpen;
@@ -2950,6 +3116,7 @@ namespace Caravans.Play
             wagonPick = -1;
             optionsOpen = false;
             optionsPage = false;
+            introOpen = false;
             logbookOpen = false;
             choosingRoad = false;
             lookingAtMap = false;
@@ -2978,6 +3145,56 @@ namespace Caravans.Play
             Canvas.ForceUpdateCanvases();
         }
 #endif
+    }
+
+    sealed class IntroWord : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
+    {
+        TextMeshProUGUI label;
+        bool over;
+        bool pressed;
+
+        public void Bind(TextMeshProUGUI text)
+        {
+            label = text;
+            Paint();
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            over = true;
+            Paint();
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            over = false;
+            pressed = false;
+            Paint();
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            pressed = true;
+            Paint();
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            pressed = false;
+            Paint();
+        }
+
+        void Paint()
+        {
+            if (label == null)
+                return;
+            if (pressed)
+                label.color = FrontUi.GoldDim;
+            else if (over)
+                label.color = FrontUi.GoldBright;
+            else
+                label.color = FrontUi.Gold;
+        }
     }
 
     sealed class CellHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler

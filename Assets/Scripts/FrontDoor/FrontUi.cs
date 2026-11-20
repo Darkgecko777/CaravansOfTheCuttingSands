@@ -382,6 +382,7 @@ namespace Caravans.FrontDoor
 
         MenuRow fullscreen;
         MenuRow resolution;
+        MenuRow introAgain;
 
         public void Build(RectTransform frame, UnityAction close)
         {
@@ -403,6 +404,7 @@ namespace Caravans.FrontDoor
             VolumeSlider(frame, SessionSettings.Sfx, SessionSettings.SetSfx);
             fullscreen = FrontUi.MenuItem(frame, FullscreenLine(), true, ToggleFullscreen, 520f, 52f);
             resolution = FrontUi.MenuItem(frame, ResolutionLine(), true, CycleResolution, 520f, 52f);
+            introAgain = FrontUi.MenuItem(frame, IntroLine(), true, ToggleIntroAgain, 520f, 52f);
             FrontUi.MenuItem(frame, "CLOSE", true, close, 520f, 52f);
             Refresh();
         }
@@ -417,6 +419,11 @@ namespace Caravans.FrontDoor
 
             if (resolution != null)
                 resolution.SetText(ResolutionLine());
+            if (introAgain != null)
+            {
+                introAgain.SetText(IntroLine());
+                introAgain.SetChecked(SessionSettings.ShowIntroAgain);
+            }
         }
 
         static string FullscreenLine()
@@ -427,6 +434,17 @@ namespace Caravans.FrontDoor
         static string ResolutionLine()
         {
             return Screen.width + " \u00d7 " + Screen.height;
+        }
+
+        static string IntroLine()
+        {
+            return SessionSettings.ShowIntroAgain ? "Show intro again: On" : "Show intro again: Off";
+        }
+
+        void ToggleIntroAgain()
+        {
+            SessionSettings.SetShowIntroAgain(!SessionSettings.ShowIntroAgain);
+            Refresh();
         }
 
         void ToggleFullscreen()
@@ -493,16 +511,29 @@ namespace Caravans.FrontDoor
         }
     }
 
+    // The four intro lines live here so a later tone pass edits one place.
+    public static class IntroCardCopy
+    {
+        public const string Header = "Kharûn, at the edge of the Cutting Sands.";
+        public const string Body = "Your House has given you one wagon, a few agents and a purse of scrubstone. Buy where goods are cheap, cross the sands, and sell where they're dear. Watch your water and rations, because the desert takes payment from anyone who forgets them. Prices change as towns run short or grow full, and your logbook remembers what you've seen.";
+        public const string Tagline = "Every road has a price.";
+        public const string Begin = "BEGIN";
+    }
+
     // Master rides on the listener. Music scales the title theme. SFX scales goods clicks.
     public static class SessionSettings
     {
         const string MasterKey = "caravans.vol.master";
         const string MusicKey = "caravans.vol.music";
         const string SfxKey = "caravans.vol.sfx";
+        public const string IntroSeenKey = "caravans.intro.seen";
+        public const string IntroShowAgainKey = "caravans.intro.showAgain";
 
         public static float Master { get; private set; } = 1f;
         public static float Music { get; private set; } = 1f;
         public static float Sfx { get; private set; } = 1f;
+        public static bool IntroSeen { get; private set; }
+        public static bool ShowIntroAgain { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Boot()
@@ -511,6 +542,32 @@ namespace Caravans.FrontDoor
             Music = Mathf.Clamp01(PlayerPrefs.GetFloat(MusicKey, 1f));
             Sfx = Mathf.Clamp01(PlayerPrefs.GetFloat(SfxKey, 1f));
             AudioListener.volume = Master;
+            LoadIntro();
+        }
+
+        public static void LoadIntro()
+        {
+            IntroSeen = PlayerPrefs.GetInt(IntroSeenKey, 0) != 0;
+            ShowIntroAgain = PlayerPrefs.GetInt(IntroShowAgainKey, 0) != 0;
+        }
+
+        public static bool ShouldShowIntro()
+        {
+            return !IntroSeen || ShowIntroAgain;
+        }
+
+        public static void MarkIntroSeen()
+        {
+            IntroSeen = true;
+            ShowIntroAgain = false;
+            PlayerPrefs.SetInt(IntroSeenKey, 1);
+            PlayerPrefs.SetInt(IntroShowAgainKey, 0);
+        }
+
+        public static void SetShowIntroAgain(bool show)
+        {
+            ShowIntroAgain = show;
+            PlayerPrefs.SetInt(IntroShowAgainKey, show ? 1 : 0);
         }
 
         public static void SetMaster(float value)

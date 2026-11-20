@@ -1,11 +1,12 @@
 # UI screenshots
 
-Captured 2026-11-20 at commit 90e4da1 (working tree).
+Captured 2026-11-20 at commit 9566b48 (working tree).
 
 | File | Scene | State |
 | --- | --- | --- |
 | 01_title.png | TitleScreen | Main menu on the living-lumber wood panel. Text-only NEW GAME, OPTIONS, and EXIT. No Continue. Options closed. The sand is blowing. |
-| 02_title_options.png | TitleScreen | Options open on the wood panel over the main menu. Master, music, and SFX sliders, fullscreen and resolution as text rows, and Close. No bone frame. |
+| 02_title_options.png | TitleScreen | Options open on the wood panel over the main menu. Master, music, and SFX sliders, fullscreen, resolution, and Show intro again as text rows, and Close. No bone frame. |
+| 03_intro_card.png | SampleScene | First-run intro card centred over the Kharûn market. Header, body, tagline, and a text-only BEGIN. Play input is locked. |
 | 10_market_empty.png | SampleScene | Market at Kharûn. No cell is selected. The wagon holds the seeded cargo. |
 | 11_market_selected_buy.png | SampleScene | Market at Kharûn. A shop cell with stock is selected. |
 | 12_market_sort_menu.png | SampleScene | Market at Kharûn. The sort menu is open. |
@@ -28,7 +29,9 @@ The encounter card, the camp card, and the after-camp pace card are part of play
 
 31_road_choice.png is the gates panel with the Draven road lit. Careful, Steady, and Rush are on that panel, and Embark leaves. No card covers the map. The pace card opens after camp, which is 35_resume_pace.png, in the order Careful, Steady, Rush.
 
-House, Tavern, and Stables stay off the layout while ShowUnfinishedFeatures is off, so this capture does not include those rooms. Gear stays on the top bar and opens the pause menu, which is part of play. The title, title Options, and the pause menu use one wood panel and text-only items.
+House, Tavern, and Stables stay off the layout while ShowUnfinishedFeatures is off, so this capture does not include those rooms. Gear stays on the top bar and opens the pause menu, which is part of play. The title, title Options, and the pause menu use one wood panel and text-only items. Title Options includes Show intro again.
+
+03_intro_card.png is the first-run intro card, one wood panel over the Kharûn market. It shows the header, the body, the tagline, and a text-only BEGIN. Play input is locked. Later New Games skip the card unless Show intro again is on.
 
 15_market_ridgewatch.png is the long dock name. Sarn's Rest is a landmark. House, Tavern, and Stables are off the bar in this capture.
 

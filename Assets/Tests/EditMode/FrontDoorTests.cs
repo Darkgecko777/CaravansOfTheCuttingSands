@@ -7,6 +7,65 @@ namespace Caravans.Play.Tests
     public class FrontDoorTests
     {
         [Test]
+        public void IntroShowsOnceUnlessOptionsAsksAgain()
+        {
+            bool hadSeen = PlayerPrefs.HasKey(SessionSettings.IntroSeenKey);
+            bool hadAgain = PlayerPrefs.HasKey(SessionSettings.IntroShowAgainKey);
+            int seen = PlayerPrefs.GetInt(SessionSettings.IntroSeenKey, 0);
+            int again = PlayerPrefs.GetInt(SessionSettings.IntroShowAgainKey, 0);
+            try
+            {
+                PlayerPrefs.DeleteKey(SessionSettings.IntroSeenKey);
+                PlayerPrefs.DeleteKey(SessionSettings.IntroShowAgainKey);
+                SessionSettings.LoadIntro();
+                Assert.IsTrue(SessionSettings.ShouldShowIntro());
+
+                SessionSettings.MarkIntroSeen();
+                Assert.IsFalse(SessionSettings.ShouldShowIntro());
+                Assert.AreEqual(1, PlayerPrefs.GetInt(SessionSettings.IntroSeenKey, 0));
+                Assert.AreEqual(0, PlayerPrefs.GetInt(SessionSettings.IntroShowAgainKey, 0));
+
+                SessionSettings.SetShowIntroAgain(true);
+                Assert.IsTrue(SessionSettings.ShouldShowIntro());
+                Assert.AreEqual(1, PlayerPrefs.GetInt(SessionSettings.IntroShowAgainKey, 0));
+
+                SessionSettings.MarkIntroSeen();
+                Assert.IsFalse(SessionSettings.ShouldShowIntro());
+                Assert.AreEqual(0, PlayerPrefs.GetInt(SessionSettings.IntroShowAgainKey, 0));
+            }
+            finally
+            {
+                if (hadSeen)
+                    PlayerPrefs.SetInt(SessionSettings.IntroSeenKey, seen);
+                else
+                    PlayerPrefs.DeleteKey(SessionSettings.IntroSeenKey);
+                if (hadAgain)
+                    PlayerPrefs.SetInt(SessionSettings.IntroShowAgainKey, again);
+                else
+                    PlayerPrefs.DeleteKey(SessionSettings.IntroShowAgainKey);
+                SessionSettings.LoadIntro();
+            }
+        }
+
+        [Test]
+        public void IntroDismissSwallowsThePauseKey()
+        {
+            bool readIntro;
+            bool readPause;
+            PlayPresenter.MenuReads(true, false, out readIntro, out readPause);
+            Assert.IsTrue(readIntro);
+            Assert.IsFalse(readPause);
+
+            PlayPresenter.MenuReads(false, true, out readIntro, out readPause);
+            Assert.IsFalse(readIntro);
+            Assert.IsFalse(readPause);
+
+            PlayPresenter.MenuReads(false, false, out readIntro, out readPause);
+            Assert.IsFalse(readIntro);
+            Assert.IsTrue(readPause);
+        }
+
+        [Test]
         public void ARunningFadeIsNotRestarted()
         {
             var fade = new StormFade();
