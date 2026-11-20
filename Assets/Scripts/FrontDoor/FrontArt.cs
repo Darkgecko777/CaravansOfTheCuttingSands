@@ -6,7 +6,6 @@ namespace Caravans.FrontDoor
     public static class FrontArt
     {
         static Sprite woodPanel;
-        static Sprite hoverStrip;
         static Sprite boneTick;
         static Sprite parchment;
         static Sprite hidePanel;
@@ -33,13 +32,6 @@ namespace Caravans.FrontDoor
             if (woodPanel == null)
                 woodPanel = Resources.Load<Sprite>("FrontDoor/ui_wood_panel");
             return woodPanel;
-        }
-
-        public static Sprite HoverStrip()
-        {
-            if (hoverStrip == null)
-                hoverStrip = Resources.Load<Sprite>("FrontDoor/ui_hover_strip");
-            return hoverStrip;
         }
 
         public static Sprite BoneTick()

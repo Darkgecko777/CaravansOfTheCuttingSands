@@ -108,12 +108,6 @@ public class UiTextureImporter : AssetPostprocessor
             return true;
         }
 
-        if (name == "ui_hover_strip.png")
-        {
-            border = new Vector4(60f, 4f, 60f, 4f);
-            return true;
-        }
-
         if (name == "ui_bone_tick.png")
         {
             border = Vector4.zero;

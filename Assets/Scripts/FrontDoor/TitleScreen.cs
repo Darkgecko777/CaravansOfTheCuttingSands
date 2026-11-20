@@ -62,23 +62,33 @@ namespace Caravans.FrontDoor
 
             FrontUi.Label(column, "Every road has a price.", UiType.Small, false, FrontUi.Subtitle, new Vector2(1400f, 36f));
 
-            var frame = FrontUi.Box(column, "MenuFrame", new Vector2(560f, 440f));
+            const float itemWidth = 440f;
+            const float itemHeight = 64f;
+            const float pad = 48f;
+            const float gap = 12f;
+            float frameWidth = itemWidth + pad * 2f;
+            float frameHeight = itemHeight * 3f + gap * 2f + pad * 2f;
+            var frame = FrontUi.Box(column, "MenuFrame", new Vector2(frameWidth, frameHeight));
             var frameElement = frame.gameObject.AddComponent<LayoutElement>();
-            frameElement.preferredWidth = 560f;
-            frameElement.preferredHeight = 440f;
+            frameElement.minWidth = frameWidth;
+            frameElement.preferredWidth = frameWidth;
+            frameElement.flexibleWidth = 0f;
+            frameElement.minHeight = frameHeight;
+            frameElement.preferredHeight = frameHeight;
+            frameElement.flexibleHeight = 0f;
             FrontUi.WoodSheet(frame);
             var frameLayout = frame.gameObject.AddComponent<VerticalLayoutGroup>();
-            frameLayout.padding = new RectOffset(48, 48, 48, 48);
-            frameLayout.spacing = 12f;
+            frameLayout.padding = new RectOffset((int)pad, (int)pad, (int)pad, (int)pad);
+            frameLayout.spacing = gap;
             frameLayout.childAlignment = TextAnchor.MiddleCenter;
             frameLayout.childControlWidth = true;
             frameLayout.childControlHeight = true;
             frameLayout.childForceExpandWidth = false;
             frameLayout.childForceExpandHeight = false;
 
-            newGame = FrontUi.MenuItem(frame, "NEW GAME", true, Gate.ConfirmRun, 440f, 64f).Button;
-            FrontUi.MenuItem(frame, "OPTIONS", true, OpenOptions, 440f, 64f);
-            FrontUi.MenuItem(frame, "EXIT", true, Quit, 440f, 64f);
+            newGame = FrontUi.MenuItem(frame, "NEW GAME", true, Gate.ConfirmRun, itemWidth, itemHeight).Button;
+            FrontUi.MenuItem(frame, "OPTIONS", true, OpenOptions, itemWidth, itemHeight);
+            FrontUi.MenuItem(frame, "EXIT", true, Quit, itemWidth, itemHeight);
             BuildOptions(canvas);
             if (EventSystem.current != null)
                 EventSystem.current.SetSelectedGameObject(newGame.gameObject);

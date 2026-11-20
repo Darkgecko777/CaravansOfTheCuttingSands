@@ -162,19 +162,11 @@ namespace Caravans.FrontDoor
             var element = rect.gameObject.AddComponent<LayoutElement>();
             element.preferredWidth = width;
             element.preferredHeight = height;
+            element.flexibleWidth = 0f;
+            element.flexibleHeight = 0f;
             var hit = rect.gameObject.AddComponent<Image>();
             hit.color = new Color(1f, 1f, 1f, 0.01f);
             hit.raycastTarget = true;
-
-            var hoverGo = Box(rect, "Hover", Vector2.zero);
-            Stretch(hoverGo, Vector2.zero);
-            var hover = hoverGo.gameObject.AddComponent<Image>();
-            Sprite strip = FrontArt.HoverStrip();
-            hover.sprite = strip;
-            hover.type = strip != null ? Image.Type.Sliced : Image.Type.Simple;
-            hover.raycastTarget = false;
-            hover.enabled = false;
-            hoverGo.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
 
             var row = rect.gameObject.AddComponent<HorizontalLayoutGroup>();
             row.padding = new RectOffset(8, 12, 2, 2);
@@ -214,7 +206,7 @@ namespace Caravans.FrontDoor
             nav.mode = Navigation.Mode.None;
             button.navigation = nav;
             var menu = rect.gameObject.AddComponent<MenuRow>();
-            menu.Bind(button, label, shadow, hover, tick, enabled);
+            menu.Bind(button, label, shadow, tick, enabled);
             if (click != null)
             {
                 button.onClick.AddListener(() =>
@@ -264,7 +256,6 @@ namespace Caravans.FrontDoor
     {
         TextMeshProUGUI label;
         TextMeshProUGUI shadow;
-        Image hover;
         Image tick;
         Button button;
         bool live;
@@ -275,12 +266,11 @@ namespace Caravans.FrontDoor
 
         public Button Button => button;
 
-        public void Bind(Button host, TextMeshProUGUI text, TextMeshProUGUI shade, Image strip, Image bone, bool enabled)
+        public void Bind(Button host, TextMeshProUGUI text, TextMeshProUGUI shade, Image bone, bool enabled)
         {
             button = host;
             label = text;
             shadow = shade;
-            hover = strip;
             tick = bone;
             live = enabled;
             Paint();
@@ -358,8 +348,6 @@ namespace Caravans.FrontDoor
 
         void Paint()
         {
-            if (hover != null)
-                hover.enabled = live && over;
             if (tick != null)
                 tick.color = live && (selected || marked) ? Color.white : new Color(1f, 1f, 1f, 0f);
             if (label == null)
