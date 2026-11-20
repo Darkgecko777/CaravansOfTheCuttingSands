@@ -26,6 +26,11 @@ namespace Caravans.Play
             get { return GameConfig.Prices.fullMultiplier; }
         }
 
+        public static float MerchantSpread
+        {
+            get { return GameConfig.Prices.merchantSpread; }
+        }
+
         public static float ProductionScale
         {
             get { return GameConfig.Prices.productionScale; }

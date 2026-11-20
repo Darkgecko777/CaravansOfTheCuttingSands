@@ -74,7 +74,7 @@ namespace Caravans.Play
                 "canteenLitres", "rationBagKg",
                 "waterLitresPerUnit", "rationsKgPerUnit");
             prices = Read<PriceFile>("prices.json",
-                "fullCoverDays", "ordinaryCoverDays", "emptyMultiplier", "fullMultiplier", "productionScale",
+                "fullCoverDays", "ordinaryCoverDays", "emptyMultiplier", "fullMultiplier", "merchantSpread", "productionScale",
                 "waterBasePrice", "waterWeight", "waterSpace",
                 "rationBasePrice", "rationWeight", "rationSpace",
                 "tariffBase", "tariffFloor", "standingMax", "influenceKeep");
@@ -241,6 +241,7 @@ namespace Caravans.Play
         public int ordinaryCoverDays;
         public float emptyMultiplier;
         public float fullMultiplier;
+        public float merchantSpread;
         public float productionScale;
         public int waterBasePrice;
         public int waterWeight;

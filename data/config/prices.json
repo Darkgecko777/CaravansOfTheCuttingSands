@@ -3,6 +3,7 @@
   "ordinaryCoverDays": 3,
   "emptyMultiplier": 2,
   "fullMultiplier": 0.5,
+  "merchantSpread": 0.15,
   "productionScale": 1,
   "waterBasePrice": 6,
   "waterWeight": 2,

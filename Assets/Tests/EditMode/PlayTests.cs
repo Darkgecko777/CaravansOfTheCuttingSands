@@ -108,19 +108,130 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(HouseId.Zamath, session.PatronOf(PlaceId.Draven));
             Assert.AreEqual(EconomyCatalog.CityHouse(PlaceId.Kharun), session.PatronOf(PlaceId.Kharun));
 
-            int shelf = session.PriceOf(PlaceId.Draven, GoodId.ShimmersteelJars);
+            int dravenAsk = SpreadAsk(session, PlaceId.Draven, GoodId.ShimmersteelJars);
             session.SetStanding(HouseId.Zamath, 0);
             Assert.AreEqual(12, session.TariffPercent(PlaceId.Draven));
-            Assert.AreEqual(shelf + Cut(shelf, 12), session.BuyCost(PlaceId.Draven, GoodId.ShimmersteelJars));
+            Assert.AreEqual(dravenAsk + Cut(dravenAsk, 12), session.BuyCost(PlaceId.Draven, GoodId.ShimmersteelJars));
             session.SetStanding(HouseId.Zamath, 8);
             Assert.AreEqual(4, session.TariffPercent(PlaceId.Draven));
-            Assert.AreEqual(shelf + Cut(shelf, 4), session.BuyCost(PlaceId.Draven, GoodId.ShimmersteelJars));
+            Assert.AreEqual(dravenAsk + Cut(dravenAsk, 4), session.BuyCost(PlaceId.Draven, GoodId.ShimmersteelJars));
             Assert.AreEqual(0, session.TariffPercent(PlaceId.Kharun));
-            Assert.AreEqual(session.PriceOf(PlaceId.Kharun, GoodId.ShimmersteelJars), session.BuyCost(PlaceId.Kharun, GoodId.ShimmersteelJars));
+            int kharunAsk = SpreadAsk(session, PlaceId.Kharun, GoodId.ShimmersteelJars);
+            Assert.AreEqual(kharunAsk, session.BuyCost(PlaceId.Kharun, GoodId.ShimmersteelJars));
 
             float before = session.InfluenceOf(PlaceId.Draven, HouseId.Zamath);
             session.TickMorning();
             Assert.AreEqual(before * 0.75f, session.InfluenceOf(PlaceId.Draven, HouseId.Zamath), 0.01f);
+        }
+
+        [Test]
+        public void ARoundTripInOneMarketDoesNotMakeCoin()
+        {
+            var probe = new CaravanSession();
+            Assert.AreEqual(0.15f, EconomyRates.MerchantSpread, 0.0001f);
+            Assert.AreEqual(EconomyRates.MerchantSpread, probe.MerchantSpread(), 0.0001f);
+            Assert.AreEqual(0, probe.TariffPercent(PlaceId.Kharun));
+
+            GoodId[] goods =
+            {
+                GoodId.Water,
+                GoodId.MorRoot,
+                GoodId.FingerFungus,
+                GoodId.Shimmersteel
+            };
+            for (int i = 0; i < goods.Length; i++)
+            {
+                RoundTrip(goods[i], 1, 1);
+                RoundTrip(goods[i], CoverStock(PlaceId.Kharun, goods[i], EconomyRates.OrdinaryCoverDays), 1);
+                RoundTrip(goods[i], CoverStock(PlaceId.Kharun, goods[i], EconomyRates.FullCoverDays), 1);
+                RoundTrip(goods[i], 1, 10);
+                RoundTrip(goods[i], CoverStock(PlaceId.Kharun, goods[i], EconomyRates.OrdinaryCoverDays), 10);
+                RoundTrip(goods[i], CoverStock(PlaceId.Kharun, goods[i], EconomyRates.FullCoverDays), 10);
+            }
+        }
+
+        [Test]
+        public void ASameVisitResaleAddsNoInfluence()
+        {
+            var session = new CaravanSession();
+            session.ShotDockAt(PlaceId.Draven);
+            session.SetShelf(PlaceId.Draven, GoodId.ShimmersteelJars, 4);
+            int coin = session.Coin;
+            Assert.AreEqual(0f, session.InfluenceOf(PlaceId.Draven, HouseId.Kharun), 0.001f);
+            Assert.IsTrue(session.TryBuy(GoodId.ShimmersteelJars));
+            Assert.IsTrue(session.TrySell(GoodId.ShimmersteelJars));
+            Assert.LessOrEqual(session.Coin, coin);
+            Assert.AreEqual(0f, session.InfluenceOf(PlaceId.Draven, HouseId.Kharun), 0.001f);
+            Assert.AreEqual(4, session.StockOf(PlaceId.Draven, GoodId.ShimmersteelJars));
+
+            var carried = new CaravanSession();
+            carried.SetShelf(PlaceId.Kharun, GoodId.ShimmersteelJars, 4);
+            Assert.IsTrue(carried.TryBuy(GoodId.ShimmersteelJars));
+            Leave(carried, PlaceId.Draven);
+            float before = carried.InfluenceOf(PlaceId.Draven, HouseId.Kharun);
+            Assert.IsTrue(carried.TrySell(GoodId.ShimmersteelJars));
+            Assert.Greater(carried.InfluenceOf(PlaceId.Draven, HouseId.Kharun), before);
+        }
+
+        static int CoverStock(PlaceId place, GoodId good, int days)
+        {
+            int stock = Mathf.CeilToInt(EconomyCatalog.DayUnit(place, good) * days);
+            if (stock < 1)
+                stock = 1;
+            return stock;
+        }
+
+        static void RoundTrip(GoodId good, int stock, int units)
+        {
+            var session = new CaravanSession();
+            session.SetShelf(PlaceId.Kharun, good, stock);
+            int purse = session.Coin;
+            int moved = 0;
+            while (moved < units)
+            {
+                int held = 0;
+                int mark = session.Coin;
+                while (moved + held < units && session.CanBuy(good))
+                {
+                    int quote = session.BuyCost(PlaceId.Kharun, good);
+                    int before = session.Coin;
+                    Assert.IsTrue(session.TryBuy(good), good + " at stock " + stock);
+                    Assert.AreEqual(before - quote, session.Coin);
+                    held++;
+                }
+
+                Assert.Greater(held, 0, good + " bought nothing at stock " + stock);
+                for (int n = 0; n < held; n++)
+                {
+                    int quote = session.SellValue(PlaceId.Kharun, good);
+                    int before = session.Coin;
+                    Assert.IsTrue(session.TrySell(good));
+                    Assert.AreEqual(before + quote, session.Coin);
+                }
+
+                Assert.LessOrEqual(session.Coin, mark);
+                moved += held;
+            }
+
+            Assert.LessOrEqual(session.Coin, purse);
+            Assert.AreEqual(stock, session.StockOf(PlaceId.Kharun, good));
+            Assert.AreEqual(0, session.CargoOf(good));
+        }
+
+        static int SpreadAsk(CaravanSession session, PlaceId place, GoodId good)
+        {
+            GoodId shelf = good == GoodId.SeaWater ? GoodId.Water : good;
+            int stock = session.StockOf(place, shelf) - 1;
+            if (stock < 0)
+                stock = 0;
+            int mid = EconomyCatalog.ShelfPrice(
+                EconomyCatalog.BasePrice(shelf),
+                stock,
+                EconomyCatalog.DayUnit(place, shelf));
+            int ask = Mathf.RoundToInt(mid * (1f + EconomyRates.MerchantSpread));
+            if (ask < 1)
+                ask = 1;
+            return ask;
         }
 
         [Test]
@@ -284,8 +395,10 @@ namespace Caravans.Play.Tests
             Assert.IsFalse(session.HasLoggedSale(GoodId.ShimmersteelJars));
 
             session.SetShelf(PlaceId.Kharun, GoodId.FrostIron, 0);
+            session.SetShelf(PlaceId.Kharun, GoodId.ShimmersteelJars, 0);
             session.NoteMarketShown(false);
             Assert.IsFalse(session.HasLoggedBuy(GoodId.FrostIron));
+            Assert.IsFalse(session.HasLoggedBuy(GoodId.ShimmersteelJars));
 
             session.SetShelf(PlaceId.Kharun, GoodId.ShimmersteelJars, 1);
             int dear = session.BuyCost(PlaceId.Kharun, GoodId.ShimmersteelJars);
@@ -322,7 +435,7 @@ namespace Caravans.Play.Tests
             int dearerHomeSale = session.SellValue(PlaceId.Kharun, GoodId.ShimmersteelJars);
             Assert.Greater(dearerHomeSale, homeSale);
             session.NoteMarketShown(true);
-            Assert.AreEqual(homeSale, session.LoggedSale(GoodId.ShimmersteelJars));
+            Assert.AreEqual(dearerHomeSale, session.LoggedSale(GoodId.ShimmersteelJars));
 
             Assert.IsTrue(session.DepartTo(PlaceId.Draven));
             session.NoteMarketShown(false);

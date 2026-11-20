@@ -80,6 +80,7 @@ namespace Caravans.Play
         readonly List<CargoUnit> stacks = new List<CargoUnit>();
         readonly LoggedPrice[] loggedBuy = new LoggedPrice[WorldIds.GoodCount];
         readonly LoggedPrice[] loggedSale = new LoggedPrice[WorldIds.GoodCount];
+        readonly int[] boughtHere = new int[WorldIds.GoodCount];
         readonly List<NpcCaravan> npcs = new List<NpcCaravan>();
         readonly List<WeatherMass> masses = new List<WeatherMass>();
 
@@ -187,8 +188,7 @@ namespace Caravans.Play
         public int SellValueAt(int index)
         {
             CargoUnit unit = stacks[index];
-            int gross = Gross(Dock, unit.Good, unit.Integrity);
-            return Mathf.Max(0, gross - CutCoin(gross, TariffPercent(Dock)));
+            return Net(Dock, unit.Good, unit.Integrity, TariffPercent(Dock));
         }
 
         public float IntegrityOf(GoodId good)
@@ -209,24 +209,26 @@ namespace Caravans.Play
             return shelves[(int)place, (int)good].Cap;
         }
 
+        // Haggler and house standing will read the spread here. They do not change it yet.
+        public float MerchantSpread()
+        {
+            return EconomyRates.MerchantSpread;
+        }
+
         public int PriceOf(PlaceId place, GoodId good)
         {
-            if (good == GoodId.SeaWater)
-                good = GoodId.Water;
-            Shelf shelf = shelves[(int)place, (int)good];
-            return EconomyCatalog.ShelfPrice(shelf.BasePrice, shelf.Stock, EconomyCatalog.DayUnit(place, good));
+            good = ShelfGood(good);
+            return ShelfQuote(place, good, shelves[(int)place, (int)good].Stock);
         }
 
         public int BuyCost(PlaceId place, GoodId good)
         {
-            int shelf = PriceOf(place, good);
-            return shelf + CutCoin(shelf, TariffPercent(place));
+            return BuyPaid(place, good, TariffPercent(place));
         }
 
         public int SellValue(PlaceId place, GoodId good)
         {
-            int gross = Gross(place, good, IntegrityOf(good));
-            return Mathf.Max(0, gross - CutCoin(gross, TariffPercent(place)));
+            return Net(place, good, IntegrityOf(good), TariffPercent(place));
         }
 
         public bool HasLoggedBuy(GoodId good)
@@ -437,6 +439,7 @@ namespace Caravans.Play
                 DecayedOnDay = DecayStamp()
             });
             Coin -= price;
+            NoteVisitBuy(good);
             Touch();
             return true;
         }
@@ -517,13 +520,14 @@ namespace Caravans.Play
         void SellUnit(int index)
         {
             GoodId good = stacks[index].Good;
-            int gross = Gross(Dock, good, stacks[index].Integrity);
-            int net = Mathf.Max(0, gross - CutCoin(gross, TariffPercent(Dock)));
+            float integrity = stacks[index].Integrity;
+            int gross = Gross(Dock, good, integrity);
+            int net = Net(Dock, good, integrity, TariffPercent(Dock));
             stacks.RemoveAt(index);
-            GoodId shelf = good == GoodId.SeaWater ? GoodId.Water : good;
+            GoodId shelf = ShelfGood(good);
             PutStock(Dock, shelf, StockOf(Dock, shelf) + 1);
             Coin += net;
-            if (House != null && !EconomyCatalog.IsCity(Dock))
+            if (!TakeVisitBuy(good) && House != null && !EconomyCatalog.IsCity(Dock))
             {
                 influence[(int)Dock, (int)House.Value] += gross;
                 RefreshPatron(Dock);
@@ -870,6 +874,7 @@ namespace Caravans.Play
             if (!RoadGraph.Connects(Dock, destination))
                 return false;
 
+            ClearVisitBuys();
             travelFrom = Dock;
             travelTo = destination;
             edgeLength = RoadGraph.Length(Dock, destination);
@@ -1404,10 +1409,8 @@ namespace Caravans.Play
 
         int UnitProfit(PlaceId origin, PlaceId dest, HouseId house, GoodId good)
         {
-            int buy = PriceOf(origin, good);
-            int sell = PriceOf(dest, good);
-            int paid = buy + CutCoin(buy, NpcPercent(origin, house));
-            int received = sell - CutCoin(sell, NpcPercent(dest, house));
+            int paid = BuyPaid(origin, good, NpcPercent(origin, house));
+            int received = Net(dest, good, 1f, NpcPercent(dest, house));
             return received - paid;
         }
 
@@ -1457,13 +1460,18 @@ namespace Caravans.Play
                 var id = (GoodId)good;
                 if (!EconomyCatalog.Buys(npc.Dock, id))
                     continue;
-                GoodId shelf = id == GoodId.SeaWater ? GoodId.Water : id;
-                int price = PriceOf(npc.Dock, id);
-                PutStock(npc.Dock, shelf, shelves[(int)npc.Dock, (int)shelf].Stock + count);
+                GoodId shelf = ShelfGood(id);
+                int added = 0;
+                for (int n = 0; n < count; n++)
+                {
+                    added += Gross(npc.Dock, id, 1f);
+                    PutStock(npc.Dock, shelf, StockOf(npc.Dock, shelf) + 1);
+                }
+
                 npc.Cargo[good] = 0;
                 if (!EconomyCatalog.IsCity(npc.Dock))
                 {
-                    influence[(int)npc.Dock, (int)npc.House] += price * count;
+                    influence[(int)npc.Dock, (int)npc.House] += added;
                     touched = true;
                 }
             }
@@ -1607,9 +1615,68 @@ namespace Caravans.Play
             return best;
         }
 
+        static GoodId ShelfGood(GoodId good)
+        {
+            return good == GoodId.SeaWater ? GoodId.Water : good;
+        }
+
+        int ShelfQuote(PlaceId place, GoodId good, int stock)
+        {
+            if (stock < 0)
+                stock = 0;
+            good = ShelfGood(good);
+            Shelf shelf = shelves[(int)place, (int)good];
+            return EconomyCatalog.ShelfPrice(shelf.BasePrice, stock, EconomyCatalog.DayUnit(place, good));
+        }
+
+        int Ask(PlaceId place, GoodId good)
+        {
+            GoodId shelf = ShelfGood(good);
+            int stock = shelves[(int)place, (int)shelf].Stock - 1;
+            int ask = Mathf.RoundToInt(ShelfQuote(place, shelf, stock) * (1f + MerchantSpread()));
+            if (ask < 1)
+                ask = 1;
+            return ask;
+        }
+
+        int BuyPaid(PlaceId place, GoodId good, int percent)
+        {
+            int ask = Ask(place, good);
+            return ask + CutCoin(ask, percent);
+        }
+
         int Gross(PlaceId place, GoodId good, float integrity)
         {
-            return Mathf.Max(0, Mathf.RoundToInt(PriceOf(place, good) * Mathf.Clamp01(integrity)));
+            GoodId shelf = ShelfGood(good);
+            int stock = shelves[(int)place, (int)shelf].Stock + 1;
+            float factor = Mathf.Clamp01(integrity) * (1f - MerchantSpread());
+            return Mathf.Max(0, Mathf.RoundToInt(ShelfQuote(place, shelf, stock) * factor));
+        }
+
+        int Net(PlaceId place, GoodId good, float integrity, int percent)
+        {
+            int gross = Gross(place, good, integrity);
+            return Mathf.Max(0, gross - CutCoin(gross, percent));
+        }
+
+        void NoteVisitBuy(GoodId good)
+        {
+            boughtHere[(int)ShelfGood(good)] += 1;
+        }
+
+        bool TakeVisitBuy(GoodId good)
+        {
+            int index = (int)ShelfGood(good);
+            if (boughtHere[index] <= 0)
+                return false;
+            boughtHere[index] -= 1;
+            return true;
+        }
+
+        void ClearVisitBuys()
+        {
+            for (int i = 0; i < boughtHere.Length; i++)
+                boughtHere[i] = 0;
         }
 
         static int CutCoin(int price, int percent)
@@ -1681,6 +1748,7 @@ namespace Caravans.Play
 
             for (int i = 0; i < standingOf.Length; i++)
                 standingOf[i] = 0;
+            ClearVisitBuys();
 
             Coin = TravelScale.StartingCoin;
             WaterLitres = EconomyRates.CanteenLitres;
@@ -1789,6 +1857,7 @@ namespace Caravans.Play
 
         public void ShotDockAt(PlaceId place)
         {
+            ClearVisitBuys();
             Dock = place;
             Traveling = false;
             HoldTravel = false;
