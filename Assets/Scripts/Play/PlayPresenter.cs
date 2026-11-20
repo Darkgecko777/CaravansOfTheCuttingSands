@@ -4,6 +4,7 @@ using Caravans.FrontDoor;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
@@ -28,7 +29,7 @@ namespace Caravans.Play
         const float LogGoodW = 240f;
         const float LogPriceW = 300f;
 
-        // Off hides the tavern, the stables, the house room, and Gear. Those rooms are still placeholders.
+        // Off hides the tavern, the stables, and the house room. Those rooms are still placeholders. Gear stays on the top bar.
         public static bool ShowUnfinishedFeatures;
         const int ShopColumns = 8;
         const int WagonColumns = 2;
@@ -75,6 +76,7 @@ namespace Caravans.Play
         GoodId pickedGood;
         int wagonPick = -1;
         bool optionsOpen;
+        bool optionsPage;
         bool lookingAtMap;
         bool logbookOpen;
         bool choosingRoad;
@@ -110,7 +112,11 @@ namespace Caravans.Play
         Button campButton;
         Button continueButton;
         Button backPaceButton;
+        Canvas topBarCanvas;
         RectTransform optionsRoot;
+        RectTransform pauseList;
+        RectTransform pauseOptionsFrame;
+        OptionsSheet optionsControls;
         TextMeshProUGUI placeText;
         TextMeshProUGUI clockText;
         TextMeshProUGUI coinText;
@@ -186,7 +192,7 @@ namespace Caravans.Play
             quad = MakeSprite(false);
             disc = MakeSprite(true);
             ring = MakeRing();
-            font = MakeFont();
+            font = FrontArt.Regular();
             var camera = Camera.main;
             if (camera != null)
             {
@@ -201,6 +207,7 @@ namespace Caravans.Play
         void Update()
         {
             EnsureMap();
+            ReadEscape();
             if (session.Traveling && !session.HoldTravel && !optionsOpen && !lookingAtMap)
                 session.Tick(Time.unscaledDeltaTime);
             if (session.Revision != drawn)
@@ -793,7 +800,7 @@ namespace Caravans.Play
         {
             var bar = DarkBar(Child(root, "TopBar"), false);
             TopStrip(bar.rectTransform, TopBarHeight);
-            RaiseCanvas(bar.gameObject, 20);
+            topBarCanvas = RaiseCanvas(bar.gameObject, 20);
 
             placeText = Body(bar.rectTransform, UiType.Header, TextAlignmentOptions.MidlineLeft);
             placeText.color = FrontUi.Gold;
@@ -835,7 +842,7 @@ namespace Caravans.Play
             cargoText.color = Ink;
             cargoText.fontSize = UiType.Hud;
             logbookButton = BarSeal(cluster, "Logbook", null, null, null, ToggleLogbook);
-            gearButton = BarSeal(cluster, "Gear", null, null, null, ToggleOptions);
+            gearButton = BarSeal(cluster, "Gear", null, null, null, TogglePause);
         }
 
         void BuildLogbook(RectTransform root)
@@ -1038,24 +1045,98 @@ namespace Caravans.Play
 
         void BuildOptions(RectTransform root)
         {
-            optionsRoot = Child(root, "Options");
+            optionsRoot = Child(root, "Pause");
             Stretch(optionsRoot);
             RaiseCanvas(optionsRoot.gameObject, 50);
             var backdrop = ImageOn(optionsRoot, UiType.Backdrop, true);
-            backdrop.gameObject.AddComponent<Button>().onClick.AddListener(ToggleOptions);
-            var panel = Child(optionsRoot, "Panel");
-            Center(panel, new Vector2(UiType.CardMinW, UiType.CardMinH));
-            FrameSheet(panel, true);
-            var title = Body(panel, UiType.Body, TextAlignmentOptions.Center);
-            title.color = Ink;
-            title.text = "Save is not in this slice.";
-            var titleRt = title.rectTransform;
-            titleRt.anchorMin = new Vector2(0f, 0.55f);
-            titleRt.anchorMax = Vector2.one;
-            titleRt.offsetMin = new Vector2(20f, 0f);
-            titleRt.offsetMax = new Vector2(-20f, -16f);
-            var close = CardButton(panel, "Close", new Vector2(0f, -40f), ToggleOptions);
-            close.GetComponent<RectTransform>().sizeDelta = new Vector2(220f, 52f);
+            var backdropButton = backdrop.gameObject.AddComponent<Button>();
+            backdropButton.transition = Selectable.Transition.None;
+            backdropButton.onClick.AddListener(ClosePause);
+
+            pauseList = Child(optionsRoot, "PauseList");
+            Center(pauseList, new Vector2(560f, 520f));
+            FrontUi.WoodSheet(pauseList);
+            var listLayout = pauseList.gameObject.AddComponent<VerticalLayoutGroup>();
+            listLayout.padding = new RectOffset(48, 48, 48, 48);
+            listLayout.spacing = 12f;
+            listLayout.childAlignment = TextAnchor.MiddleCenter;
+            listLayout.childControlWidth = true;
+            listLayout.childControlHeight = true;
+            listLayout.childForceExpandWidth = false;
+            listLayout.childForceExpandHeight = false;
+            FrontUi.MenuItem(pauseList, "RESUME", true, ClosePause, 440f, 64f);
+            FrontUi.MenuItem(pauseList, "OPTIONS", true, OpenPauseOptions, 440f, 64f);
+            FrontUi.MenuItem(pauseList, "MAIN MENU", true, MainMenu, 440f, 64f);
+            FrontUi.MenuItem(pauseList, "QUIT", true, TitleScreen.Quit, 440f, 64f);
+
+            pauseOptionsFrame = Child(optionsRoot, "Options");
+            Center(pauseOptionsFrame, new Vector2(680f, 680f));
+            FrontUi.WoodSheet(pauseOptionsFrame);
+            optionsControls = new OptionsSheet();
+            optionsControls.Build(pauseOptionsFrame, ClosePauseOptions);
+            pauseOptionsFrame.gameObject.SetActive(false);
+            optionsRoot.gameObject.SetActive(false);
+        }
+
+        void ReadEscape()
+        {
+            var keyboard = Keyboard.current;
+            if (keyboard == null || !keyboard.escapeKey.wasPressedThisFrame)
+                return;
+            if (!optionsOpen)
+            {
+                OpenPause();
+                return;
+            }
+
+            if (optionsPage)
+                ClosePauseOptions();
+            else
+                ClosePause();
+        }
+
+        void TogglePause()
+        {
+            if (optionsOpen)
+                ClosePause();
+            else
+                OpenPause();
+        }
+
+        void OpenPause()
+        {
+            optionsOpen = true;
+            optionsPage = false;
+            Redraw();
+        }
+
+        void ClosePause()
+        {
+            optionsOpen = false;
+            optionsPage = false;
+            Redraw();
+        }
+
+        void OpenPauseOptions()
+        {
+            optionsOpen = true;
+            optionsPage = true;
+            if (optionsControls != null)
+                optionsControls.Refresh();
+            Redraw();
+        }
+
+        void ClosePauseOptions()
+        {
+            optionsPage = false;
+            Redraw();
+        }
+
+        void MainMenu()
+        {
+            optionsOpen = false;
+            optionsPage = false;
+            Gate.ReturnToTitle();
         }
 
         void Redraw()
@@ -1074,7 +1155,6 @@ namespace Caravans.Play
             houseTab.gameObject.SetActive(ShowUnfinishedFeatures && EconomyCatalog.IsCity(session.Dock));
             tavernTab.gameObject.SetActive(ShowUnfinishedFeatures);
             stablesTab.gameObject.SetActive(ShowUnfinishedFeatures);
-            gearButton.gameObject.SetActive(ShowUnfinishedFeatures);
             TintPace(marketTab, page == Page.Market);
             TintPace(houseTab, page == Page.House);
             paceBar.SetActive(session.Traveling && !session.CampPending && !session.AwaitingPace && !session.EncounterPending);
@@ -1082,6 +1162,12 @@ namespace Caravans.Play
             bool roadChoice = session.CampPending || session.AwaitingPace || session.EncounterPending;
             cardRoot.gameObject.SetActive(roadChoice);
             optionsRoot.gameObject.SetActive(optionsOpen);
+            if (topBarCanvas != null)
+                topBarCanvas.sortingOrder = optionsOpen ? 60 : 20;
+            if (pauseList != null)
+                pauseList.gameObject.SetActive(!optionsPage);
+            if (pauseOptionsFrame != null)
+                pauseOptionsFrame.gameObject.SetActive(optionsPage);
             logbookRoot.gameObject.SetActive(logbookOpen);
             dimmer.gameObject.SetActive(false);
             ShowRoadChoice(roadChoice);
@@ -1123,7 +1209,6 @@ namespace Caravans.Play
         {
             if (ShowUnfinishedFeatures)
                 return;
-            optionsOpen = false;
             if (page == Page.House)
                 page = Page.Market;
             if (plazaSpot == PlazaSpot.Tavern || plazaSpot == PlazaSpot.Stables)
@@ -1982,12 +2067,6 @@ namespace Caravans.Play
             Redraw();
         }
 
-        void ToggleOptions()
-        {
-            optionsOpen = !optionsOpen;
-            Redraw();
-        }
-
         void ToggleLogbook()
         {
             logbookOpen = !logbookOpen;
@@ -2294,7 +2373,7 @@ namespace Caravans.Play
             go.transform.SetParent(parent, false);
             var image = go.AddComponent<Image>();
             ApprovedArt kit = ApprovedArt.Load();
-            Sprite panel = kit != null && kit.sealBase != null ? kit.sealBase : FrontArt.ButtonPanel();
+            Sprite panel = kit != null && kit.sealBase != null ? kit.sealBase : FrontArt.ResinSeal();
             image.sprite = panel != null ? panel : quad;
             image.type = Image.Type.Simple;
             image.preserveAspect = true;
@@ -2369,7 +2448,7 @@ namespace Caravans.Play
             var go = new GameObject("Text", typeof(RectTransform));
             go.transform.SetParent(parent, false);
             var text = go.AddComponent<TextMeshProUGUI>();
-            text.font = font;
+            text.font = size == UiType.Header ? FrontArt.Display() : font;
             text.fontSize = Mathf.Max(size, UiType.Small);
             text.color = Ink;
             text.alignment = alignment;
@@ -2455,13 +2534,14 @@ namespace Caravans.Play
             rect.anchoredPosition = Vector2.zero;
         }
 
-        static void RaiseCanvas(GameObject go, int sort)
+        static Canvas RaiseCanvas(GameObject go, int sort)
         {
             var canvas = go.AddComponent<Canvas>();
             canvas.overrideSorting = true;
             canvas.sortingOrder = sort;
             canvas.additionalShaderChannels = ExtraChannels();
             go.AddComponent<GraphicRaycaster>();
+            return canvas;
         }
 
         static AdditionalCanvasShaderChannels ExtraChannels()
@@ -2469,14 +2549,6 @@ namespace Caravans.Play
             return AdditionalCanvasShaderChannels.TexCoord1
                 | AdditionalCanvasShaderChannels.Normal
                 | AdditionalCanvasShaderChannels.Tangent;
-        }
-
-        TMP_FontAsset MakeFont()
-        {
-            Font source = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (source == null)
-                source = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            return TMP_FontAsset.CreateFontAsset(source);
         }
 
         static Sprite MakeSprite(bool circle)
@@ -2785,8 +2857,9 @@ namespace Caravans.Play
                     ShotClearOverlays();
                     page = Page.Market;
                     optionsOpen = true;
+                    optionsPage = false;
                     FinishShot();
-                    return optionsOpen;
+                    return optionsOpen && !optionsPage;
                 case "travel":
                     return ShotPlaza(PlazaSpot.Gates, true, false);
                 case "road":
@@ -2876,6 +2949,7 @@ namespace Caravans.Play
             shopSelected = false;
             wagonPick = -1;
             optionsOpen = false;
+            optionsPage = false;
             logbookOpen = false;
             choosingRoad = false;
             lookingAtMap = false;

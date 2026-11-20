@@ -93,13 +93,35 @@ public class UiTextureImporter : AssetPostprocessor
     static bool NeedsReadable(string path)
     {
         string name = Path.GetFileName(path);
-        if (name == "button_panel.png" || name == "menu_frame.png"
-            || name == "plate_quiet.png" || name == "plate_hot.png" || name == "plate_pressed.png")
-            return true;
         if (name == "parchment-plain.png" || name == "duzhu-hide-panel.png"
             || name == "banner.png" || name == "hide-header.png" || name == "bone-frame.png")
             return true;
         return name.StartsWith("resin-seal");
+    }
+
+    static bool MenuBorder(string path, out Vector4 border)
+    {
+        string name = Path.GetFileName(path);
+        if (name == "ui_wood_panel.png")
+        {
+            border = new Vector4(280f, 280f, 280f, 280f);
+            return true;
+        }
+
+        if (name == "ui_hover_strip.png")
+        {
+            border = new Vector4(60f, 4f, 60f, 4f);
+            return true;
+        }
+
+        if (name == "ui_bone_tick.png")
+        {
+            border = Vector4.zero;
+            return true;
+        }
+
+        border = Vector4.zero;
+        return false;
     }
 
     static void Apply(TextureImporter importer)
@@ -130,7 +152,11 @@ public class UiTextureImporter : AssetPostprocessor
         settings.alphaIsTransparency = true;
         settings.readable = importer.isReadable;
         settings.npotScale = TextureImporterNPOTScale.None;
+        if (MenuBorder(importer.assetPath, out Vector4 border))
+            settings.spriteBorder = border;
         importer.SetTextureSettings(settings);
+        if (MenuBorder(importer.assetPath, out border))
+            importer.spriteBorder = border;
 
         SetPlatform(importer.GetDefaultPlatformTextureSettings(), importer);
         var standalone = importer.GetPlatformTextureSettings("Standalone");
@@ -165,10 +191,20 @@ public class UiTextureImporter : AssetPostprocessor
             return false;
         if (importer.maxTextureSize < 4096)
             return false;
+        if (MenuBorder(importer.assetPath, out Vector4 border))
+        {
+            Vector4 have = importer.spriteBorder;
+            if (Mathf.Abs(have.x - border.x) > 0.5f
+                || Mathf.Abs(have.y - border.y) > 0.5f
+                || Mathf.Abs(have.z - border.z) > 0.5f
+                || Mathf.Abs(have.w - border.w) > 0.5f)
+                return false;
+        }
+
         if (importer.assetPath.EndsWith("ui_meter_frame.png"))
         {
-            float border = importer.spriteBorder.x;
-            if (border < 78f || border > 80f)
+            float meter = importer.spriteBorder.x;
+            if (meter < 78f || meter > 80f)
                 return false;
         }
 

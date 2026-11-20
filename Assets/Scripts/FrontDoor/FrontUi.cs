@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
@@ -23,6 +24,7 @@ namespace Caravans.FrontDoor
         public const float Gap = 24f;
         public const float SpaceLarge = 32f;
         public const float BoneEdge = 38f;
+        public const float WoodEdge = 40f;
         public const float CardMinW = 520f;
         public const float CardMinH = 260f;
         public static readonly Color Cream = new Color(0.918f, 0.863f, 0.753f, 1f);
@@ -101,14 +103,14 @@ namespace Caravans.FrontDoor
         }
 
         public static TextMeshProUGUI Label(
-            RectTransform parent, string text, float size, bool title, Color color, Vector2 preferred, bool wrap = false)
+            RectTransform parent, string text, float size, bool title, Color color, Vector2 preferred, bool wrap = false, bool display = false)
         {
             var host = Box(parent, "Label", preferred);
             var element = host.gameObject.AddComponent<LayoutElement>();
             element.preferredWidth = preferred.x;
             element.preferredHeight = preferred.y;
 
-            var font = title ? FrontArt.Bold() : FrontArt.Regular();
+            var font = display ? FrontArt.Display() : title ? FrontArt.Bold() : FrontArt.Regular();
             var shadow = MakeText(host, "Shadow", text, size, font, Shadow, wrap);
             Stretch(shadow.rectTransform, new Vector2(2f, -2f));
             var label = MakeText(host, "Text", text, size, font, color, wrap);
@@ -140,33 +142,90 @@ namespace Caravans.FrontDoor
             rect.offsetMax = shift;
         }
 
-        public static Button MenuButton(RectTransform parent, string text, bool enabled, UnityEngine.Events.UnityAction click)
+        public static Image WoodSheet(RectTransform rect)
         {
-            var rect = Box(parent, text, new Vector2(280f, 84f));
-            var element = rect.gameObject.AddComponent<LayoutElement>();
-            element.preferredWidth = 280f;
-            element.preferredHeight = 84f;
             var image = rect.gameObject.AddComponent<Image>();
-            image.sprite = FrontArt.ButtonPanel();
-            image.type = image.sprite != null ? Image.Type.Sliced : Image.Type.Simple;
-            image.color = image.sprite != null ? Color.white : new Color(0.28f, 0.18f, 0.1f, 0.94f);
+            Sprite wood = FrontArt.WoodPanel();
+            image.sprite = wood;
+            image.type = wood != null ? Image.Type.Sliced : Image.Type.Simple;
+            image.color = wood != null ? Color.white : new Color(0.28f, 0.18f, 0.1f, 0.94f);
+            image.raycastTarget = true;
+            if (wood != null)
+                image.pixelsPerUnitMultiplier = UiType.Tuck(wood, UiType.WoodEdge);
+            return image;
+        }
+
+        public static MenuRow MenuItem(
+            RectTransform parent, string text, bool enabled, UnityAction click, float width, float height)
+        {
+            var rect = Box(parent, text, new Vector2(width, height));
+            var element = rect.gameObject.AddComponent<LayoutElement>();
+            element.preferredWidth = width;
+            element.preferredHeight = height;
+            var hit = rect.gameObject.AddComponent<Image>();
+            hit.color = new Color(1f, 1f, 1f, 0.01f);
+            hit.raycastTarget = true;
+
+            var hoverGo = Box(rect, "Hover", Vector2.zero);
+            Stretch(hoverGo, Vector2.zero);
+            var hover = hoverGo.gameObject.AddComponent<Image>();
+            Sprite strip = FrontArt.HoverStrip();
+            hover.sprite = strip;
+            hover.type = strip != null ? Image.Type.Sliced : Image.Type.Simple;
+            hover.raycastTarget = false;
+            hover.enabled = false;
+            hoverGo.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+
+            var row = rect.gameObject.AddComponent<HorizontalLayoutGroup>();
+            row.padding = new RectOffset(8, 12, 2, 2);
+            row.spacing = 8f;
+            row.childAlignment = TextAnchor.MiddleCenter;
+            row.childControlWidth = true;
+            row.childControlHeight = true;
+            row.childForceExpandWidth = false;
+            row.childForceExpandHeight = false;
+
+            var tickGo = Box(rect, "Tick", new Vector2(36f, 36f));
+            var tickFit = tickGo.gameObject.AddComponent<LayoutElement>();
+            tickFit.preferredWidth = 36f;
+            tickFit.preferredHeight = 36f;
+            var tick = tickGo.gameObject.AddComponent<Image>();
+            tick.sprite = FrontArt.BoneTick();
+            tick.type = Image.Type.Simple;
+            tick.preserveAspect = true;
+            tick.raycastTarget = false;
+            tick.color = new Color(1f, 1f, 1f, 0f);
+
+            var host = Box(rect, "Label", new Vector2(width - 56f, height));
+            var hostFit = host.gameObject.AddComponent<LayoutElement>();
+            hostFit.flexibleWidth = 1f;
+            hostFit.preferredHeight = height;
+            var font = FrontArt.Display();
+            var shadow = MakeText(host, "Shadow", text, UiType.Body, font, Shadow, false);
+            Stretch(shadow.rectTransform, new Vector2(2f, -2f));
+            var label = MakeText(host, "Text", text, UiType.Body, font, enabled ? Gold : Disabled, false);
+            Stretch(label.rectTransform, Vector2.zero);
+
             var button = rect.gameObject.AddComponent<Button>();
-            button.targetGraphic = image;
+            button.targetGraphic = hit;
             button.transition = Selectable.Transition.None;
             button.interactable = enabled;
+            var nav = button.navigation;
+            nav.mode = Navigation.Mode.None;
+            button.navigation = nav;
+            var menu = rect.gameObject.AddComponent<MenuRow>();
+            menu.Bind(button, label, shadow, hover, tick, enabled);
             if (click != null)
-                button.onClick.AddListener(click);
-            var label = Label(rect, text, UiType.Body, true, enabled ? Gold : Disabled, new Vector2(280f, 84f));
-            var host = (RectTransform)label.transform.parent;
-            host.anchorMin = Vector2.zero;
-            host.anchorMax = Vector2.one;
-            host.offsetMin = Vector2.zero;
-            host.offsetMax = Vector2.zero;
-            var hostElement = host.GetComponent<LayoutElement>();
-            if (hostElement != null)
-                hostElement.ignoreLayout = true;
-            rect.gameObject.AddComponent<PlatePress>().Bind(label);
-            return button;
+            {
+                button.onClick.AddListener(() =>
+                {
+                    if (EventSystem.current != null)
+                        EventSystem.current.SetSelectedGameObject(rect.gameObject);
+                    click();
+                });
+            }
+
+            return menu;
         }
 
         // One bone edge over a dark hide sheet. The hide rim is tucked under the bone.
@@ -201,71 +260,240 @@ namespace Caravans.FrontDoor
         }
     }
 
-    sealed class PlatePress : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
+    public sealed class MenuRow : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler, ISelectHandler, IDeselectHandler
     {
         TextMeshProUGUI label;
+        TextMeshProUGUI shadow;
+        Image hover;
+        Image tick;
         Button button;
         bool live;
-        Vector3 target = Vector3.one;
+        bool over;
+        bool pressed;
+        bool selected;
+        bool marked;
 
-        public void Bind(TextMeshProUGUI text)
+        public Button Button => button;
+
+        public void Bind(Button host, TextMeshProUGUI text, TextMeshProUGUI shade, Image strip, Image bone, bool enabled)
         {
+            button = host;
             label = text;
-            button = GetComponent<Button>();
-            live = button == null || button.interactable;
+            shadow = shade;
+            hover = strip;
+            tick = bone;
+            live = enabled;
+            Paint();
+        }
+
+        public void SetText(string text)
+        {
+            if (label != null)
+                label.text = text;
+            if (shadow != null)
+                shadow.text = text;
+        }
+
+        public void SetChecked(bool on)
+        {
+            marked = on;
+            Paint();
         }
 
         void Update()
         {
             bool enabled = button == null || button.interactable;
-            if (enabled != live)
+            if (enabled == live)
+                return;
+            live = enabled;
+            if (!live)
             {
-                live = enabled;
-                target = Vector3.one;
-                if (label != null)
-                    label.color = live ? FrontUi.Gold : FrontUi.Disabled;
+                over = false;
+                pressed = false;
             }
 
-            transform.localScale = Vector3.Lerp(transform.localScale, target, 1f - Mathf.Exp(-18f * Time.unscaledDeltaTime));
+            Paint();
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (!live)
                 return;
-            target = Vector3.one * 1.05f;
-            if (label != null)
-                label.color = FrontUi.GoldBright;
+            over = true;
+            Paint();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            target = Vector3.one;
-            if (label != null && live)
-                label.color = FrontUi.Gold;
+            over = false;
+            pressed = false;
+            Paint();
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
             if (!live)
                 return;
-            target = Vector3.one * 0.96f;
-            if (label != null)
-                label.color = FrontUi.GoldDim;
+            pressed = true;
+            Paint();
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            if (!live)
+            pressed = false;
+            Paint();
+        }
+
+        public void OnSelect(BaseEventData eventData)
+        {
+            selected = true;
+            Paint();
+        }
+
+        public void OnDeselect(BaseEventData eventData)
+        {
+            selected = false;
+            Paint();
+        }
+
+        void Paint()
+        {
+            if (hover != null)
+                hover.enabled = live && over;
+            if (tick != null)
+                tick.color = live && (selected || marked) ? Color.white : new Color(1f, 1f, 1f, 0f);
+            if (label == null)
                 return;
-            bool over = RectTransformUtility.RectangleContainsScreenPoint((RectTransform)transform, eventData.position, eventData.pressEventCamera);
-            target = over ? Vector3.one * 1.05f : Vector3.one;
-            if (label != null)
-                label.color = over ? FrontUi.GoldBright : FrontUi.Gold;
+            if (!live)
+                label.color = FrontUi.Disabled;
+            else if (pressed)
+                label.color = FrontUi.GoldDim;
+            else if (over)
+                label.color = FrontUi.GoldBright;
+            else
+                label.color = FrontUi.Gold;
         }
     }
 
-    // Master rides on the listener. Music scales the title wind. SFX scales goods clicks.
+    public sealed class OptionsSheet
+    {
+        static readonly int[] ResW = { 1280, 1600, 1920 };
+        static readonly int[] ResH = { 720, 900, 1080 };
+
+        MenuRow fullscreen;
+        MenuRow resolution;
+
+        public void Build(RectTransform frame, UnityAction close)
+        {
+            var layout = frame.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(48, 48, 48, 48);
+            layout.spacing = 8f;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+
+            FrontUi.Label(frame, "Options", UiType.Header, false, FrontUi.Gold, new Vector2(520f, 56f), false, true);
+            FrontUi.Label(frame, "Master", UiType.Body, false, UiType.Cream, new Vector2(520f, 32f), false, true);
+            VolumeSlider(frame, SessionSettings.Master, SessionSettings.SetMaster);
+            FrontUi.Label(frame, "Music", UiType.Body, false, UiType.Cream, new Vector2(520f, 32f), false, true);
+            VolumeSlider(frame, SessionSettings.Music, SessionSettings.SetMusic);
+            FrontUi.Label(frame, "SFX", UiType.Body, false, UiType.Cream, new Vector2(520f, 32f), false, true);
+            VolumeSlider(frame, SessionSettings.Sfx, SessionSettings.SetSfx);
+            fullscreen = FrontUi.MenuItem(frame, FullscreenLine(), true, ToggleFullscreen, 520f, 52f);
+            resolution = FrontUi.MenuItem(frame, ResolutionLine(), true, CycleResolution, 520f, 52f);
+            FrontUi.MenuItem(frame, "CLOSE", true, close, 520f, 52f);
+            Refresh();
+        }
+
+        public void Refresh()
+        {
+            if (fullscreen != null)
+            {
+                fullscreen.SetText(FullscreenLine());
+                fullscreen.SetChecked(Screen.fullScreen);
+            }
+
+            if (resolution != null)
+                resolution.SetText(ResolutionLine());
+        }
+
+        static string FullscreenLine()
+        {
+            return Screen.fullScreen ? "Fullscreen: On" : "Fullscreen: Off";
+        }
+
+        static string ResolutionLine()
+        {
+            return Screen.width + " \u00d7 " + Screen.height;
+        }
+
+        void ToggleFullscreen()
+        {
+            Screen.fullScreen = !Screen.fullScreen;
+            Refresh();
+        }
+
+        void CycleResolution()
+        {
+            int next = 0;
+            for (int i = 0; i < ResW.Length; i++)
+            {
+                if (Screen.width == ResW[i] && Screen.height == ResH[i])
+                {
+                    next = (i + 1) % ResW.Length;
+                    break;
+                }
+            }
+
+            Screen.SetResolution(ResW[next], ResH[next], Screen.fullScreen);
+            if (resolution != null)
+                resolution.SetText(ResW[next] + " \u00d7 " + ResH[next]);
+        }
+
+        static Slider VolumeSlider(RectTransform parent, float value, UnityAction<float> changed)
+        {
+            var row = FrontUi.Box(parent, "Volume", new Vector2(520f, 28f));
+            var fit = row.gameObject.AddComponent<LayoutElement>();
+            fit.preferredWidth = 520f;
+            fit.preferredHeight = 28f;
+            var bg = row.gameObject.AddComponent<Image>();
+            bg.color = UiType.Umber;
+
+            var fillGo = FrontUi.Box(row, "Fill", Vector2.zero);
+            var fillRt = fillGo.GetComponent<RectTransform>();
+            fillRt.anchorMin = Vector2.zero;
+            fillRt.anchorMax = Vector2.one;
+            fillRt.offsetMin = new Vector2(4f, 8f);
+            fillRt.offsetMax = new Vector2(-4f, -8f);
+            var fill = fillGo.gameObject.AddComponent<Image>();
+            fill.color = UiType.Cream;
+
+            var handleGo = FrontUi.Box(row, "Handle", new Vector2(16f, 28f));
+            var handleRt = handleGo.GetComponent<RectTransform>();
+            handleRt.sizeDelta = new Vector2(16f, 28f);
+            var handle = handleGo.gameObject.AddComponent<Image>();
+            handle.color = FrontUi.Gold;
+
+            var slider = row.gameObject.AddComponent<Slider>();
+            slider.fillRect = fillRt;
+            slider.handleRect = handleRt;
+            slider.targetGraphic = handle;
+            slider.direction = Slider.Direction.LeftToRight;
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.value = value;
+            var nav = slider.navigation;
+            nav.mode = Navigation.Mode.None;
+            slider.navigation = nav;
+            if (changed != null)
+                slider.onValueChanged.AddListener(changed);
+            return slider;
+        }
+    }
+
+    // Master rides on the listener. Music scales the title theme. SFX scales goods clicks.
     public static class SessionSettings
     {
         const string MasterKey = "caravans.vol.master";

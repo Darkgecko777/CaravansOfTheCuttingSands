@@ -4,31 +4,26 @@ using UnityEngine.SceneManagement;
 
 namespace Caravans.FrontDoor
 {
-    // Wind keeps tapering if the player leaves the title early.
+    // The title theme keeps tapering if the player leaves the title early.
     // The sand does not. It is taken down on the same frame the fade begins.
     public sealed class StormDirector : MonoBehaviour
     {
         public const float FadeSeconds = 2.2f;
-        const float WindBaseDb = -12f;
-        const float WindGustDb = 14f;
-        const float WindPitchMin = 0.96f;
-        const float WindPitchRange = 0.10f;
+        public const float MusicFadeSeconds = 1.5f;
         const float FadeStepCap = 0.1f;
 
         static StormDirector instance;
 
         SandBedSim sim;
         StormFade fade;
+        StormFade musicFade;
         Camera stormCamera;
-        AudioSource wind;
-        AudioListener listener;
+        AudioSource theme;
         Mesh mesh;
         MeshRenderer grains;
         Vector3[] vertices;
         Vector2[] uvs;
         Color32[] colors;
-        bool listenersSettled;
-        bool windMissingNoted;
         bool visualsHidden;
         bool fadeSettled;
 
@@ -50,39 +45,31 @@ namespace Caravans.FrontDoor
         public void Resume()
         {
             fade.Resume();
+            musicFade.Resume();
             sim.ResetMotion();
             visualsHidden = false;
             fadeSettled = false;
-            listenersSettled = false;
-            if (wind.clip == null)
-                wind.clip = FrontArt.Wind();
-            wind.loop = true;
-            wind.volume = WindLevel(WindBaseDb);
-            wind.pitch = WindPitchMin;
-            if (wind.clip != null && !wind.isPlaying)
-                wind.Play();
-            if (wind.clip == null && !windMissingNoted)
-            {
-                windMissingNoted = true;
-                Debug.LogWarning("Front door wind clip is missing. Sand still plays.");
-            }
-            HarmonizeListeners();
+            if (theme.clip == null)
+                theme.clip = FrontArt.TitleTheme();
+            theme.loop = true;
+            theme.volume = SessionSettings.Music;
+            if (theme.clip != null && !theme.isPlaying)
+                theme.Play();
         }
 
         public void BeginFade()
         {
             HideVisuals();
-            listenersSettled = false;
             if (!(fade.Active || fade.Finished))
+                fade.Begin(1f, FadeSeconds);
+            if (!(musicFade.Active || musicFade.Finished))
             {
-                if (wind.clip == null)
-                    wind.clip = FrontArt.Wind();
-                if (wind.clip != null && !wind.isPlaying)
-                    wind.Play();
-                fade.Begin(wind.volume, FadeSeconds);
+                if (theme.clip == null)
+                    theme.clip = FrontArt.TitleTheme();
+                if (theme.clip != null && !theme.isPlaying)
+                    theme.Play();
+                musicFade.Begin(theme.volume, MusicFadeSeconds);
             }
-
-            HarmonizeListeners();
         }
 
         void Awake()
@@ -96,6 +83,7 @@ namespace Caravans.FrontDoor
             instance = this;
             DontDestroyOnLoad(gameObject);
             fade = new StormFade();
+            musicFade = new StormFade();
             sim = new SandBedSim(System.Environment.TickCount);
             BuildRig();
             SceneManager.sceneLoaded += OnSceneLoaded;
@@ -110,12 +98,8 @@ namespace Caravans.FrontDoor
 
         void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            listenersSettled = false;
             if (scene.name == Gate.TitleScene)
-            {
-                HarmonizeListeners();
                 return;
-            }
 
             // Sand is title-only. A second Begin does not restart the taper.
             BeginFade();
@@ -123,22 +107,16 @@ namespace Caravans.FrontDoor
 
         void LateUpdate()
         {
+            float step = Mathf.Min(Time.unscaledDeltaTime, FadeStepCap);
             if (fade.Active)
-            {
-                fade.Tick(Mathf.Min(Time.unscaledDeltaTime, FadeStepCap));
-                wind.volume = fade.AudioAmplitude;
-            }
+                fade.Tick(step);
+            TickTheme(step);
 
             if (fade.Finished)
             {
                 if (fadeSettled)
                     return;
-                if (wind.isPlaying)
-                    wind.Stop();
-                wind.volume = 0f;
                 HideVisuals();
-                listenersSettled = false;
-                HarmonizeListeners();
                 fadeSettled = true;
                 return;
             }
@@ -147,19 +125,34 @@ namespace Caravans.FrontDoor
             if (fade.Active || !onTitle)
             {
                 HideVisuals();
-                if (!listenersSettled)
-                    HarmonizeListeners();
                 return;
             }
 
-            float gust = sim.Tick(Time.unscaledDeltaTime);
-            ApplyGust(gust);
+            sim.Tick(Time.unscaledDeltaTime);
             Draw(1f);
             grains.enabled = true;
             stormCamera.enabled = true;
             Attach();
-            if (!listenersSettled)
-                HarmonizeListeners();
+        }
+
+        void TickTheme(float step)
+        {
+            if (theme == null)
+                return;
+            if (musicFade.Active)
+                musicFade.Tick(step);
+            if (musicFade.Finished)
+            {
+                if (theme.isPlaying)
+                    theme.Stop();
+                theme.volume = 0f;
+                return;
+            }
+
+            if (musicFade.Active)
+                theme.volume = musicFade.AudioAmplitude;
+            else if (theme.isPlaying)
+                theme.volume = SessionSettings.Music;
         }
 
         void HideVisuals()
@@ -189,15 +182,12 @@ namespace Caravans.FrontDoor
             cameraData.renderType = CameraRenderType.Overlay;
             cameraData.renderShadows = false;
 
-            listener = cameraObject.AddComponent<AudioListener>();
-            listener.enabled = false;
-
-            wind = gameObject.AddComponent<AudioSource>();
-            wind.playOnAwake = false;
-            wind.loop = true;
-            wind.spatialBlend = 0f;
-            wind.dopplerLevel = 0f;
-            wind.volume = WindLevel(WindBaseDb);
+            theme = gameObject.AddComponent<AudioSource>();
+            theme.playOnAwake = false;
+            theme.loop = true;
+            theme.spatialBlend = 0f;
+            theme.dopplerLevel = 0f;
+            theme.volume = SessionSettings.Music;
 
             int quads = sim.GrainCount;
             vertices = new Vector3[quads * 4];
@@ -254,13 +244,6 @@ namespace Caravans.FrontDoor
             mesh.RecalculateBounds();
         }
 
-        void ApplyGust(float gust)
-        {
-            gust = Mathf.Clamp01(gust);
-            wind.volume = WindLevel(WindBaseDb + gust * WindGustDb);
-            wind.pitch = WindPitchMin + gust * WindPitchRange;
-        }
-
         void Attach()
         {
             var basis = Camera.main;
@@ -291,41 +274,6 @@ namespace Caravans.FrontDoor
                 if (stack != null && stack.Contains(stormCamera))
                     stack.Remove(stormCamera);
             }
-        }
-
-        void HarmonizeListeners()
-        {
-            bool useStorm = wind.isPlaying && !fade.Finished;
-            var listeners = FindObjectsByType<AudioListener>(FindObjectsInactive.Exclude);
-            if (useStorm)
-            {
-                for (int i = 0; i < listeners.Length; i++)
-                {
-                    if (listeners[i] != listener)
-                        listeners[i].enabled = false;
-                }
-                listener.enabled = true;
-            }
-            else
-            {
-                for (int i = 0; i < listeners.Length; i++)
-                {
-                    if (listeners[i] != listener)
-                        listeners[i].enabled = true;
-                }
-                listener.enabled = false;
-            }
-            listenersSettled = true;
-        }
-
-        static float WindLevel(float db)
-        {
-            return DbToLinear(db) * SessionSettings.Music;
-        }
-
-        static float DbToLinear(float db)
-        {
-            return Mathf.Clamp01(Mathf.Pow(10f, db / 20f));
         }
     }
 }

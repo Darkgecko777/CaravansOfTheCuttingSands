@@ -1,11 +1,11 @@
 # UI screenshots
 
-Captured 2026-11-19 at commit 779b82a (working tree).
+Captured 2026-11-20 at commit 90e4da1 (working tree).
 
 | File | Scene | State |
 | --- | --- | --- |
-| 01_title.png | TitleScreen | Main menu. Options closed. The sand is blowing. |
-| 02_title_options.png | TitleScreen | Options panel open over the main menu. Master, music, and SFX sliders, fullscreen, resolution, and Close. |
+| 01_title.png | TitleScreen | Main menu on the living-lumber wood panel. Text-only NEW GAME, OPTIONS, and EXIT. No Continue. Options closed. The sand is blowing. |
+| 02_title_options.png | TitleScreen | Options open on the wood panel over the main menu. Master, music, and SFX sliders, fullscreen and resolution as text rows, and Close. No bone frame. |
 | 10_market_empty.png | SampleScene | Market at Kharûn. No cell is selected. The wagon holds the seeded cargo. |
 | 11_market_selected_buy.png | SampleScene | Market at Kharûn. A shop cell with stock is selected. |
 | 12_market_sort_menu.png | SampleScene | Market at Kharûn. The sort menu is open. |
@@ -14,6 +14,7 @@ Captured 2026-11-19 at commit 779b82a (working tree).
 | 20_plaza_inn.png | SampleScene | Plaza, Inn, at Kharûn. |
 | 21_plaza_gates.png | SampleScene | Plaza, Gates, at Kharûn. No road is lit. Neighbour road buttons sit inside the gates panel. |
 | 40_logbook.png | SampleScene | Logbook open over the market at Kharûn, between the bars. Seeded buy and sale figures are on the rows. An unseen price is a dash. |
+| 41_pause_menu.png | SampleScene | Pause menu open over the Kharûn market. Wood panel, text-only RESUME, OPTIONS, MAIN MENU, and QUIT. Gear is visible on the top bar. |
 | 30_travel_map.png | SampleScene | Gates at Kharûn with the Draven road lit. The painted trail and the destination circle are up. Neighbour road buttons stay on the gates panel. |
 | 31_road_choice.png | SampleScene | Gates at Kharûn with the Draven road lit. Careful, Steady, and Rush sit on the panel. Embark is live. No card covers the map. |
 | 32_departure.png | SampleScene | En route to Draven, paused at the Kharûn dock. The route line is drawn and the wagon has not moved. |
@@ -27,7 +28,7 @@ The encounter card, the camp card, and the after-camp pace card are part of play
 
 31_road_choice.png is the gates panel with the Draven road lit. Careful, Steady, and Rush are on that panel, and Embark leaves. No card covers the map. The pace card opens after camp, which is 35_resume_pace.png, in the order Careful, Steady, Rush.
 
-Tavern, Stables, House, and Gear stay off the layout while ShowUnfinishedFeatures is off, so this capture does not include those rooms.
+House, Tavern, and Stables stay off the layout while ShowUnfinishedFeatures is off, so this capture does not include those rooms. Gear stays on the top bar and opens the pause menu, which is part of play. The title, title Options, and the pause menu use one wood panel and text-only items.
 
 15_market_ridgewatch.png is the long dock name. Sarn's Rest is a landmark. House, Tavern, and Stables are off the bar in this capture.
 

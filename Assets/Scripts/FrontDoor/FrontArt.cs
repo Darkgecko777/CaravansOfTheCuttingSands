@@ -5,11 +5,9 @@ namespace Caravans.FrontDoor
 {
     public static class FrontArt
     {
-        static Sprite buttonPanel;
-        static Sprite menuFrame;
-        static Sprite plateQuiet;
-        static Sprite plateHot;
-        static Sprite platePressed;
+        static Sprite woodPanel;
+        static Sprite hoverStrip;
+        static Sprite boneTick;
         static Sprite parchment;
         static Sprite hidePanel;
         static Sprite banner;
@@ -27,31 +25,28 @@ namespace Caravans.FrontDoor
         static Material sand;
         static TMP_FontAsset bold;
         static TMP_FontAsset regular;
-        static AudioClip wind;
+        static TMP_FontAsset display;
+        static AudioClip titleTheme;
 
-        public static Sprite ButtonPanel()
+        public static Sprite WoodPanel()
         {
-            return buttonPanel = buttonPanel != null ? buttonPanel : Slice("FrontDoor/button_panel", new Vector4(30f, 30f, 30f, 30f));
+            if (woodPanel == null)
+                woodPanel = Resources.Load<Sprite>("FrontDoor/ui_wood_panel");
+            return woodPanel;
         }
 
-        public static Sprite MenuFrame()
+        public static Sprite HoverStrip()
         {
-            return menuFrame = menuFrame != null ? menuFrame : Slice("FrontDoor/menu_frame", Vector4.zero);
+            if (hoverStrip == null)
+                hoverStrip = Resources.Load<Sprite>("FrontDoor/ui_hover_strip");
+            return hoverStrip;
         }
 
-        public static Sprite PlateQuiet()
+        public static Sprite BoneTick()
         {
-            return plateQuiet = plateQuiet != null ? plateQuiet : Slice("FrontDoor/plate_quiet", new Vector4(22f, 22f, 22f, 22f));
-        }
-
-        public static Sprite PlateHot()
-        {
-            return plateHot = plateHot != null ? plateHot : Slice("FrontDoor/plate_hot", new Vector4(22f, 22f, 22f, 22f));
-        }
-
-        public static Sprite PlatePressed()
-        {
-            return platePressed = platePressed != null ? platePressed : Slice("FrontDoor/plate_pressed", new Vector4(22f, 22f, 22f, 22f));
+            if (boneTick == null)
+                boneTick = Resources.Load<Sprite>("FrontDoor/ui_bone_tick");
+            return boneTick;
         }
 
         public static Sprite Parchment()
@@ -141,11 +136,11 @@ namespace Caravans.FrontDoor
             return settlement;
         }
 
-        public static AudioClip Wind()
+        public static AudioClip TitleTheme()
         {
-            if (wind == null)
-                wind = Resources.Load<AudioClip>("FrontDoor/wind_sound");
-            return wind;
+            if (titleTheme == null)
+                titleTheme = Resources.Load<AudioClip>("Audio/Music/TitleTheme");
+            return titleTheme;
         }
 
         public static TMP_FontAsset Bold()
@@ -160,6 +155,23 @@ namespace Caravans.FrontDoor
             if (regular == null)
                 regular = MakeFont("FrontDoor/Fonts/BonaNovaSC-Regular");
             return regular;
+        }
+
+        public static TMP_FontAsset Display()
+        {
+            if (display == null)
+            {
+                display = MakeFont("FrontDoor/Fonts/CuttingSands-Regular");
+                TMP_FontAsset body = Regular();
+                if (display != null && body != null)
+                {
+                    if (display.fallbackFontAssetTable == null)
+                        display.fallbackFontAssetTable = new System.Collections.Generic.List<TMP_FontAsset>();
+                    display.fallbackFontAssetTable.Add(body);
+                }
+            }
+
+            return display;
         }
 
         public static Material SandMaterial()
@@ -237,7 +249,7 @@ namespace Caravans.FrontDoor
         {
             var source = Resources.Load<Font>(path);
             if (source == null)
-                source = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                return null;
             return TMP_FontAsset.CreateFontAsset(source);
         }
     }

@@ -55,6 +55,12 @@ namespace Caravans.FrontDoor
             TitleScreen.Spawn();
         }
 
+        public static void ReturnToTitle()
+        {
+            RunConfirmed = false;
+            ShowTitle();
+        }
+
         public static void ConfirmRun()
         {
             RunConfirmed = true;
