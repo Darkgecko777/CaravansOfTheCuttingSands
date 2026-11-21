@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "carriedCoinFraction": 0.5,
+  "paupersPurse": true,
+  "pauperFloorCoin": 40,
+  "kitOnWakingDays": 1,
+  "returnTo": "Kharun"
+}

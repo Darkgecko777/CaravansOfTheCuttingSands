@@ -42,7 +42,7 @@ namespace Caravans.Play
         public HouseId House;
     }
 
-    public sealed class CaravanSession
+    public sealed partial class CaravanSession
     {
         sealed class NpcCaravan
         {
@@ -427,9 +427,9 @@ namespace Caravans.Play
             int stock = StockOf(Dock, good);
             if (stock <= 0 || Coin < BuyCost(Dock, good))
                 return false;
-            if (CargoSpace() + EconomyCatalog.Space(good) > EconomyRates.WagonSpace)
+            if (CargoSpace() + EconomyCatalog.Space(good) > CargoSpaceCap)
                 return false;
-            if (CargoWeight() + EconomyCatalog.Weight(good) > EconomyRates.WagonWeight)
+            if (CargoWeight() + EconomyCatalog.Weight(good) > CargoWeightCap)
                 return false;
             return true;
         }
@@ -456,22 +456,22 @@ namespace Caravans.Play
 
         public bool CanFillWater()
         {
-            return CanFill(GoodId.Water, WaterLitres, EconomyRates.CanteenLitres);
+            return CanFill(GoodId.Water, WaterLitres, KitWaterCapacity);
         }
 
         public bool CanFillFood()
         {
-            return CanFill(GoodId.Rations, RationKg, EconomyRates.RationBagKg);
+            return CanFill(GoodId.Rations, RationKg, KitRationCapacity);
         }
 
         public bool TryFillWater()
         {
-            return TryFill(GoodId.Water, WaterLitres, EconomyRates.CanteenLitres, EconomyRates.WaterLitresPerUnit, value => WaterLitres = value);
+            return TryFill(GoodId.Water, WaterLitres, KitWaterCapacity, EconomyRates.WaterLitresPerUnit, value => WaterLitres = value);
         }
 
         public bool TryFillFood()
         {
-            return TryFill(GoodId.Rations, RationKg, EconomyRates.RationBagKg, EconomyRates.RationsKgPerUnit, value => RationKg = value);
+            return TryFill(GoodId.Rations, RationKg, KitRationCapacity, EconomyRates.RationsKgPerUnit, value => RationKg = value);
         }
 
         bool CanFill(GoodId good, float held, float capacity)
@@ -860,6 +860,8 @@ namespace Caravans.Play
             TravelDistance = next;
             SpendWindow(hours, TravelScale.Kit(ChosenPace), true);
             LegTravelHours += hours;
+            if (deathPending)
+                return;
             if (TravelDistance >= edgeLength - 0.000001f)
                 Arrive(travelTo);
         }
@@ -883,6 +885,8 @@ namespace Caravans.Play
                 TravelDistance = edgeLength;
             SpendWindow(hours, TravelScale.Kit(ChosenPace), true);
             LegTravelHours += hours;
+            if (deathPending)
+                return;
         }
 
         void OpenScheduledEncounter()
@@ -924,7 +928,14 @@ namespace Caravans.Play
 
             CampPending = false;
             kitFactor = 1f;
+            roadDrink = false;
             AdvanceClock(TravelScale.CampHours);
+            if (deathPending)
+            {
+                Touch();
+                return;
+            }
+
             TravelHours = TravelScale.WindowHours;
             AwaitingPace = true;
             HoldTravel = true;
@@ -1073,6 +1084,8 @@ namespace Caravans.Play
             Pace = 1;
             HoldTravel = false;
             LegTravelHours = 0f;
+            criticalShown = false;
+            criticalPending = false;
             ClearEncounter();
             if (edgeLength <= 0.000001f)
             {
@@ -1150,6 +1163,9 @@ namespace Caravans.Play
 
                 float waterBefore = WaterLitres;
                 float foodBefore = RationKg;
+                float waterPacks = PourableLitres(GoodId.Water);
+                float foodPacks = PourableKg(GoodId.Rations);
+                suppressDeath = true;
                 ApplyKitDelta(effects.waterLitres, effects.rationKg);
                 if (effects.delayHours > 0f)
                 {
@@ -1165,7 +1181,7 @@ namespace Caravans.Play
                         camp = true;
                 }
 
-                HoldKitFloor(waterBefore, foodBefore);
+                HoldKitFloor(waterBefore, foodBefore, waterPacks, foodPacks);
                 if (effects.shortcutHours > 0f && Traveling && edgeLength > 0.000001f)
                 {
                     TravelDistance += DistanceForHours(effects.shortcutHours);
@@ -1177,9 +1193,12 @@ namespace Caravans.Play
                     camp = true;
                 if (effects.fillKit)
                 {
-                    WaterLitres = EconomyRates.CanteenLitres;
-                    RationKg = EconomyRates.RationBagKg;
+                    WaterLitres = KitWaterCapacity;
+                    RationKg = KitRationCapacity;
                 }
+
+                suppressDeath = false;
+                CheckDeath();
 
                 if (effects.cargo != null)
                 {
@@ -1213,14 +1232,14 @@ namespace Caravans.Play
 
         void ApplyKitDelta(float waterDelta, float rationDelta)
         {
-            WaterLitres = AdjustStore(WaterLitres, waterDelta, EconomyRates.CanteenLitres, KitReserve(EconomyRates.WaterLitresPerDay));
-            RationKg = AdjustStore(RationKg, rationDelta, EconomyRates.RationBagKg, KitReserve(EconomyRates.RationsKgPerDay));
+            WaterLitres = AdjustSupply(WaterLitres, waterDelta, KitWaterCapacity, KitReserve(DailyWater), PourableLitres(GoodId.Water));
+            RationKg = AdjustSupply(RationKg, rationDelta, KitRationCapacity, KitReserve(DailyRations), PourableKg(GoodId.Rations));
         }
 
-        void HoldKitFloor(float waterBefore, float foodBefore)
+        void HoldKitFloor(float waterBefore, float foodBefore, float waterPacks, float foodPacks)
         {
-            WaterLitres = HoldFloor(WaterLitres, waterBefore, EconomyRates.CanteenLitres, KitReserve(EconomyRates.WaterLitresPerDay));
-            RationKg = HoldFloor(RationKg, foodBefore, EconomyRates.RationBagKg, KitReserve(EconomyRates.RationsKgPerDay));
+            WaterLitres = HoldSupply(WaterLitres, waterBefore, waterPacks, PourableLitres(GoodId.Water), KitWaterCapacity, KitReserve(DailyWater));
+            RationKg = HoldSupply(RationKg, foodBefore, foodPacks, PourableKg(GoodId.Rations), KitRationCapacity, KitReserve(DailyRations));
         }
 
         float KitReserve(float perDay)
@@ -1229,36 +1248,6 @@ namespace Caravans.Play
             if (day <= 0f || perDay <= 0f)
                 return 0f;
             return (6f / day) * perDay * TravelScale.Kit(ChosenPace);
-        }
-
-        static float AdjustStore(float store, float delta, float max, float reserve)
-        {
-            if (delta < 0f && store <= reserve + 0.0001f)
-                return store;
-            float next = store + delta;
-            if (next > max)
-                next = max;
-            if (next < 0f)
-                next = 0f;
-            if (delta < 0f && next < reserve)
-                next = reserve;
-            return next;
-        }
-
-        static float HoldFloor(float now, float before, float max, float reserve)
-        {
-            if (now > max)
-                now = max;
-            if (before <= reserve + 0.0001f)
-            {
-                if (now < before)
-                    return before;
-                return now;
-            }
-
-            if (now < reserve)
-                return reserve;
-            return now;
         }
 
         void ApplyCargo(EncounterCargoOp op)
@@ -1467,6 +1456,8 @@ namespace Caravans.Play
             TravelDistance = 0f;
             LegTravelHours = 0f;
             ClearEncounter();
+            criticalShown = false;
+            criticalPending = false;
             Touch();
         }
 
@@ -1590,6 +1581,9 @@ namespace Caravans.Play
                 {
                     Hour += step;
                 }
+
+                if (deathPending)
+                    break;
             }
         }
 
@@ -1616,8 +1610,12 @@ namespace Caravans.Play
             if (roadDrink && TravelScale.IsDayHour(Hour))
                 scale *= TravelScale.DayKit;
             float days = hours / day * scale;
-            WaterLitres = Mathf.Max(0f, WaterLitres - days * EconomyRates.WaterLitresPerDay);
-            RationKg = Mathf.Max(0f, RationKg - days * EconomyRates.RationsKgPerDay);
+            WaterLitres = Mathf.Max(0f, WaterLitres - days * DailyWater);
+            RationKg = Mathf.Max(0f, RationKg - days * DailyRations);
+            PourIfLow();
+            NoteSupply();
+            if (!suppressDeath)
+                CheckDeath();
         }
 
         float HoursUntil(int mark)
@@ -2270,9 +2268,13 @@ namespace Caravans.Play
                 standingOf[i] = 0;
             ClearVisitBuys();
 
+            ApplyDefaultCaravan();
             Coin = TravelScale.StartingCoin;
-            WaterLitres = EconomyRates.CanteenLitres;
-            RationKg = EconomyRates.RationBagKg;
+            WaterLitres = KitWaterCapacity;
+            RationKg = KitRationCapacity;
+            ClearSupplyFlags();
+            lastRescueText = null;
+            rescueCount = 0;
             Day = 1;
             Hour = EconomyRates.MorningHour;
             TravelHours = TravelScale.WindowHours;
@@ -2299,6 +2301,7 @@ namespace Caravans.Play
             LegTravelHours = 0f;
             StretchChecks = 0;
             encounterRandom = new System.Random(GameConfig.Encounters.seed);
+            rescueRandom = new System.Random(GameConfig.Encounters.seed);
             kitFactor = 1f;
             LegWeather = WeatherKind.Clear;
             LegScale = 1f;

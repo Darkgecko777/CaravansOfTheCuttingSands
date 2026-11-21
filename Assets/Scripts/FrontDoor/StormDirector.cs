@@ -76,6 +76,8 @@ namespace Caravans.FrontDoor
         {
             if (instance != null && instance != this)
             {
+                // Destroy waits until end of frame. LateUpdate must not run on the spare.
+                enabled = false;
                 Destroy(gameObject);
                 return;
             }
@@ -107,6 +109,18 @@ namespace Caravans.FrontDoor
 
         void LateUpdate()
         {
+            if (instance != null && instance != this)
+            {
+                enabled = false;
+                return;
+            }
+
+            // A domain reload clears these fields and may not run Awake again.
+            if (fade == null || musicFade == null || sim == null)
+                Recover();
+            if (fade == null)
+                return;
+
             float step = Mathf.Min(Time.unscaledDeltaTime, FadeStepCap);
             if (fade.Active)
                 fade.Tick(step);
@@ -163,6 +177,50 @@ namespace Caravans.FrontDoor
                 return;
             visualsHidden = true;
             Detach();
+        }
+
+        void Recover()
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+            fade = new StormFade();
+            musicFade = new StormFade();
+            if (sim == null)
+                sim = new SandBedSim(System.Environment.TickCount);
+            ClearRig();
+            BuildRig();
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        void ClearRig()
+        {
+            Camera[] cameras = GetComponentsInChildren<Camera>(true);
+            for (int i = 0; i < cameras.Length; i++)
+            {
+                if (cameras[i] != null && cameras[i].name == "StormCamera")
+                    Destroy(cameras[i].gameObject);
+            }
+
+            MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i] != null && renderers[i].name == "SandGrains")
+                    Destroy(renderers[i].gameObject);
+            }
+
+            AudioSource[] sources = GetComponents<AudioSource>();
+            for (int i = 0; i < sources.Length; i++)
+            {
+                if (sources[i] != null)
+                    Destroy(sources[i]);
+            }
+
+            stormCamera = null;
+            grains = null;
+            mesh = null;
+            theme = null;
+            vertices = null;
         }
 
         void BuildRig()

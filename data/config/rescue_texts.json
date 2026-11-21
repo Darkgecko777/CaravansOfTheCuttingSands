@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal",
+  "regionRule": "Death on a road leg -> the region whose 'roads' list holds that leg (unordered). Death on the Westmark-Sarn's Rest travel or the final run -> the region holding gatePlace (today 'westmark'). Sea openings never kill (they spend no hours).",
+  "pick": "random text from the region; never the same text twice in a row",
+  "title": "Dry",
+  "lead": "The skins are empty. The sand is not.",
+  "regions": [
+    {
+      "id": "westmark",
+      "name": "the Westmark ranges",
+      "places": [
+        "Westmark",
+        "Kethra",
+        "Rukh"
+      ],
+      "roads": [
+        "Kharun-Westmark",
+        "Westmark-Kethra"
+      ],
+      "also": [
+        "Westmark-SarnsRest gate travel",
+        "final run"
+      ],
+      "rescueDays": 2,
+      "texts": [
+        "Kethrans dragging molt down the scree found you face-down by your beasts. They kept the load for their trouble, took half your purse, and hauled you to Kharûn on a shed.",
+        "A Westmark wrangler saw the beasts standing with no one leading them. Half your scrubstone paid for the ride to Kharûn. The packs did not come with you.",
+        "A Kharûn caravan bound home turned you over with a boot, then threw you across a pack frame. Salvage is salvage. Half your purse went to the drover."
+      ]
+    },
+    {
+      "id": "highlands",
+      "name": "the Draven highlands",
+      "places": [
+        "Draven",
+        "Highmark"
+      ],
+      "roads": [
+        "Kharun-Draven",
+        "Draven-Highmark"
+      ],
+      "rescueDays": 2,
+      "texts": [
+        "Fungus cutters out of the Draven caves found you in the frost-shade, lips cracked. They kept what you carried, took half your coin, and walked you down to Kharûn.",
+        "Ishka traders bound for Highmark found you by the track. They lifted you onto a pack frame and left you at Kharûn's gate, without your packs and lighter by half a purse."
+      ]
+    },
+    {
+      "id": "zamath_coast",
+      "name": "the Zamath coast",
+      "places": [
+        "Kaleth",
+        "Zamath",
+        "Neth",
+        "Southmark"
+      ],
+      "roads": [
+        "Kharun-Kaleth",
+        "Kaleth-Zamath",
+        "Zamath-Southmark"
+      ],
+      "rescueDays": 2,
+      "texts": [
+        "Zamath salt-pan workers pulled you out of the glare and argued over you a while. The load went to them, half your scrubstone to the haulers' fee, and you to Kharûn.",
+        "A Kaleth clerk logged you as found goods. Your packs were sold to cover the cost, half your purse with them, and a caravan dropped you at Kharûn with a receipt."
+      ]
+    },
+    {
+      "id": "south",
+      "name": "the southern shore and salt flats",
+      "places": [
+        "Sorel",
+        "Ghul"
+      ],
+      "roads": [
+        "Southmark-Sorel",
+        "Southmark-Ghul",
+        "Ghul-Ghorath"
+      ],
+      "rescueDays": 3,
+      "texts": [
+        "Sorel salt-cutters found you white with dust among the cones. They kept the load as payment and half your coin as fee, and sent you north to Kharûn on a salt run.",
+        "Hulv hunters out of Ghûl followed your beasts back to you. You woke on a sinew litter, packs gone and purse halved, with Kharûn's spires ahead.",
+        "A shore crew on the Ghorath road found you under your own beast's shadow. What you carried paid them. Half your scrubstone paid the road to Kharûn."
+      ]
+    },
+    {
+      "id": "east",
+      "name": "the eastern dunes and the oasis road",
+      "places": [
+        "Brineford",
+        "Moraq",
+        "Ghorath",
+        "Veythar"
+      ],
+      "roads": [
+        "Kharun-Brineford",
+        "Brineford-Moraq",
+        "Moraq-Ghorath",
+        "Ghorath-Veythar"
+      ],
+      "rescueDays": 3,
+      "texts": [
+        "Moraq shell-gatherers working the dunes dug you out of a drift. Water is dear in Moraq. Your load and half your purse paid for theirs, and for the road to Kharûn.",
+        "A Veythar patrol found you on the mountain road and asked no questions. They kept the packs, took half your scrubstone, and left you at Kharûn's gate.",
+        "A Brineford drover found the beasts first and you second. The load was salvage. Half your coin bought you a place on a pack frame home to Kharûn."
+      ]
+    },
+    {
+      "id": "northeast",
+      "name": "the Torvern foothills and the eastern ridges",
+      "places": [
+        "Torvern",
+        "Thalor",
+        "Ridgewatch",
+        "Ashar"
+      ],
+      "roads": [
+        "Brineford-Torvern",
+        "Torvern-Thalor",
+        "Torvern-Ridgewatch",
+        "Ridgewatch-Ashar"
+      ],
+      "rescueDays": 3,
+      "texts": [
+        "Torvern wranglers hauling with pincer beasts found you where the kelkris had. They kept your load, took half your coin, and carried you to Kharûn lashed among the bundles.",
+        "A Ridgewatch post rider found you in the rocks with your beasts lying down. Your packs went for salvage, half your purse for the fee, and you went home to Kharûn.",
+        "Ashar stone-cutters carried you down off the spur. They kept what you carried and half what you held, and saw you to Kharûn."
+      ]
+    }
+  ]
+}

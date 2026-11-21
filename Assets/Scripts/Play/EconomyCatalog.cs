@@ -333,7 +333,6 @@ namespace Caravans.Play
                 case GoodId.KelEelFlesh:
                 case GoodId.SunburntBrew:
                 case GoodId.CrimsonEyedMelonJuice:
-                case GoodId.Rations:
                     return true;
                 default:
                     return false;

@@ -1,0 +1,70 @@
+{
+  "rows": [
+    {
+      "id": "standard",
+      "merchantMountTier": 1,
+      "agents": 0,
+      "dailyWater": 10,
+      "dailyRations": 4,
+      "kitWater": 40,
+      "kitRations": 16,
+      "cargoSpace": 4,
+      "cargoWeight": 10
+    },
+    {
+      "id": "duzhu",
+      "merchantMountTier": 2,
+      "agents": 0,
+      "dailyWater": 21,
+      "dailyRations": 8.5,
+      "kitWater": 75,
+      "kitRations": 30,
+      "cargoSpace": 8,
+      "cargoWeight": 20
+    },
+    {
+      "id": "duzhu+2",
+      "merchantMountTier": 2,
+      "agents": 2,
+      "dailyWater": 41,
+      "dailyRations": 16.5,
+      "kitWater": 115,
+      "kitRations": 46,
+      "cargoSpace": 8,
+      "cargoWeight": 20
+    },
+    {
+      "id": "pincer",
+      "merchantMountTier": 3,
+      "agents": 0,
+      "dailyWater": 36,
+      "dailyRations": 14.5,
+      "kitWater": 170,
+      "kitRations": 68,
+      "cargoSpace": 16,
+      "cargoWeight": 40
+    },
+    {
+      "id": "big",
+      "merchantMountTier": 3,
+      "agents": 3,
+      "dailyWater": 66,
+      "dailyRations": 26.5,
+      "kitWater": 230,
+      "kitRations": 92,
+      "cargoSpace": 16,
+      "cargoWeight": 40
+    },
+    {
+      "id": "thrask+2",
+      "merchantMountTier": 1,
+      "agents": 2,
+      "dailyWater": 30,
+      "dailyRations": 12,
+      "kitWater": 80,
+      "kitRations": 32,
+      "cargoSpace": 4,
+      "cargoWeight": 10
+    }
+  ]
+}

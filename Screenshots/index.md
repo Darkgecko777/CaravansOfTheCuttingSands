@@ -1,27 +1,31 @@
 # UI screenshots
 
-Captured 2026-11-20 at commit cacb55e (working tree).
+Captured 2026-11-20 at commit 4443bed (working tree).
 
 | File | Scene | State |
 | --- | --- | --- |
 | 01_title.png | TitleScreen | Compact wood panel under the tagline, desert around it. Text-only NEW GAME, OPTIONS, and EXIT. No row bars. A bone tick marks the selected row. No Continue. Options closed. The sand is blowing. |
 | 02_title_options.png | TitleScreen | Options open on the wood panel over the main menu. Master, music, and SFX sliders, fullscreen, resolution, and Show intro again as text rows, and Close. No row bars. A bone tick marks a checked row. No bone frame. |
 | 03_intro_card.png | SampleScene | First-run intro card centred over the Kharûn market. Header, body, tagline, and a text-only BEGIN. Play input is locked. |
-| 10_market_empty.png | SampleScene | Market at Kharûn. No cell is selected. The wagon holds the seeded cargo. |
-| 11_market_selected_buy.png | SampleScene | Market at Kharûn. A shop cell with stock is selected. |
-| 12_market_sort_menu.png | SampleScene | Market at Kharûn. The sort menu is open. |
-| 13_market_selected_wagon.png | SampleScene | Market at Kharûn. A wagon cell is selected. |
-| 15_market_ridgewatch.png | SampleScene | Market parked at Ridgewatch, so the top bar shows that longer name. The wagon still holds the seeded cargo. |
-| 20_plaza_inn.png | SampleScene | Plaza, Inn, at Kharûn. |
-| 21_plaza_gates.png | SampleScene | Plaza, Gates, at Kharûn. No road is lit. Neighbour road buttons sit inside the gates panel. |
+| 10_market_empty.png | SampleScene | Market at Kharûn. No cell is selected. The wagon holds the seeded cargo. The top bar shows water and rations, and the cargo cap is 4/10. |
+| 11_market_selected_buy.png | SampleScene | Market at Kharûn. A shop cell with stock is selected. The top bar shows water and rations, and the cargo cap is 4/10. |
+| 12_market_sort_menu.png | SampleScene | Market at Kharûn. The sort menu is open. The top bar shows water and rations, and the cargo cap is 4/10. |
+| 13_market_selected_wagon.png | SampleScene | Market at Kharûn. A wagon cell is selected. The top bar shows water and rations, and the cargo cap is 4/10. |
+| 15_market_ridgewatch.png | SampleScene | Market parked at Ridgewatch, so the top bar shows that longer name beside the water and rations readout. The cargo cap is 4/10. The wagon still holds the seeded cargo. |
+| 20_plaza_inn.png | SampleScene | Plaza, Inn, at Kharûn. The top bar shows water and rations, and the cargo cap is 4/10. |
+| 21_plaza_gates.png | SampleScene | Plaza, Gates, at Kharûn. No road is lit. Neighbour road buttons sit inside the gates panel. The top bar shows water and rations, and the cargo cap is 4/10. |
 | 40_logbook.png | SampleScene | Logbook open over the market at Kharûn, between the bars. Seeded buy and sale figures are on the rows. An unseen price is a dash. |
 | 41_pause_menu.png | SampleScene | Pause menu open over the Kharûn market. Compact wood panel, text-only RESUME, OPTIONS, MAIN MENU, and QUIT. No row bars. A bone tick marks the selected row. Gear is visible on the top bar. |
-| 30_travel_map.png | SampleScene | Gates at Kharûn with the Draven road lit. The painted trail and the destination circle are up. Neighbour road buttons stay on the gates panel. |
+| 30_travel_map.png | SampleScene | Gates at Kharûn with the Draven road lit. The painted trail and the destination circle are up. Neighbour road buttons stay on the gates panel. The top bar shows water and rations, and the cargo cap is 4/10. |
 | 31_road_choice.png | SampleScene | Gates at Kharûn with the Draven road lit. Careful, Steady, and Rush sit on the panel. Embark is live. No card covers the map. |
-| 32_departure.png | SampleScene | En route to Draven, paused at the Kharûn dock. The route line is drawn and the wagon has not moved. |
+| 32_departure.png | SampleScene | En route to Draven, paused at the Kharûn dock. The route line is drawn and the wagon has not moved. The top bar shows water and rations, and the cargo cap is 4/10. |
 | 33_encounter.png | SampleScene | Encounter card open on the Draven road. The title is Soft Ground. The scene and two choices are visible. |
 | 34_camp.png | SampleScene | Make camp card open on the Draven road. |
 | 35_resume_pace.png | SampleScene | Pace card after camp on the Draven road. Dawn and dusk are offered. The camp has advanced the clock. |
+| 36_supplies_hud.png | SampleScene | Market at Kharûn. The top bar shows one water skin in the packs, more than four days of water, four days of rations, and cargo 1/4. The weight cap is 10. |
+| 37_skins_low.png | SampleScene | The Skins Run Low card on the Draven road. One frame, the title and the body in full, cream and gold, and one Continue. |
+| 38_departure_short.png | SampleScene | You will run dry, before Brineford, with haul 1 water and 1 rations. Take the road anyway and Back are on the card. |
+| 39_rescue.png | SampleScene | Dry, the lead, and the first highlands rescue line. One Continue. The backdrop does not dismiss it. |
 
 The encounter card shows a title, a scene, and two choices. It is 33_encounter.png. The camp card and the after-camp pace card are 34_camp.png and 35_resume_pace.png. Play has no tooltip type and no separate dialog type.
 
@@ -35,4 +39,6 @@ House, Tavern, and Stables stay off the layout while ShowUnfinishedFeatures is o
 
 15_market_ridgewatch.png is the long dock name. Sarn's Rest is a landmark. House, Tavern, and Stables are off the bar in this capture.
 
-The caravan is House Kharûn. This run buys the first goods Kharûn will sell until four units are aboard, and it records the buy and sale figures the market would show. The clock stays at the new-game hour until the camp card.
+The caravan is House Kharûn. This run buys the first goods Kharûn will sell until four units are aboard, and it records the buy and sale figures the market would show. The clock stays at the new-game hour until the camp card. A new game cargo cap is 4 slots and 10 weight. The top bar shows water and rations beside the coin.
+
+36_supplies_hud.png is the market with one water skin aboard, so the top bar reads 1/4 and the water line names the pack. 37_skins_low.png is The Skins Run Low. 38_departure_short.png is You will run dry before Brineford. 39_rescue.png is Dry and the first highlands line. Each of those cards is one frame.

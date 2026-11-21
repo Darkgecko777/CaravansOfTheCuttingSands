@@ -16,6 +16,9 @@ namespace Caravans.Play
         static EncounterFile encounters;
         static Recipe[] workshops;
         static AbundanceTable abundance;
+        static KitFile kit;
+        static SoftResetFile softReset;
+        static RescueFile rescue;
 
         public static ConsumptionFile Consumption
         {
@@ -57,6 +60,21 @@ namespace Caravans.Play
             get { EnsureLoaded(); return abundance; }
         }
 
+        public static KitFile Kit
+        {
+            get { EnsureLoaded(); return kit; }
+        }
+
+        public static SoftResetFile SoftReset
+        {
+            get { EnsureLoaded(); return softReset; }
+        }
+
+        public static RescueFile Rescue
+        {
+            get { EnsureLoaded(); return rescue; }
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset()
         {
@@ -94,6 +112,12 @@ namespace Caravans.Play
                 "fireHourMin", "fireHourMax", "seed");
             workshops = ReadWorkshops();
             abundance = ReadAbundance();
+            kit = TryRead<KitFile>("kit_consumption.json",
+                "schemaVersion", "merchant", "tiers", "defaultCaravan", "units", "autoPour", "warning", "departureCheck");
+            softReset = Read<SoftResetFile>("soft_reset.json",
+                "schemaVersion", "carriedCoinFraction", "paupersPurse", "pauperFloorCoin", "kitOnWakingDays", "returnTo");
+            rescue = Read<RescueFile>("rescue_texts.json",
+                "schemaVersion", "title", "lead", "regions", "rescueDays", "texts", "roads");
             EncounterCards.EnsureLoaded();
             loaded = true;
         }
@@ -201,6 +225,14 @@ namespace Caravans.Play
             if (!string.IsNullOrEmpty(name) && Enum.TryParse(name, false, out TEnum value))
                 return value;
             throw new InvalidOperationException("workshops.json has an unknown " + field + ": " + name);
+        }
+
+        static T TryRead<T>(string file, params string[] keys) where T : class
+        {
+            string path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "data", "config", file));
+            if (!File.Exists(path))
+                return null;
+            return Read<T>(file, keys);
         }
 
         static T Read<T>(string file, params string[] keys) where T : class
@@ -364,5 +396,106 @@ namespace Caravans.Play
         public int SeaStart;
         public float SeaMake;
         public int SeaCap;
+    }
+
+    [Serializable]
+    public class KitFile
+    {
+        public int schemaVersion;
+        public KitPerson merchant;
+        public KitPerson agent;
+        public KitTier[] tiers;
+        public KitCaravan defaultCaravan;
+        public KitUnits units;
+        public KitAutoPour autoPour;
+        public KitWarning warning;
+        public KitDeparture departureCheck;
+    }
+
+    [Serializable]
+    public class KitPerson
+    {
+        public float waterPerDay;
+        public float rationsPerDay;
+        public float kitWater;
+        public float kitRations;
+        public int mountTier;
+    }
+
+    [Serializable]
+    public class KitTier
+    {
+        public int tier;
+        public string id;
+        public float waterPerDay;
+        public float rationsPerDay;
+        public float kitWater;
+        public float kitRations;
+        public int cargoSpace;
+        public int cargoWeight;
+        public int price;
+    }
+
+    [Serializable]
+    public class KitCaravan
+    {
+        public int merchantMountTier;
+        public int[] packBeasts;
+        public int agents;
+    }
+
+    [Serializable]
+    public class KitUnits
+    {
+        public float waterLitresPerUnit;
+        public float rationsKgPerUnit;
+    }
+
+    [Serializable]
+    public class KitAutoPour
+    {
+        public bool enabled;
+    }
+
+    [Serializable]
+    public class KitWarning
+    {
+        public float lowHours;
+        public float criticalHours;
+    }
+
+    [Serializable]
+    public class KitDeparture
+    {
+        public float amber;
+    }
+
+    [Serializable]
+    public class SoftResetFile
+    {
+        public int schemaVersion;
+        public float carriedCoinFraction;
+        public bool paupersPurse;
+        public int pauperFloorCoin;
+        public float kitOnWakingDays;
+        public string returnTo;
+    }
+
+    [Serializable]
+    public class RescueFile
+    {
+        public int schemaVersion;
+        public string title;
+        public string lead;
+        public RescueRegion[] regions;
+    }
+
+    [Serializable]
+    public class RescueRegion
+    {
+        public string id;
+        public int rescueDays;
+        public string[] roads;
+        public string[] texts;
     }
 }

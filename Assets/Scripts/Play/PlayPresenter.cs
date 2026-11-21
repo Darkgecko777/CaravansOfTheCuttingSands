@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace Caravans.Play
 {
-    public sealed class PlayPresenter : MonoBehaviour
+    public sealed partial class PlayPresenter : MonoBehaviour
     {
         const float TopBarHeight = UiType.Bar;
         const float TabHeight = UiType.Bar;
@@ -219,15 +219,16 @@ namespace Caravans.Play
         void Update()
         {
             EnsureMap();
+            bool blockPause = introOpen || departureOpen || session.DeathPending || session.CriticalPending;
             bool readIntro;
             bool readPause;
-            MenuReads(introOpen, introClosedThisFrame, out readIntro, out readPause);
-            if (readIntro)
+            MenuReads(blockPause, introClosedThisFrame, out readIntro, out readPause);
+            if (readIntro && introOpen)
                 ReadIntroKeys();
             if (readPause && !introClosedThisFrame)
                 ReadEscape();
             introClosedThisFrame = false;
-            if (!introOpen && session.Traveling && !session.HoldTravel && !optionsOpen && !lookingAtMap)
+            if (!introOpen && !departureOpen && session.Traveling && !session.HoldTravel && !optionsOpen && !lookingAtMap)
                 session.Tick(Time.unscaledDeltaTime);
             if (session.Revision != drawn)
                 Redraw();
@@ -834,7 +835,7 @@ namespace Caravans.Play
             FitLine(placeText, UiType.Header);
             var placeRt = placeText.rectTransform;
             placeRt.anchorMin = Vector2.zero;
-            placeRt.anchorMax = new Vector2(0.30f, 1f);
+            placeRt.anchorMax = new Vector2(0.22f, 1f);
             placeRt.offsetMin = new Vector2(UiType.Gap, 4f);
             placeRt.offsetMax = new Vector2(-8f, -4f);
 
@@ -842,13 +843,13 @@ namespace Caravans.Play
             clockText.color = Ink;
             FitLine(clockText, UiType.Hud);
             var clockRt = clockText.rectTransform;
-            clockRt.anchorMin = new Vector2(0.30f, 0f);
-            clockRt.anchorMax = new Vector2(0.62f, 1f);
+            clockRt.anchorMin = new Vector2(0.22f, 0f);
+            clockRt.anchorMax = new Vector2(0.48f, 1f);
             clockRt.offsetMin = new Vector2(8f, 4f);
             clockRt.offsetMax = new Vector2(-8f, -4f);
 
             var cluster = Child(bar.rectTransform, "Resources");
-            cluster.anchorMin = new Vector2(0.62f, 0f);
+            cluster.anchorMin = new Vector2(0.48f, 0f);
             cluster.anchorMax = Vector2.one;
             cluster.offsetMin = new Vector2(8f, 6f);
             cluster.offsetMax = new Vector2(-UiType.Gap, -6f);
@@ -861,11 +862,27 @@ namespace Caravans.Play
             row.childForceExpandHeight = false;
             ApprovedArt art = ApprovedArt.Load();
             HudIcon(cluster, art != null ? art.iconScrubstone : null);
-            coinText = HudText(cluster, 110f, TextAlignmentOptions.MidlineLeft);
+            coinText = HudText(cluster, 90f, TextAlignmentOptions.MidlineLeft);
             coinText.color = Ink;
             coinText.fontSize = UiType.Hud;
+            var kitColumn = Child(cluster, "Kit");
+            var kitLayout = kitColumn.gameObject.AddComponent<VerticalLayoutGroup>();
+            kitLayout.spacing = 0f;
+            kitLayout.childAlignment = TextAnchor.MiddleRight;
+            kitLayout.childControlWidth = true;
+            kitLayout.childControlHeight = true;
+            kitLayout.childForceExpandWidth = false;
+            kitLayout.childForceExpandHeight = false;
+            var kitElement = kitColumn.gameObject.AddComponent<LayoutElement>();
+            kitElement.preferredWidth = 248f;
+            waterText = Body(kitColumn, UiType.Small, TextAlignmentOptions.MidlineRight);
+            waterText.textWrappingMode = TextWrappingModes.NoWrap;
+            waterText.overflowMode = TextOverflowModes.Overflow;
+            rationText = Body(kitColumn, UiType.Small, TextAlignmentOptions.MidlineRight);
+            rationText.textWrappingMode = TextWrappingModes.NoWrap;
+            rationText.overflowMode = TextOverflowModes.Overflow;
             HudIcon(cluster, art != null ? art.iconCapacity : null);
-            cargoText = HudText(cluster, 72f, TextAlignmentOptions.MidlineLeft);
+            cargoText = HudText(cluster, 70f, TextAlignmentOptions.MidlineLeft);
             cargoText.color = Ink;
             cargoText.fontSize = UiType.Hud;
             logbookButton = BarSeal(cluster, "Logbook", null, null, null, ToggleLogbook);
@@ -982,7 +999,7 @@ namespace Caravans.Play
             duskButton = ChoiceButton(panel, "Wait until dusk", new Vector2(200f, -70f), () => session.WaitUntilDusk());
             confirmPaceButton = ChoiceButton(panel, "Take the road", new Vector2(0f, -165f), ConfirmPace);
             campButton = ChoiceButton(panel, "Make camp", new Vector2(0f, -20f), () => session.MakeCamp());
-            continueButton = ChoiceButton(panel, "Continue", new Vector2(0f, -20f), () => session.ContinueEncounter());
+            continueButton = ChoiceButton(panel, "Continue", new Vector2(0f, -20f), ContinueCard);
             backPaceButton = ChoiceButton(panel, "Back", new Vector2(300f, -120f), CloseRoadChoice);
             dawnButton.GetComponent<RectTransform>().sizeDelta = new Vector2(320f, 64f);
             duskButton.GetComponent<RectTransform>().sizeDelta = new Vector2(320f, 64f);
@@ -1001,6 +1018,10 @@ namespace Caravans.Play
             encounterChoiceA.gameObject.SetActive(false);
             encounterChoiceB.gameObject.SetActive(false);
             backPaceButton.GetComponent<RectTransform>().sizeDelta = new Vector2(160f, 56f);
+            supplyGoButton = ChoiceButton(panel, "Take the road anyway", new Vector2(0f, -200f), ConfirmDeparture);
+            supplyGoButton.GetComponent<RectTransform>().sizeDelta = new Vector2(460f, 56f);
+            SplitSealLabel(supplyGoButton, 48f);
+            supplyGoButton.gameObject.SetActive(false);
             var confirmImage = confirmPaceButton.GetComponent<Image>();
             Sprite paceSeal = confirmImage.sprite;
             confirmImage.sprite = quad;
@@ -1026,6 +1047,14 @@ namespace Caravans.Play
 
         void CloseRoadChoice()
         {
+            if (departureOpen)
+            {
+                departureOpen = false;
+                shotDeparture = false;
+                Redraw();
+                return;
+            }
+
             choosingRoad = false;
             Redraw();
         }
@@ -1069,6 +1098,16 @@ namespace Caravans.Play
 
         void ConfirmPace()
         {
+            if (session.AwaitingPace)
+            {
+                SupplyForecast forecast = session.ForecastRoad(session.LegDestination, draftPace);
+                if (!forecast.Sea && (forecast.Red || forecast.Amber))
+                {
+                    OpenDeparture(forecast, true);
+                    return;
+                }
+            }
+
             session.ChooseRoadPace(draftPace);
             if (!choosingRoad)
                 return;
@@ -1322,7 +1361,7 @@ namespace Caravans.Play
             TintPace(houseTab, page == Page.House);
             paceBar.SetActive(session.Traveling && !session.CampPending && !session.AwaitingPace && !session.EncounterPending);
             backButton.gameObject.SetActive(lookingAtMap && !session.Traveling);
-            bool roadChoice = session.CampPending || session.AwaitingPace || session.EncounterPending;
+            bool roadChoice = SupplyCardUp() || session.CampPending || session.AwaitingPace || session.EncounterPending;
             cardRoot.gameObject.SetActive(roadChoice && !introOpen);
             optionsRoot.gameObject.SetActive(optionsOpen && !introOpen);
             if (topBarCanvas != null)
@@ -1341,8 +1380,8 @@ namespace Caravans.Play
             outlookText.text = session.OutlookLine();
             nextCampText.text = NextCampLine();
             listenText.text = listenLine;
-            waterButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill water", GoodId.Water, session.WaterLitres, EconomyRates.CanteenLitres);
-            foodButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill food", GoodId.Rations, session.RationKg, EconomyRates.RationBagKg);
+            waterButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill water", GoodId.Water, session.WaterLitres, session.KitWaterCapacity);
+            foodButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill food", GoodId.Rations, session.RationKg, session.KitRationCapacity);
 
             RebuildMarket();
             NoteSelection();
@@ -1404,6 +1443,16 @@ namespace Caravans.Play
 
         void ShowRoadChoice(bool open)
         {
+            bool death = session.DeathPending;
+            bool critical = session.CriticalPending && !(session.EncounterPending && !session.EncounterResolved);
+            if (death || critical || (departureOpen && !death && !critical))
+            {
+                ShowSupplyCard(death, critical);
+                return;
+            }
+
+            if (supplyGoButton != null)
+                supplyGoButton.gameObject.SetActive(false);
             bool encounter = session.EncounterPending;
             bool camp = session.CampPending && !encounter;
             bool pace = open && !camp && !encounter;
@@ -1544,6 +1593,20 @@ namespace Caravans.Play
 
         void EnableRoadChoice()
         {
+            if (session.DeathPending || (session.CriticalPending && !(session.EncounterPending && !session.EncounterResolved)))
+            {
+                continueButton.interactable = true;
+                return;
+            }
+
+            if (departureOpen)
+            {
+                if (supplyGoButton != null)
+                    supplyGoButton.interactable = true;
+                backPaceButton.interactable = true;
+                return;
+            }
+
             if (session.EncounterPending)
             {
                 bool choices = session.EncounterWritten && !session.EncounterResolved && session.EncounterChoiceCount >= 2;
@@ -1589,7 +1652,7 @@ namespace Caravans.Play
                 sortMenuOpen = false;
 
             List<GoodId> goods = OrderShop();
-            int slots = EconomyRates.WagonSpace;
+            int slots = session.CargoSpaceCap;
             Canvas.ForceUpdateCanvases();
             FitGrids(goods.Count, slots);
             for (int i = 0; i < goods.Count; i++)
@@ -1611,7 +1674,7 @@ namespace Caravans.Play
             for (int i = session.CargoCount; i < slots; i++)
                 MakeSquare(wagonHost, "Empty" + i, null, null, false, null);
 
-            weightText.text = "Weight " + session.CargoWeight() + "/" + EconomyRates.WagonWeight;
+            weightText.text = "Weight " + session.CargoWeight() + "/" + session.CargoWeightCap;
             detailText.text = DetailLine();
             ShowDetail();
             sortMenu.gameObject.SetActive(sortMenuOpen);
@@ -2013,11 +2076,17 @@ namespace Caravans.Play
         {
             if (!roadLit || !session.CanTakeRoad())
                 return;
-            session.ChooseRoadPace(draftPace);
-            PlaceId dest = pendingDest;
-            roadLit = false;
-            lookingAtMap = false;
-            session.DepartTo(dest);
+            if (!RoadGraph.IsSea(session.Dock, pendingDest))
+            {
+                SupplyForecast forecast = session.ForecastRoad(pendingDest, draftPace);
+                if (forecast.Red || forecast.Amber)
+                {
+                    OpenDeparture(forecast, false);
+                    return;
+                }
+            }
+
+            CommitEmbark();
         }
 
         string NextCampLine()
@@ -2121,12 +2190,29 @@ namespace Caravans.Play
                 logbookDate.text = clockText.text;
             coinText.text = session.Coin.ToString();
             int used = session.CargoSpace();
-            int cap = EconomyRates.WagonSpace;
+            int cap = session.CargoSpaceCap;
             cargoText.text = used + "/" + cap;
             if (meterFill != null)
                 meterFill.fillAmount = cap <= 0 ? 0f : Mathf.Clamp01(used / (float)cap);
+            if (waterText != null)
+            {
+                waterText.text = session.HudWater;
+                waterText.color = KitTint(session.WaterSupplyHours);
+            }
+
+            if (rationText != null)
+            {
+                rationText.text = session.HudRations;
+                rationText.color = KitTint(session.RationSupplyHours);
+            }
+
             if (legText != null)
-                legText.text = session.Traveling ? session.LegWeatherLine() : string.Empty;
+            {
+                if (session.Traveling && !string.IsNullOrEmpty(session.LastNotice))
+                    legText.text = session.LastNotice;
+                else
+                    legText.text = session.Traveling ? session.LegWeatherLine() : string.Empty;
+            }
             TintPace(pauseButton, session.Pace == 0 && session.Traveling);
             TintPace(pace1, session.Pace == 1);
             TintPace(pace2, session.Pace == 2);
@@ -3179,6 +3265,60 @@ namespace Caravans.Play
                     plazaSpot = PlazaSpot.Gates;
                     FinishShot();
                     return session.AwaitingPace && !session.CampPending;
+                case "supplies-hud":
+                    ShotClearOverlays();
+                    if (session.Traveling || session.Dock != PlaceId.Kharun)
+                        session.ShotDockAt(PlaceId.Kharun);
+                    session.SetKit(session.KitWaterCapacity, session.KitRationCapacity);
+                    session.ShotCargoWaterSkin();
+                    page = Page.Market;
+                    FinishShot();
+                    return page == Page.Market && session.CargoOf(GoodId.Water) >= 1 && !session.Traveling;
+                case "skins-low":
+                    ShotClearOverlays();
+                    if (!session.Traveling)
+                    {
+                        if (!session.ShotDepartPaused(PlaceId.Draven))
+                            return false;
+                    }
+
+                    session.ShotDropDrinkPacks();
+                    session.SetKit(3.5f, 1.4f);
+                    session.ShotOpenCritical();
+                    page = Page.Plaza;
+                    plazaSpot = PlazaSpot.Gates;
+                    FinishShot();
+                    return session.CriticalPending && session.Traveling;
+                case "departure-short":
+                    ShotClearOverlays();
+                    if (!session.Traveling)
+                    {
+                        if (!session.ShotDepartPaused(PlaceId.Draven))
+                            return false;
+                    }
+
+                    shotDeparture = true;
+                    shotDepartureTitle = "You will run dry";
+                    shotDepartureBody = "You will run dry before Brineford. Haul 1 water and 1 rations more.";
+                    departureFromCamp = false;
+                    departureOpen = true;
+                    page = Page.Plaza;
+                    plazaSpot = PlazaSpot.Gates;
+                    FinishShot();
+                    return departureOpen && session.Traveling;
+                case "rescue":
+                    ShotClearOverlays();
+                    if (!session.Traveling)
+                    {
+                        if (!session.ShotDepartPaused(PlaceId.Draven))
+                            return false;
+                    }
+
+                    session.ShotOpenDeath();
+                    page = Page.Plaza;
+                    plazaSpot = PlazaSpot.Gates;
+                    FinishShot();
+                    return session.DeathPending && session.RescueTitle == "Dry";
                 default:
                     return false;
             }
@@ -3235,6 +3375,10 @@ namespace Caravans.Play
             lookingAtMap = false;
             roadLit = false;
             listenLine = string.Empty;
+            departureOpen = false;
+            shotDeparture = false;
+            if (session != null)
+                session.ShotClearSupply();
         }
 
         GoodId ShotStocked()

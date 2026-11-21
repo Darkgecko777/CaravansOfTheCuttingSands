@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "merchant": {
+    "waterPerDay": 6,
+    "rationsPerDay": 2.5,
+    "kitWater": 20,
+    "kitRations": 8
+  },
+  "agent": {
+    "waterPerDay": 6,
+    "rationsPerDay": 2.5,
+    "kitWater": 0,
+    "kitRations": 0,
+    "mountTier": 1
+  },
+  "tiers": [
+    {
+      "tier": 1,
+      "id": "thrask",
+      "waterPerDay": 4,
+      "rationsPerDay": 1.5,
+      "kitWater": 20,
+      "kitRations": 8,
+      "cargoSpace": 4,
+      "cargoWeight": 10,
+      "price": 0
+    },
+    {
+      "tier": 2,
+      "id": "duzhu",
+      "waterPerDay": 15,
+      "rationsPerDay": 6,
+      "kitWater": 55,
+      "kitRations": 22,
+      "cargoSpace": 8,
+      "cargoWeight": 20,
+      "price": 800
+    },
+    {
+      "tier": 3,
+      "id": "pincer",
+      "waterPerDay": 30,
+      "rationsPerDay": 12,
+      "kitWater": 150,
+      "kitRations": 60,
+      "cargoSpace": 16,
+      "cargoWeight": 40,
+      "price": 3500
+    }
+  ],
+  "defaultCaravan": {
+    "merchantMountTier": 1,
+    "packBeasts": [],
+    "agents": 0
+  },
+  "units": {
+    "waterLitresPerUnit": 25,
+    "rationsKgPerUnit": 10
+  },
+  "autoPour": {
+    "enabled": true
+  },
+  "warning": {
+    "lowHours": 12,
+    "criticalHours": 6
+  },
+  "departureCheck": {
+    "amber": 0.85
+  },
+  "softReset": {
+    "kitOnWakingDays": 1
+  }
+}
