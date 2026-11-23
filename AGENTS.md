@@ -14,7 +14,7 @@ Visual work is reviewed with the `Caravans/Capture UI Screenshots` tool, which w
 
 Play panels are the approved dark hide, `Assets/Art/Approved/ui_hide_panel.png`. The play top bar and the play bottom bar are `Assets/Art/Approved/ui_hide_bar.png`. The place name is Unity text on that top bar. Plain parchment, `Ui/parchment-plain.png`, is for documents only. The scrollwork sheet `Ui/parchment.png` stays on disk and is not shown. `Ui/duzhu-hide-panel.png` and the shimmersteel rail `Ui/banner.png` stay on disk and are not shown. Settlement screens use `Assets/Art/Approved/bg_settlement_generic.png`. `bg_settlement_generic_sharp.png` stays out of the game. The title uses `FrontDoor/title_screen.png`.
 
-Goods pictures are in the play market, the wagon cargo, and the logbook. A missing picture keeps the name and does not break the row. Encounters, kit figures, and Fill buttons do not show goods pictures.
+Goods pictures are in the play market, the caravan cargo, and the logbook. A missing picture keeps the name and does not break the row. Encounters, kit figures, and Fill buttons do not show goods pictures.
 
 After generating a picture, do not present it yet. Perform a silent structural check for physical continuity and topology.
 
@@ -31,3 +31,37 @@ When a build needs new or revised music, ambience, or sound effects, spawn one s
 The subagent does not see this conversation. Put the sound in its prompt: the user's wording, what to make, length, and the landing rule below. It calls the audio-studio tools `generate_audio`, `edit_audio`, and `process_audio`. Those tools write only to `C:\Stability\audio-studio-mcp\outputs\`. Music and ambience stay instrumental. Sound effects use `audio_type` `sfx` with `sound_source`, `sound_action`, `sound_material`, and `sound_space`. Generation writes a 44.1 kHz wav and a json sidecar in that outputs folder. `process_audio` then writes the usable clip as wav in that same folder and leaves the generated wav and sidecar there. The subagent copies only that processed wav into `Assets/Resources/Audio/`. A requested sound effect ends as that one wav. The game loads it with `Resources.Load`. Call `unload_models` when the set is done. One subagent owns the set. Variations of one cue go in one `generate_audio` call. Do not run a second audio subagent at the same time. The local model holds several gigabytes.
 
 Before wiring sound into the game, confirm the wav is in `Assets/Resources/Audio/`. If the copy is missing, copy the processed wav there. Wire that file.
+
+## Build tasks
+
+The user (or the director) stages one `Task_*.md` file in the repo root. Build that instruction and nothing else. When the work is finished, delete **every** `Task_*.md` from the repo root and commit the deletions. Do not leave a finished task file in the root; Grok Build will pick it up as the next instruction.
+
+## Unity project
+
+This is Unity **6000.6.4f1**. Play UI is **uGUI**, not UI Toolkit. Name uGUI when the work is a UI change.
+
+The official Unity plugin and the Unity CLI are installed on this machine. Use the `unity-cli` and `ui-ugui` skills. When a shell is available, drive a connected Editor with `unity command`; do not fall back to a Unity MCP server for the same job.
+
+Play scripts live in `Assets/Scripts/Play/` (`Caravans.Play`). Front-door scripts live in `Assets/Scripts/FrontDoor/` (`Caravans.FrontDoor`). Editor menus live in `Assets/Editor/`. EditMode tests live in `Assets/Tests/EditMode/` (`Caravans.Play.EditModeTests`). Do not add a new assembly definition unless the task says to. One public type per file, file name matches the type.
+
+Do not hand-edit `.unity`, `.prefab`, or `.asset` YAML while an Editor is reachable. Run `unity status` first. If an Editor is connected (state `ready`), change scenes, prefabs, import settings, and serialized assets through `unity command` or an existing Editor importer. Never invent fileIDs or GUIDs.
+
+Every asset keeps its `.meta` beside it. Move and rename in the Editor, or move the `.meta` with the file. Never delete or regenerate `.meta` files. Commit each `.meta` with its asset.
+
+Do not edit `Library/`, `Temp/`, `Logs/`, `obj/`, or `UserSettings/`. Do not edit `ProjectSettings.asset` unless the task names the setting.
+
+The game loads shipped art and audio with `Resources.Load` from the folders already named above. Do not introduce Addressables, and do not add packages the task does not name.
+
+Config is flat JSON under `data/config/`, loaded with `JsonUtility`. Use `[Serializable]` classes and arrays only (no dictionaries, nulls, or polymorphism).
+
+## Verification
+
+A task is not done until the project compiles, the Editor Console has no error-level entries from the work, and all EditMode tests (`PlayTests` and `FrontDoorTests`) are green.
+
+If an Editor is connected, check the Console with `unity command console status` and read errors with `unity command console get -- --since --level error`. If the project is not open, run `unity test --mode EditMode`. If the Editor is open, use the Test Runner inside it. Do not close the user's Editor to start a batchmode run. There is no PlayMode test folder; do not add one unless the task asks for it.
+
+Recapture `Screenshots/` only when the task is a UI task and tells you to run `Caravans/Capture UI Screenshots`. Otherwise leave that folder alone.
+
+## Words
+
+In new prose, never call the caravan a wagon. If a starter bird is named, call it a thrask. If a style word is needed, use painterly, never hand-painted. The place west of Kharûn is Westmark; do not rename it. Settlement names that already contain mark stay, as already stated above.
