@@ -508,7 +508,7 @@ namespace Caravans.FrontDoor
         public const string Begin = "BEGIN";
     }
 
-    // Master rides on the listener. Music scales the title theme. SFX scales goods clicks.
+    // Master rides on the listener. Music scales the title theme. SFX scales the title wind and the goods clicks.
     public static class SessionSettings
     {
         const string MasterKey = "caravans.vol.master";

@@ -19,6 +19,8 @@ namespace Caravans.FrontDoor
         StormFade musicFade;
         Camera stormCamera;
         AudioSource theme;
+        TitleWind wind;
+        float heldGust;
         Mesh mesh;
         MeshRenderer grains;
         Vector3[] vertices;
@@ -47,6 +49,9 @@ namespace Caravans.FrontDoor
             fade.Resume();
             musicFade.Resume();
             sim.ResetMotion();
+            heldGust = 0f;
+            if (wind != null)
+                wind.Resume();
             visualsHidden = false;
             fadeSettled = false;
             if (theme.clip == null)
@@ -70,6 +75,8 @@ namespace Caravans.FrontDoor
                     theme.Play();
                 musicFade.Begin(theme.volume, MusicFadeSeconds);
             }
+            if (wind != null)
+                wind.BeginFade();
         }
 
         void Awake()
@@ -86,7 +93,9 @@ namespace Caravans.FrontDoor
             DontDestroyOnLoad(gameObject);
             fade = new StormFade();
             musicFade = new StormFade();
-            sim = new SandBedSim(System.Environment.TickCount);
+            int seed = System.Environment.TickCount;
+            sim = new SandBedSim(seed);
+            wind = new TitleWind(seed + 101);
             BuildRig();
             SceneManager.sceneLoaded += OnSceneLoaded;
         }
@@ -116,7 +125,7 @@ namespace Caravans.FrontDoor
             }
 
             // A domain reload clears these fields and may not run Awake again.
-            if (fade == null || musicFade == null || sim == null)
+            if (fade == null || musicFade == null || sim == null || wind == null)
                 Recover();
             if (fade == null)
                 return;
@@ -125,12 +134,15 @@ namespace Caravans.FrontDoor
             if (fade.Active)
                 fade.Tick(step);
             TickTheme(step);
+            TickWind(step);
 
             if (fade.Finished)
             {
                 if (fadeSettled)
                     return;
                 HideVisuals();
+                if (wind != null)
+                    wind.Halt();
                 fadeSettled = true;
                 return;
             }
@@ -142,7 +154,6 @@ namespace Caravans.FrontDoor
                 return;
             }
 
-            sim.Tick(Time.unscaledDeltaTime);
             Draw(1f);
             grains.enabled = true;
             stormCamera.enabled = true;
@@ -169,6 +180,17 @@ namespace Caravans.FrontDoor
                 theme.volume = SessionSettings.Music;
         }
 
+        void TickWind(float step)
+        {
+            bool onTitle = SceneManager.GetActiveScene().name == Gate.TitleScene;
+            bool live = onTitle && !fade.Active && !fade.Finished;
+            float delta = live ? Time.unscaledDeltaTime : step;
+            if (live)
+                heldGust = sim.Tick(delta);
+            if (wind != null)
+                wind.Tick(delta, heldGust, SessionSettings.Sfx);
+        }
+
         void HideVisuals()
         {
             grains.enabled = false;
@@ -187,6 +209,8 @@ namespace Caravans.FrontDoor
             musicFade = new StormFade();
             if (sim == null)
                 sim = new SandBedSim(System.Environment.TickCount);
+            if (wind == null)
+                wind = new TitleWind(System.Environment.TickCount + 101);
             ClearRig();
             BuildRig();
             SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -221,6 +245,8 @@ namespace Caravans.FrontDoor
             mesh = null;
             theme = null;
             vertices = null;
+            if (wind != null)
+                wind.Detach();
         }
 
         void BuildRig()
@@ -246,6 +272,8 @@ namespace Caravans.FrontDoor
             theme.spatialBlend = 0f;
             theme.dopplerLevel = 0f;
             theme.volume = SessionSettings.Music;
+            if (wind != null)
+                wind.Attach(gameObject);
 
             int quads = sim.GrainCount;
             vertices = new Vector3[quads * 4];
