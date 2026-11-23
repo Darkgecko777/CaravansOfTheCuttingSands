@@ -2476,6 +2476,31 @@ namespace Caravans.Play
             LegWeather = WeatherKind.Clear;
             LegScale = 1f;
             House = null;
+            SeedWeather();
+            SpawnNpcs();
+            ClearMapProgress();
+        }
+
+        void SitAtKharun()
+        {
+            House = HouseId.Kharun;
+            Dock = PlaceId.Kharun;
+            Traveling = false;
+            HoldTravel = false;
+            CampPending = false;
+            AwaitingPace = false;
+            TravelDistance = 0f;
+            travelFrom = Dock;
+            Pace = 1;
+        }
+
+        void Touch()
+        {
+            Revision += 1;
+        }
+
+        void SeedWeather()
+        {
             masses.Clear();
             masses.Add(new WeatherMass
             {
@@ -2498,26 +2523,6 @@ namespace Caravans.Play
                 Radius = 0.14f,
                 Velocity = new Vector2(-0.004f, 0.003f)
             });
-            SpawnNpcs();
-            ClearMapProgress();
-        }
-
-        void SitAtKharun()
-        {
-            House = HouseId.Kharun;
-            Dock = PlaceId.Kharun;
-            Traveling = false;
-            HoldTravel = false;
-            CampPending = false;
-            AwaitingPace = false;
-            TravelDistance = 0f;
-            travelFrom = Dock;
-            Pace = 1;
-        }
-
-        void Touch()
-        {
-            Revision += 1;
         }
 
         static string Describe(WeatherKind kind, string lead)
@@ -2603,6 +2608,28 @@ namespace Caravans.Play
             if (!CampPending)
                 ShotCamp();
             MakeCamp();
+        }
+
+        internal bool ShotPlaceWeather(WeatherKind kind, Vector2 center, float radius)
+        {
+            for (int i = 0; i < masses.Count; i++)
+            {
+                WeatherMass mass = masses[i];
+                if (mass.Kind != kind)
+                    continue;
+                mass.Center = center;
+                mass.Radius = radius;
+                Touch();
+                return true;
+            }
+
+            return false;
+        }
+
+        internal void ShotResetWeather()
+        {
+            SeedWeather();
+            Touch();
         }
 #endif
     }

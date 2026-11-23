@@ -22,6 +22,7 @@ namespace Caravans.Play
         static MapPieceFile mapPieces;
         static EndScreenFile endScreen;
         static AgentFile agents;
+        static WeatherLookFile weatherLook;
 
         public static ConsumptionFile Consumption
         {
@@ -93,6 +94,11 @@ namespace Caravans.Play
             get { EnsureLoaded(); return agents; }
         }
 
+        public static WeatherLookFile WeatherLook
+        {
+            get { EnsureLoaded(); return weatherLook; }
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset()
         {
@@ -100,6 +106,8 @@ namespace Caravans.Play
             mapPieces = null;
             endScreen = null;
             agents = null;
+            weatherLook = null;
+            global::Caravans.Play.WeatherLook.Forget();
             EconomyCatalog.ForgetLoaded();
             EncounterCards.ForgetLoaded();
         }
@@ -152,6 +160,15 @@ namespace Caravans.Play
             agents = Read<AgentFile>("agents.json",
                 "scoutHire", "scoutWage", "hagglerHire", "hagglerWage",
                 "guardHire", "guardWage", "hagglerSpread", "rushCargoLossChance");
+            weatherLook = Read<WeatherLookFile>("weather_look.json",
+                "schemaVersion", "fadeSeconds", "showMasses",
+                "sandstormGrade", "sandstormGradeStrength", "sandstormHaze", "sandstormHazeAlpha",
+                "heatGrade", "heatGradeStrength", "heatHaze", "heatHazeAlpha",
+                "windGrade", "windGradeStrength", "windHaze", "windHazeAlpha",
+                "hazeCenterRatio",
+                "massSandstorm", "massSandstormAlpha", "massHeat", "massHeatAlpha", "massWind", "massWindAlpha",
+                "massCore", "noiseScale", "noiseStrength", "noiseSeed");
+            global::Caravans.Play.WeatherLook.Validate(weatherLook);
             EncounterCards.EnsureLoaded();
             loaded = true;
         }

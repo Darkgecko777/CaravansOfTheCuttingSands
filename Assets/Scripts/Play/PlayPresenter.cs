@@ -255,6 +255,7 @@ namespace Caravans.Play
                 session.Tick(Time.unscaledDeltaTime);
             if (session.Revision != drawn)
                 Redraw();
+            StepWeatherLook(Time.unscaledDeltaTime);
             UpdateLive();
             FlushAutosave();
         }
@@ -953,6 +954,7 @@ namespace Caravans.Play
             backRt.pivot = new Vector2(0.5f, 0f);
             backRt.anchoredPosition = new Vector2(0f, 24f);
             backRt.sizeDelta = new Vector2(280f, 52f);
+            BuildWeatherLook();
         }
 
         void BuildTopBar(RectTransform root)
@@ -2444,9 +2446,7 @@ namespace Caravans.Play
                 return;
             FitMapFrame();
             EnsureMap();
-            float sun = TravelScale.Sunlight(session.Hour);
-            if (mapImage.texture != null)
-                mapImage.color = Color.Lerp(new Color(0.55f, 0.62f, 0.8f), Color.white, sun);
+            PaintWeatherLook();
 
             Vector2 point = session.CaravanPoint;
             bool close = session.Traveling;
@@ -3613,6 +3613,12 @@ namespace Caravans.Play
                     return ShotTavernAgentsHired();
                 case "gates-scout":
                     return ShotGatesScout();
+                case "map-sandstorm":
+                    return ShotMapWeather(WeatherKind.Sandstorm);
+                case "map-heat":
+                    return ShotMapWeather(WeatherKind.Heat);
+                case "gates-storm":
+                    return ShotGatesStorm();
                 default:
                     return false;
             }
@@ -3676,6 +3682,8 @@ namespace Caravans.Play
             standingToastHold = false;
             if (session != null)
             {
+                session.ShotResetWeather();
+                SnapWeatherLook();
                 session.ShotClearSupply();
                 session.ClearRankUpNotice();
                 session.ShotClearMapState();
