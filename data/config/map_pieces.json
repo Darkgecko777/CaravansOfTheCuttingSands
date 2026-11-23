@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 2,
+  "piecesRequired": 6,
+  "sellerPlace": "Kharun",
+  "leadPercent": 10,
+  "leadBankMax": 2,
+  "pieceText": "A fragment of Sarn's map.",
+  "firstAchievement": "ACH_FIRST_PIECE",
+  "embarkAchievement": "ACH_EMBARK",
+  "pieces": [
+    { "id": "MP-1", "unlockRank": 1, "price": 600, "name": "Piece of Sarn's map" },
+    { "id": "MP-2", "unlockRank": 3, "price": 1900, "name": "Piece of Sarn's map" },
+    { "id": "MP-3", "unlockRank": 5, "price": 3800, "name": "Piece of Sarn's map" },
+    { "id": "MP-4", "unlockRank": 7, "price": 5800, "name": "Piece of Sarn's map" },
+    { "id": "MP-5", "unlockRank": 9, "price": 8000, "name": "Piece of Sarn's map" },
+    { "id": "MP-6", "unlockRank": 10, "price": 10400, "name": "Piece of Sarn's map" }
+  ],
+  "gatePlace": "Westmark",
+  "destinationLandmark": "SarnsRest",
+  "gateSteadyHours": 12,
+  "finalSteadyHours": 18,
+  "arrivalId": "SR-01",
+  "arrivalTitle": "Sarn's Rest",
+  "arrivalScene": "A hide lean-to. A cairn of trade trinkets under a horned skull. Plain lilies at the water. Laid edge to edge, the six pieces make one map, and its line runs away from every road.",
+  "embarkLabel": "Embark",
+  "embarkResult": "You water the beasts, check every lashing, and ride out along the line.",
+  "returnLabel": "Return later",
+  "returnResult": "Not yet. The oasis will keep. You turn back for Westmark.",
+  "finalCards": [
+    { "id": "SR-02", "title": "Open sand", "line": "The hours pass with nothing in them.", "fraction": 0.25 },
+    { "id": "SR-03", "title": "The same sand", "line": "The line under the pieces does not change.", "fraction": 0.55 },
+    { "id": "SR-04", "title": "Still moving", "line": "Nothing on this stretch asks for a name.", "fraction": 0.85 }
+  ]
+}

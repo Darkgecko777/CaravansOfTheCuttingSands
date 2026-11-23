@@ -213,6 +213,11 @@ namespace Caravans.Play
             }
         }
 
+        public static EncounterCategory WeatherBucket(WeatherKind weather)
+        {
+            return WeatherCategory(weather);
+        }
+
         static EncounterCategory WeatherCategory(WeatherKind weather)
         {
             switch (weather)
@@ -998,6 +1003,7 @@ namespace Caravans.Play
         public bool fillKit;
         public EncounterCargoOp[] cargo;
         public int rumourStars;
+        public int mapLeads;
         public int kharunPoints;
         public string[] setFlags;
         public string[] clearFlags;

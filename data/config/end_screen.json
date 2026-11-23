@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal",
+  "title": "Embarked",
+  "lines": [
+    "Six pieces, one map. Its line leads out from the oasis, past the end of every road, and your caravan goes with it.",
+    "What waits at the end of that line is not written here."
+  ],
+  "footer": "Every road has a price.",
+  "statsHeading": "The ledger",
+  "stats": [
+    {
+      "key": "dateEmbarked",
+      "label": "Embarked",
+      "format": "date",
+      "source": "WorldClock at final-run completion, e.g. '14 Kalvorn, Year 112'"
+    },
+    {
+      "key": "daysOnRoad",
+      "label": "Days since leaving Kharûn",
+      "format": "int",
+      "source": "Day - 1"
+    },
+    {
+      "key": "coinTotal",
+      "label": "Scrubstone, carried and banked",
+      "format": "coin",
+      "source": "Coin + BankedCoin"
+    },
+    {
+      "key": "tradeProfit",
+      "label": "Trade profit",
+      "format": "coin",
+      "source": "sum(sale coin) - sum(buy coin), market only"
+    },
+    {
+      "key": "unitsSold",
+      "label": "Goods sold",
+      "format": "int",
+      "source": "count of Sell presses that moved a unit"
+    },
+    {
+      "key": "bestSale",
+      "label": "Best single sale",
+      "format": "good+coin+place",
+      "source": "max net coin of one Sell"
+    },
+    {
+      "key": "legsTravelled",
+      "label": "Roads taken",
+      "format": "int",
+      "source": "completed road legs (sea openings count)"
+    },
+    {
+      "key": "encounters",
+      "label": "Encounters met",
+      "format": "int",
+      "source": "resolved encounter cards"
+    },
+    {
+      "key": "banditTolls",
+      "label": "Lost to bandits",
+      "format": "int+coin",
+      "source": "units taken + fallback coin"
+    },
+    {
+      "key": "mapCoin",
+      "label": "Paid for Sarn's map",
+      "format": "coin",
+      "source": "sum of map-piece prices paid at Kharûn's Tavern"
+    },
+    {
+      "key": "mapDays",
+      "label": "Pieces, by the day bought",
+      "format": "date list",
+      "source": "WorldClock date of each map-piece purchase (all six are bought at Kharûn's Tavern)"
+    },
+    {
+      "key": "leadsUsed",
+      "label": "Leads followed",
+      "format": "int",
+      "source": "map leads consumed by a purchase"
+    },
+    {
+      "key": "rescues",
+      "label": "Dragged home",
+      "format": "int",
+      "source": "soft resets"
+    },
+    {
+      "key": "standing",
+      "label": "Standing with House Kharûn",
+      "format": "rank",
+      "source": "Kharûn rank (cap 10; the only standing in the game)"
+    },
+    {
+      "key": "placesWon",
+      "label": "Villages and posts won for Kharûn",
+      "format": "int of 15",
+      "source": "count of places with kharunFlipSeen (first player-caused flip)"
+    }
+  ],
+  "buttons": [
+    {
+      "label": "Return to the title",
+      "action": "toTitle"
+    }
+  ],
+  "notes": "No lose screen: there is no lose condition. Death is the soft reset. Save is not in this slice, so the run ends on the title."
+}

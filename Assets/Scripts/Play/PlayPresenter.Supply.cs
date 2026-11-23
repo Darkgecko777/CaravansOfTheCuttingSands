@@ -62,6 +62,8 @@ namespace Caravans.Play
         {
             session.ChooseRoadPace(draftPace);
             PlaceId dest = pendingDest;
+            if (CommitLandmark())
+                return;
             roadLit = false;
             lookingAtMap = false;
             departureOpen = false;
@@ -134,7 +136,7 @@ namespace Caravans.Play
         string DepartureCopy(SupplyForecast forecast)
         {
             PlaceId dest = departureFromCamp ? session.LegDestination : pendingDest;
-            string place = CaravanSession.PlaceName(dest);
+            string place = LandmarkDeparturePlace(dest);
             if (forecast.Red)
             {
                 return "You will run dry before " + place + ". Haul " + forecast.HaulWater

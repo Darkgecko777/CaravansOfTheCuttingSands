@@ -1164,7 +1164,10 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(1, heed.MapPieceLeads);
             heed.OpenEncounter("CZ-03");
             heed.ResolveOutcome(0, "a1");
-            Assert.AreEqual(1, heed.MapPieceLeads);
+            Assert.AreEqual(2, heed.MapPieceLeads);
+            heed.OpenEncounter("CZ-03");
+            heed.ResolveOutcome(0, "a1");
+            Assert.AreEqual(2, heed.MapPieceLeads);
 
             var friend = new CaravanSession();
             friend.SetFriendOfBandits(true);

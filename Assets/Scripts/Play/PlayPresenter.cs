@@ -29,7 +29,7 @@ namespace Caravans.Play
         const float LogGoodW = 240f;
         const float LogPriceW = 300f;
 
-        // Off hides the tavern, the stables, and the house room. Those rooms are still placeholders. Gear stays on the top bar.
+        // Off hides the stables and the house room. The tavern is on at Kharûn. Gear stays on the top bar.
         public static bool ShowUnfinishedFeatures;
         const int ShopColumns = 8;
         const int WagonColumns = 2;
@@ -223,7 +223,7 @@ namespace Caravans.Play
         void Update()
         {
             EnsureMap();
-            bool blockPause = introOpen || departureOpen || session.DeathPending || session.CriticalPending;
+            bool blockPause = introOpen || departureOpen || session.EndScreenUp || session.RestPending || session.DeathPending || session.CriticalPending;
             bool readIntro;
             bool readPause;
             MenuReads(blockPause, introClosedThisFrame, out readIntro, out readPause);
@@ -298,6 +298,7 @@ namespace Caravans.Play
             BuildRoadChoice(root);
             BuildOptions(root);
             BuildIntro(root);
+            BuildEndScreen(root);
         }
 
         void BuildDock()
@@ -650,6 +651,8 @@ namespace Caravans.Play
             listenText.color = Ink;
             var listenFit = listenText.gameObject.AddComponent<LayoutElement>();
             listenFit.preferredHeight = 72f;
+            tavernListen = tavernColumn.gameObject;
+            BuildTavernBoard(tavern);
 
             var stables = Spot(page, "Stables");
             stablesSpot = stables.gameObject;
@@ -1040,8 +1043,8 @@ namespace Caravans.Play
             backPaceButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(300f, -165f);
             campButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
             continueButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
-            encounterChoiceA = ChoiceButton(panel, "ChoiceA", new Vector2(0f, -180f), () => session.ChooseEncounter(0));
-            encounterChoiceB = ChoiceButton(panel, "ChoiceB", new Vector2(0f, -250f), () => session.ChooseEncounter(1));
+            encounterChoiceA = ChoiceButton(panel, "ChoiceA", new Vector2(0f, -180f), () => PressRoadChoice(0));
+            encounterChoiceB = ChoiceButton(panel, "ChoiceB", new Vector2(0f, -250f), () => PressRoadChoice(1));
             encounterChoiceA.GetComponent<RectTransform>().sizeDelta = new Vector2(640f, 64f);
             encounterChoiceB.GetComponent<RectTransform>().sizeDelta = new Vector2(640f, 64f);
             SplitSealLabel(encounterChoiceA, 48f);
@@ -1082,6 +1085,7 @@ namespace Caravans.Play
             {
                 departureOpen = false;
                 shotDeparture = false;
+                landmarkDepart = LandmarkDepart.None;
                 Redraw();
                 return;
             }
@@ -1386,13 +1390,13 @@ namespace Caravans.Play
             housePage.SetActive(page == Page.House);
             ShowPlazaSpot();
             houseTab.gameObject.SetActive(ShowUnfinishedFeatures && EconomyCatalog.IsCity(session.Dock));
-            tavernTab.gameObject.SetActive(ShowUnfinishedFeatures);
+            tavernTab.gameObject.SetActive(ShowUnfinishedFeatures || session.Dock == PlaceId.Kharun);
             stablesTab.gameObject.SetActive(ShowUnfinishedFeatures);
             TintPace(marketTab, page == Page.Market);
             TintPace(houseTab, page == Page.House);
             paceBar.SetActive(session.Traveling && !session.CampPending && !session.AwaitingPace && !session.EncounterPending);
             backButton.gameObject.SetActive(lookingAtMap && !session.Traveling);
-            bool roadChoice = SupplyCardUp() || session.CampPending || session.AwaitingPace || session.EncounterPending;
+            bool roadChoice = !session.EndScreenUp && (SupplyCardUp() || session.RestPending || session.CampPending || session.AwaitingPace || session.EncounterPending);
             cardRoot.gameObject.SetActive(roadChoice && !introOpen);
             optionsRoot.gameObject.SetActive(optionsOpen && !introOpen);
             if (topBarCanvas != null)
@@ -1405,6 +1409,7 @@ namespace Caravans.Play
             if (introRoot != null)
                 introRoot.gameObject.SetActive(introOpen);
             dimmer.gameObject.SetActive(false);
+            RefreshMapChrome();
             ShowRoadChoice(roadChoice);
 
             ApplyGround(session.Dock);
@@ -1426,6 +1431,12 @@ namespace Caravans.Play
                 LockButtons();
                 if (introRoot != null)
                     EnableUnder(introRoot);
+            }
+            else if (session.EndScreenUp)
+            {
+                LockButtons();
+                if (endRoot != null)
+                    EnableUnder(endRoot);
             }
             else if (roadChoice && !optionsOpen)
             {
@@ -1454,7 +1465,9 @@ namespace Caravans.Play
                 return;
             if (page == Page.House)
                 page = Page.Market;
-            if (plazaSpot == PlazaSpot.Tavern || plazaSpot == PlazaSpot.Stables)
+            if (plazaSpot == PlazaSpot.Stables)
+                plazaSpot = PlazaSpot.Inn;
+            if (plazaSpot == PlazaSpot.Tavern && (session == null || session.Dock != PlaceId.Kharun))
                 plazaSpot = PlazaSpot.Inn;
         }
 
@@ -1481,6 +1494,12 @@ namespace Caravans.Play
             if (death || critical || (departureOpen && !death && !critical))
             {
                 ShowSupplyCard(death, critical);
+                return;
+            }
+
+            if (session.RestPending)
+            {
+                ShowRestCard();
                 return;
             }
 
@@ -1538,7 +1557,8 @@ namespace Caravans.Play
                 return;
             var bodyRt = cardBody.rectTransform;
             var continueRt = continueButton.GetComponent<RectTransform>();
-            if (!encounter || !session.EncounterWritten)
+            bool written = encounter && (session.EncounterWritten || session.RestPending);
+            if (!written)
             {
                 cardPanel.sizeDelta = new Vector2(860f, 520f);
                 bodyRt.sizeDelta = new Vector2(-96f, 72f);
@@ -1637,6 +1657,13 @@ namespace Caravans.Play
                 if (supplyGoButton != null)
                     supplyGoButton.interactable = true;
                 backPaceButton.interactable = true;
+                return;
+            }
+
+            if (session.RestPending)
+            {
+                encounterChoiceA.interactable = true;
+                encounterChoiceB.interactable = true;
                 return;
             }
 
@@ -2042,7 +2069,9 @@ namespace Caravans.Play
 
         void SyncRoads()
         {
-            if (roadsReady && roadsDock == session.Dock)
+            bool wantSarn = session.MapJourneyAtGate;
+            bool haveSarn = sarnRoadButton != null;
+            if (roadsReady && roadsDock == session.Dock && wantSarn == haveSarn)
                 return;
 
             ClearNeighborRoads();
@@ -2056,6 +2085,8 @@ namespace Caravans.Play
                 neighborRoads.Add(button);
                 neighborDests.Add(dest);
             }
+
+            EnsureSarnRoad(roads.Count);
 
             roadsDock = session.Dock;
             roadsReady = true;
@@ -2075,6 +2106,7 @@ namespace Caravans.Play
                 button.transform.SetSiblingIndex(i);
             }
 
+            PlaceSarnRoad(host, neighborRoads.Count);
             if (mapRoads != null)
                 mapRoads.gameObject.SetActive(onMap);
         }
@@ -2094,6 +2126,7 @@ namespace Caravans.Play
             neighborDests.Clear();
             roadLit = false;
             roadsReady = false;
+            ClearSarnRoad();
         }
 
         void AskRoad(PlaceId dest)
@@ -2102,11 +2135,18 @@ namespace Caravans.Play
                 return;
             pendingDest = dest;
             roadLit = true;
+            sarnRoadLit = false;
             Redraw();
         }
 
         void Embark()
         {
+            if (sarnRoadLit)
+            {
+                EmbarkSarnRoad();
+                return;
+            }
+
             if (!roadLit || !session.CanTakeRoad())
                 return;
             if (!RoadGraph.IsSea(session.Dock, pendingDest))
@@ -2124,11 +2164,14 @@ namespace Caravans.Play
 
         string NextCampLine()
         {
-            if (!roadLit)
+            if (!roadLit && !sarnRoadLit)
                 return string.Empty;
             float dayHours;
             float nightHours;
-            session.SplitUntilStop(pendingDest, draftPace, out dayHours, out nightHours);
+            if (sarnRoadLit)
+                session.SplitLandmarkHours(session.GateSteadyHours, draftPace, out dayHours, out nightHours);
+            else
+                session.SplitUntilStop(pendingDest, draftPace, out dayHours, out nightHours);
             if (dayHours + nightHours <= 0.001f)
                 return "Travel to next camp";
             return "Travel to next camp\n<color=" + DayHex + ">"
@@ -2149,13 +2192,19 @@ namespace Caravans.Play
                 neighborRoads[i].interactable = session.CanTakeRoad();
                 TintPace(neighborRoads[i], roadLit && neighborDests[i] == pendingDest);
             }
+
+            if (sarnRoadButton != null)
+            {
+                sarnRoadButton.interactable = session.CanTakeRoad();
+                TintPace(sarnRoadButton, sarnRoadLit);
+            }
             gatesCareful.interactable = true;
             gatesSteady.interactable = true;
             gatesRush.interactable = true;
             TintPace(gatesCareful, draftPace == RoadPace.Careful);
             TintPace(gatesSteady, draftPace == RoadPace.Steady);
             TintPace(gatesRush, draftPace == RoadPace.Rush);
-            embarkButton.interactable = roadLit && session.CanTakeRoad();
+            embarkButton.interactable = (roadLit || sarnRoadLit) && session.CanTakeRoad();
             buyButton.interactable = SelectionLive() && session.CanBuy(SelectedGood());
             sellButton.interactable = CanPressSell();
             sortButton.interactable = true;
@@ -2353,9 +2402,13 @@ namespace Caravans.Play
 
             if (!show)
             {
-                routeRoot.gameObject.SetActive(false);
+                if (!TryDrawLandmarkRoute())
+                    routeRoot.gameObject.SetActive(false);
                 return;
             }
+
+            if (TryDrawLandmarkRoute())
+                return;
 
             routeRoot.gameObject.SetActive(true);
             PlaceOnMap(routeMark.rectTransform, RoadGraph.DockPoint(dest), 72f);
@@ -2490,6 +2543,21 @@ namespace Caravans.Play
                 return;
 
             ClearChildren(logbookRows);
+            string mapBlock = session.MapLogbookBlock();
+            var mapRow = Child(logbookRows, "SarnsMap");
+            int mapLines = 1;
+            for (int n = 0; n < mapBlock.Length; n++)
+            {
+                if (mapBlock[n] == '\n')
+                    mapLines++;
+            }
+
+            mapRow.gameObject.AddComponent<LayoutElement>().preferredHeight = mapLines * 28f + 8f;
+            TextMeshProUGUI mapText = Body(mapRow, UiType.LogRow, TextAlignmentOptions.TopLeft);
+            mapText.color = ParchmentInk;
+            mapText.text = mapBlock;
+            Stretch(mapText.rectTransform);
+            mapText.textWrappingMode = TextWrappingModes.Normal;
             for (int i = 0; i < WorldIds.GoodCount; i++)
             {
                 GoodId good = (GoodId)i;
@@ -3258,10 +3326,11 @@ namespace Caravans.Play
                     return page == Page.House && EconomyCatalog.IsCity(session.Dock);
                 case "logbook":
                     ShotClearOverlays();
+                    session.ShotOwnPieces(1, false);
                     page = Page.Market;
                     logbookOpen = true;
                     FinishShot();
-                    return logbookOpen;
+                    return logbookOpen && session.MapLogbookBlock().Contains("Piece 1 of 6");
                 case "options":
                     ShotClearOverlays();
                     page = Page.Market;
@@ -3393,6 +3462,18 @@ namespace Caravans.Play
                     return page == Page.Market
                         && StandingToastVisible()
                         && standingToast.text == "Your standing with House Kharûn has risen to rank 1.";
+                case "tavern-locked":
+                    return ShotTavernLocked();
+                case "tavern-buy":
+                    return ShotTavernBuy();
+                case "tavern-owned":
+                    return ShotTavernOwned();
+                case "westmark-gate":
+                    return ShotWestmarkGate();
+                case "sarns-rest":
+                    return ShotSarnsRest();
+                case "end-screen":
+                    return ShotEndScreen();
                 default:
                     return false;
             }
@@ -3448,13 +3529,17 @@ namespace Caravans.Play
             choosingRoad = false;
             lookingAtMap = false;
             roadLit = false;
+            sarnRoadLit = false;
+            landmarkDepart = LandmarkDepart.None;
             listenLine = string.Empty;
             departureOpen = false;
             shotDeparture = false;
+            standingToastHold = false;
             if (session != null)
             {
                 session.ShotClearSupply();
                 session.ClearRankUpNotice();
+                session.ShotClearMapState();
             }
 
             HideStandingToast();

@@ -142,6 +142,9 @@ namespace Caravans.Play
         {
             get
             {
+                Vector2 landmark;
+                if (TryLandmarkPoint(out landmark))
+                    return landmark;
                 if (!Traveling)
                     return RoadGraph.DockPoint(Dock);
                 return RoadGraph.PointAlong(travelFrom, travelTo, TravelDistance);
@@ -377,6 +380,9 @@ namespace Caravans.Play
 
         public string BoundLabel()
         {
+            string landmark = LandmarkLabel();
+            if (landmark != null)
+                return landmark;
             if (!Traveling)
                 return PlaceName(Dock);
             return "Road to " + PlaceName(travelTo);
@@ -449,6 +455,7 @@ namespace Caravans.Play
                 Basis = price
             });
             Coin -= price;
+            NoteBuyCoin(price);
             NoteVisitBuy(good);
             Touch();
             return true;
@@ -541,6 +548,7 @@ namespace Caravans.Play
             GoodId shelf = ShelfGood(good);
             PutStock(Dock, shelf, StockOf(Dock, shelf) + 1);
             Coin += net;
+            NoteSale(good, net, Dock);
             bool sameVisit = TakeVisitBuy(good);
             bool refreshed = false;
             if (!sameVisit && House != null && !EconomyCatalog.IsCity(Dock))
@@ -614,7 +622,7 @@ namespace Caravans.Play
 
         public bool DepartTo(PlaceId destination)
         {
-            if (!CanTakeRoad() || destination == Dock)
+            if (atRest || endScreen || !CanTakeRoad() || destination == Dock)
                 return false;
             return BeginTravel(destination);
         }
@@ -630,6 +638,7 @@ namespace Caravans.Play
                     Pace = 1;
             }
 
+            SyncFinalCardHour();
             Touch();
         }
 
@@ -742,6 +751,8 @@ namespace Caravans.Play
         {
             get
             {
+                if (scriptCard && !string.IsNullOrEmpty(scriptTitle))
+                    return scriptTitle;
                 EncounterCard card = EncounterCards.Find(EncounterId);
                 if (card != null && !string.IsNullOrEmpty(card.title))
                     return card.title;
@@ -755,6 +766,8 @@ namespace Caravans.Play
             {
                 if (EncounterResolved && !string.IsNullOrEmpty(EncounterResult))
                     return EncounterResult;
+                if (scriptCard && !string.IsNullOrEmpty(scriptBody))
+                    return scriptBody;
                 EncounterCard card = EncounterCards.Find(EncounterId);
                 if (card != null && !string.IsNullOrEmpty(card.scene))
                     return card.scene;
@@ -785,12 +798,24 @@ namespace Caravans.Play
 
         void DismissEncounter()
         {
+            NoteResolvedEncounter();
             EncounterPending = false;
             EncounterResolved = false;
             EncounterResult = null;
             EncounterId = null;
+            ClearScriptCard();
             if (!CampPending)
                 HoldTravel = false;
+            if (mapLeg == MapLegKind.Final && !CampPending)
+                SyncFinalCardHour();
+            Touch();
+        }
+
+        void DropScheduledEncounter()
+        {
+            EncounterPending = false;
+            EncounterId = null;
+            HoldTravel = false;
             Touch();
         }
 
@@ -855,7 +880,8 @@ namespace Caravans.Play
                 return;
             if (edgeLength <= 0.000001f)
             {
-                Arrive(travelTo);
+                if (!FinishMapLegIfAny())
+                    Arrive(travelTo);
                 return;
             }
 
@@ -895,7 +921,7 @@ namespace Caravans.Play
             LegTravelHours += hours;
             if (deathPending)
                 return;
-            if (TravelDistance >= edgeLength - 0.000001f)
+            if (TravelDistance >= edgeLength - 0.000001f && !FinishMapLegIfAny())
                 Arrive(travelTo);
         }
 
@@ -925,6 +951,20 @@ namespace Caravans.Play
         void OpenScheduledEncounter()
         {
             encounterArmed = false;
+            if (mapLeg == MapLegKind.Final)
+            {
+                if (!TryOpenFinalCard())
+                    DropScheduledEncounter();
+                return;
+            }
+
+            if (mapLeg == MapLegKind.ToRest || mapLeg == MapLegKind.Return)
+            {
+                if (!TryOpenMapPoolCard())
+                    DropScheduledEncounter();
+                return;
+            }
+
             string id = EncounterId;
             if (string.IsNullOrEmpty(id))
             {
@@ -939,10 +979,7 @@ namespace Caravans.Play
 
             if (string.IsNullOrEmpty(id))
             {
-                EncounterPending = false;
-                EncounterId = null;
-                HoldTravel = false;
-                Touch();
+                DropScheduledEncounter();
                 return;
             }
 
@@ -1028,8 +1065,6 @@ namespace Caravans.Play
 
         public string RankUpNotice { get; private set; }
 
-        // TODO: a later task sells the six pieces at Kharûn's Tavern, gated by ranks 1, 3, 5, 7, 9, and 10.
-        // Leads discount the price. The rank gates the sale and does not discount it.
         public int GetKharunRank()
         {
             int span = EconomyRates.StandingPointsPerRank;
@@ -1133,6 +1168,8 @@ namespace Caravans.Play
 
         public WeatherKind WeatherAlongRoad()
         {
+            if (OnMapLeg())
+                return WeatherOnSegment(mapFrom, mapTo);
             if (Traveling)
                 return WeatherOn(travelFrom, travelTo);
             return WeatherOn(PlaceId.Kharun, PlaceId.Draven);
@@ -1174,6 +1211,7 @@ namespace Caravans.Play
                 return false;
 
             ClearVisitBuys();
+            ClearMapTravel();
             travelFrom = Dock;
             travelTo = destination;
             edgeLength = RoadGraph.Length(Dock, destination);
@@ -1206,7 +1244,7 @@ namespace Caravans.Play
             if (encounterRandom == null)
                 encounterRandom = new System.Random(GameConfig.Encounters.seed);
             string scripted;
-            if (EncounterCards.ScriptedReplacement(travelFrom, travelTo, HasRunFlag, out scripted))
+            if (mapLeg == MapLegKind.None && EncounterCards.ScriptedReplacement(travelFrom, travelTo, HasRunFlag, out scripted))
             {
                 ArmEncounter(scripted);
                 return;
@@ -1248,6 +1286,7 @@ namespace Caravans.Play
             EncounterResult = null;
             EncounterId = null;
             EncounterHour = -1f;
+            ClearScriptCard();
         }
 
         void ApplyOutcome(EncounterOutcome outcome)
@@ -1308,9 +1347,13 @@ namespace Caravans.Play
                         ApplyCargo(effects.cargo[i]);
                 }
 
-                // TODO: each lead is a discount on the next piece of Sarn's map bought at a Tavern.
-                if (effects.rumourStars > 0 && MapPieceLeads < 1)
-                    MapPieceLeads = 1;
+                int leadGrant = 0;
+                if (effects.rumourStars > 0)
+                    leadGrant += effects.rumourStars;
+                if (effects.mapLeads > 0)
+                    leadGrant += effects.mapLeads;
+                if (leadGrant > 0)
+                    AddMapLeads(leadGrant);
                 int standingGrant = effects.kharunPoints;
                 if (standingGrant > 25)
                     standingGrant = 25;
@@ -1374,6 +1417,7 @@ namespace Caravans.Play
                     removed++;
                 }
 
+                NoteBanditUnits(removed);
                 TakeFallback(need - removed, op.fallbackCoin);
                 if (op.integrityHit > 0f && need == 0)
                 {
@@ -1398,6 +1442,7 @@ namespace Caravans.Play
                 gone++;
             }
 
+            NoteBanditUnits(gone);
             TakeFallback(take - gone, op.fallbackCoin);
             if (op.integrityHit <= 0f)
                 return;
@@ -1541,6 +1586,7 @@ namespace Caravans.Play
         {
             if (missing <= 0 || fallback <= 0)
                 return;
+            NoteBanditCoin(fallback * missing);
             Coin -= fallback * missing;
             if (Coin < 0)
                 Coin = 0;
@@ -1554,6 +1600,7 @@ namespace Caravans.Play
 
         void Arrive(PlaceId place)
         {
+            NoteLeg();
             Dock = place;
             Traveling = false;
             HoldTravel = false;
@@ -1596,7 +1643,9 @@ namespace Caravans.Play
                 spendable = 0f;
             float speed = Mathf.Max(0.01f, TravelScale.Speed(pace));
             float leg;
-            if (Traveling && destination == travelTo && edgeLength > 0.000001f)
+            if (OnMapLeg())
+                leg = MapHoursRemaining(pace);
+            else if (Traveling && destination == travelTo && edgeLength > 0.000001f)
             {
                 float remaining = (edgeLength - TravelDistance) / edgeLength;
                 if (remaining < 0f)
@@ -2438,6 +2487,7 @@ namespace Caravans.Play
                 Velocity = new Vector2(-0.004f, 0.003f)
             });
             SpawnNpcs();
+            ClearMapProgress();
         }
 
         void SitAtKharun()
@@ -2495,6 +2545,7 @@ namespace Caravans.Play
         public void ShotDockAt(PlaceId place)
         {
             ClearVisitBuys();
+            ClearMapTravel();
             Dock = place;
             Traveling = false;
             HoldTravel = false;

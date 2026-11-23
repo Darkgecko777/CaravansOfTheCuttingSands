@@ -19,6 +19,8 @@ namespace Caravans.Play
         static KitFile kit;
         static SoftResetFile softReset;
         static RescueFile rescue;
+        static MapPieceFile mapPieces;
+        static EndScreenFile endScreen;
 
         public static ConsumptionFile Consumption
         {
@@ -75,10 +77,22 @@ namespace Caravans.Play
             get { EnsureLoaded(); return rescue; }
         }
 
+        public static MapPieceFile MapPieces
+        {
+            get { EnsureLoaded(); return mapPieces; }
+        }
+
+        public static EndScreenFile EndScreen
+        {
+            get { EnsureLoaded(); return endScreen; }
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset()
         {
             loaded = false;
+            mapPieces = null;
+            endScreen = null;
             EconomyCatalog.ForgetLoaded();
             EncounterCards.ForgetLoaded();
         }
@@ -120,6 +134,14 @@ namespace Caravans.Play
                 "schemaVersion", "carriedCoinFraction", "paupersPurse", "pauperFloorCoin", "kitOnWakingDays", "returnTo");
             rescue = Read<RescueFile>("rescue_texts.json",
                 "schemaVersion", "title", "lead", "regions", "rescueDays", "texts", "roads");
+            mapPieces = Read<MapPieceFile>("map_pieces.json",
+                "schemaVersion", "piecesRequired", "sellerPlace", "leadPercent", "leadBankMax", "pieceText",
+                "firstAchievement", "embarkAchievement", "pieces", "id", "unlockRank", "price", "name",
+                "gatePlace", "destinationLandmark", "gateSteadyHours", "finalSteadyHours",
+                "arrivalId", "arrivalTitle", "arrivalScene", "embarkLabel", "embarkResult", "returnLabel", "returnResult",
+                "finalCards", "title", "line", "fraction");
+            endScreen = Read<EndScreenFile>("end_screen.json",
+                "schemaVersion", "title", "lines", "footer", "statsHeading", "stats", "key", "label", "buttons", "action");
             EncounterCards.EnsureLoaded();
             loaded = true;
         }

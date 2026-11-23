@@ -168,7 +168,7 @@ namespace Caravans.Play
             float supplyFood = SupplyKg(GoodId.Rations);
             int packs = CargoOf(GoodId.Water) + CargoOf(GoodId.Rations);
             PlaceId from = Traveling ? travelFrom : Dock;
-            bool sea = RoadGraph.IsSea(from, destination);
+            bool sea = previewSteady <= 0.0001f && !OnMapLeg() && RoadGraph.IsSea(from, destination);
             float hours = ForecastHours(destination, pace);
             if (hours <= 0.0001f)
                 return FinishForecast(0f, 0f, supplyWater, supplyFood, packs, sea || hours <= 0.0001f);
@@ -463,6 +463,7 @@ namespace Caravans.Play
             lowNoted = false;
             lastNotice = string.Empty;
             rescueCount++;
+            ClearMapTravel();
             // TODO: ACH_DRAGGED_HOME increments with RescueCount. A later bank's BankedCoin stays through this reset.
             Touch();
         }
@@ -685,6 +686,10 @@ namespace Caravans.Play
         float ForecastHours(PlaceId destination, RoadPace pace)
         {
             float speed = Mathf.Max(0.01f, TravelScale.Speed(pace));
+            if (previewSteady > 0.0001f)
+                return previewSteady * Mathf.Max(0.01f, previewScale) / speed;
+            if (OnMapLeg())
+                return MapHoursRemaining(pace);
             if (Traveling && destination == travelTo && edgeLength > 0.000001f)
             {
                 float remaining = (edgeLength - TravelDistance) / edgeLength;
