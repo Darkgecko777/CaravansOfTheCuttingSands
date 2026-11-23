@@ -1,11 +1,13 @@
 # UI screenshots
 
-Captured 2026-11-23 at commit 9d22cef (working tree).
+Captured 2026-11-23 at commit 751fe68 (working tree).
 
 | File | Scene | State |
 | --- | --- | --- |
-| 01_title.png | TitleScreen | Compact wood panel under the tagline, desert around it. Text-only NEW GAME, OPTIONS, and EXIT. No row bars. A bone tick marks the selected row. No Continue. Options closed. The sand is blowing. |
+| 01_title.png | TitleScreen | Compact wood panel under the tagline, desert around it. No save on disk, so the menu is text-only NEW GAME, OPTIONS, and EXIT, with NEW GAME selected. No row bars. A bone tick marks the selected row. Options closed. The sand is blowing. |
 | 02_title_options.png | TitleScreen | Options open on the wood panel over the main menu. Master, music, and SFX sliders, fullscreen, resolution, and Show intro again as text rows, and Close. No row bars. A bone tick marks a checked row. No bone frame. |
+| 04_title_continue.png | TitleScreen | A valid save exists. The wood panel grows to four text-only rows: CONTINUE, NEW GAME, OPTIONS, and EXIT. CONTINUE sits above NEW GAME in the same style and carries the bone tick. No row bars. Options closed. |
+| 05_title_new_confirm.png | TitleScreen | NEW GAME pressed with a save on disk. A wood confirmation over a dark backdrop reads 'Start a new run?' and 'This overwrites your saved run.', with text-only NEW GAME and BACK rows. BACK carries the bone tick. No row bars. |
 | 03_intro_card.png | SampleScene | First-run intro card centred over the Kharûn market. Header, body, tagline, and a text-only BEGIN. Play input is locked. |
 | 10_market_empty.png | SampleScene | Market at Kharûn. No cell is selected. The wagon holds the seeded cargo. The town panel shows House Kharûn, Rank 0, and progress 0 / 100. The top bar shows water and rations, and the cargo cap is 4/10. The rank line is off the top bar. |
 | 11_market_selected_buy.png | SampleScene | Market at Kharûn. A shop cell with stock is selected. The town panel shows House Kharûn, Rank 0, and progress 0 / 100. The top bar shows water and rations, and the cargo cap is 4/10. |
@@ -59,3 +61,5 @@ The market panel shows standing with House Kharûn and progress to the next rank
 45_tavern_locked.png lists all six pieces with the first one locked. 46_tavern_buy.png shows one lead and 540 coin with a live Buy. 47_tavern_owned.png shows the first piece owned. 48_westmark_gate.png is the Westmark road to Sarn's Rest. 49_sarns_rest.png is the arrival card. 50_end_screen.png is the Embarked ledger.
 
 Kharûn's Tavern hires a scout, a haggler, and a guard. 51_tavern_agents.png lists them unhired. 52_tavern_agents_hired.png shows the scout's dawn wage and Dismiss. The gates panel shows the encounter chance when a scout is riding, which is 53_gates_scout.png. Rush can cost a cargo unit on a bad encounter.
+
+The run autosaves one slot on arrival in a town, at dawn, and on quit. The title shows CONTINUE above NEW GAME only when a valid save exists. NEW GAME over a save asks first. The Embarked ending clears the save.

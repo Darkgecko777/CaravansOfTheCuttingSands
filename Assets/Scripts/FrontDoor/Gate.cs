@@ -10,6 +10,8 @@ namespace Caravans.FrontDoor
 
         public static bool RunConfirmed { get; private set; }
 
+        public static bool ResumeRequested { get; private set; }
+
         // Enter Play Mode keeps statics when domain reload is off. This still runs.
         static bool sessionRouted;
 
@@ -28,6 +30,7 @@ namespace Caravans.FrontDoor
         static void ClearRun()
         {
             RunConfirmed = false;
+            ResumeRequested = false;
             sessionRouted = false;
         }
 
@@ -58,13 +61,27 @@ namespace Caravans.FrontDoor
         public static void ReturnToTitle()
         {
             RunConfirmed = false;
+            ResumeRequested = false;
             ShowTitle();
         }
 
         public static void ConfirmRun()
         {
             RunConfirmed = true;
+            ResumeRequested = false;
             SceneManager.LoadScene(PlayScene);
+        }
+
+        public static void ContinueRun()
+        {
+            RunConfirmed = true;
+            ResumeRequested = true;
+            SceneManager.LoadScene(PlayScene);
+        }
+
+        public static void ClearResumeRequest()
+        {
+            ResumeRequested = false;
         }
     }
 }

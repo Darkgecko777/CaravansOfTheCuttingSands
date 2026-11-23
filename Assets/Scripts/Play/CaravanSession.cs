@@ -155,6 +155,7 @@ namespace Caravans.Play
         {
             ResetCaravan();
             SitAtKharun();
+            MarkSaveDue();
         }
 
         public int CargoOf(GoodId good)
@@ -1620,6 +1621,7 @@ namespace Caravans.Play
             ClearEncounter();
             criticalShown = false;
             criticalPending = false;
+            MarkSaveDue();
             Touch();
         }
 
@@ -1801,6 +1803,7 @@ namespace Caravans.Play
 
         void RunMorning()
         {
+            MarkSaveDue();
             PayWages();
             for (int place = 0; place < WorldIds.PlaceCount; place++)
             {

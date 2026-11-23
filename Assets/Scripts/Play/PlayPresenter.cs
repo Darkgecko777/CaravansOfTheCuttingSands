@@ -59,6 +59,7 @@ namespace Caravans.Play
         readonly List<Image> npcTokens = new List<Image>();
 
         CaravanSession session;
+        bool endSlotCleared;
         TMP_FontAsset font;
         Sprite quad;
         Sprite disc;
@@ -201,7 +202,19 @@ namespace Caravans.Play
 
         void Awake()
         {
-            session = new CaravanSession();
+            bool resume = Gate.ResumeRequested;
+            Gate.ClearResumeRequest();
+            CaravanSession loaded = null;
+            bool continued = resume && RunSaveStore.TryLoad(out loaded);
+            if (continued)
+                session = loaded;
+            else
+            {
+                if (resume)
+                    Debug.LogWarning("Caravans save could not be continued. Starting a new run.");
+                session = new CaravanSession();
+            }
+
             EnsureEventSystem();
             quad = MakeSprite(false);
             disc = MakeSprite(true);
@@ -215,7 +228,9 @@ namespace Caravans.Play
             }
             MarketSounds.Bind(gameObject);
             Build();
-            if (SessionSettings.ShouldShowIntro())
+            if (continued)
+                page = Page.Market;
+            else if (SessionSettings.ShouldShowIntro())
             {
                 introOpen = true;
                 page = Page.Market;
@@ -241,6 +256,64 @@ namespace Caravans.Play
             if (session.Revision != drawn)
                 Redraw();
             UpdateLive();
+            FlushAutosave();
+        }
+
+        void FlushAutosave()
+        {
+            if (session == null)
+                return;
+            if (session.EndScreenUp)
+            {
+                if (!endSlotCleared)
+                {
+                    endSlotCleared = true;
+                    ClearIfEnded(session);
+                }
+
+                return;
+            }
+
+            if (!session.SaveDue || !session.AtSafePoint)
+                return;
+            RunSaveStore.TryWrite(session);
+            session.ClearSaveDue();
+        }
+
+        internal static void SaveOnLeave(CaravanSession leaving)
+        {
+            if (leaving == null || leaving.EndScreenUp)
+                return;
+            if (leaving.DeathPending)
+                leaving.ContinueDeath();
+            if (!leaving.AtSafePoint)
+                return;
+            RunSaveStore.TryWrite(leaving);
+            leaving.ClearSaveDue();
+        }
+
+        internal static void ClearIfEnded(CaravanSession leaving)
+        {
+            if (leaving == null || !leaving.EndScreenUp)
+                return;
+            RunSaveStore.Clear();
+        }
+
+        void OnApplicationQuit()
+        {
+            SaveOnLeave(session);
+        }
+
+        void OnApplicationPause(bool paused)
+        {
+            if (paused)
+                SaveOnLeave(session);
+        }
+
+        void QuitGame()
+        {
+            SaveOnLeave(session);
+            TitleScreen.Quit();
         }
 
         // Escape, Enter, and Space dismiss the intro. The same frame must not also open the pause menu.
@@ -1211,7 +1284,7 @@ namespace Caravans.Play
             FrontUi.MenuItem(pauseList, "RESUME", true, ClosePause, 440f, 64f);
             FrontUi.MenuItem(pauseList, "OPTIONS", true, OpenPauseOptions, 440f, 64f);
             FrontUi.MenuItem(pauseList, "MAIN MENU", true, MainMenu, 440f, 64f);
-            FrontUi.MenuItem(pauseList, "QUIT", true, TitleScreen.Quit, 440f, 64f);
+            FrontUi.MenuItem(pauseList, "QUIT", true, QuitGame, 440f, 64f);
 
             pauseOptionsFrame = Child(optionsRoot, "Options");
             Center(pauseOptionsFrame, new Vector2(680f, 760f));
@@ -1405,6 +1478,7 @@ namespace Caravans.Play
 
         void MainMenu()
         {
+            SaveOnLeave(session);
             optionsOpen = false;
             optionsPage = false;
             Gate.ReturnToTitle();

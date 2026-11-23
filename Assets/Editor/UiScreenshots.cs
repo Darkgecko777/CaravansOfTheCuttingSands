@@ -15,6 +15,7 @@ using UnityEngine.SceneManagement;
 public static class UiScreenshots
 {
     const string RunKey = "Caravans.UiShots";
+    const string SandboxKey = "Caravans.UiShots.SaveDir";
     const string PrevKey = "Caravans.UiShots.PrevSize";
     const string PrevOk = "Caravans.UiShots.PrevOk";
     const string TitleScenePath = "Assets/Scenes/TitleScreen.unity";
@@ -37,8 +38,10 @@ public static class UiScreenshots
 
     static readonly Shot[] Shots =
     {
-        ShotOf("title", "01_title.png", "TitleScreen", "Compact wood panel under the tagline, desert around it. Text-only NEW GAME, OPTIONS, and EXIT. No row bars. A bone tick marks the selected row. No Continue. Options closed. The sand is blowing.", Kind.Title, Kind.Title),
+        ShotOf("title", "01_title.png", "TitleScreen", "Compact wood panel under the tagline, desert around it. No save on disk, so the menu is text-only NEW GAME, OPTIONS, and EXIT, with NEW GAME selected. No row bars. A bone tick marks the selected row. Options closed. The sand is blowing.", Kind.Title, Kind.Title),
         ShotOf("title-options", "02_title_options.png", "TitleScreen", "Options open on the wood panel over the main menu. Master, music, and SFX sliders, fullscreen, resolution, and Show intro again as text rows, and Close. No row bars. A bone tick marks a checked row. No bone frame.", Kind.Title, Kind.Title),
+        ShotOf("title-continue", "04_title_continue.png", "TitleScreen", "A valid save exists. The wood panel grows to four text-only rows: CONTINUE, NEW GAME, OPTIONS, and EXIT. CONTINUE sits above NEW GAME in the same style and carries the bone tick. No row bars. Options closed.", Kind.Title, Kind.Title),
+        ShotOf("title-new-confirm", "05_title_new_confirm.png", "TitleScreen", "NEW GAME pressed with a save on disk. A wood confirmation over a dark backdrop reads 'Start a new run?' and 'This overwrites your saved run.', with text-only NEW GAME and BACK rows. BACK carries the bone tick. No row bars.", Kind.Title, Kind.Title),
         ShotOf("show-play", null, null, null, Kind.Title, Kind.Play),
         ShotOf("intro", "03_intro_card.png", "SampleScene", "First-run intro card centred over the Kharûn market. Header, body, tagline, and a text-only BEGIN. Play input is locked.", Kind.Play, Kind.Play),
         ShotOf("seed", null, null, null, Kind.Play, Kind.Play),
@@ -85,7 +88,8 @@ public static class UiScreenshots
         + "36_supplies_hud.png is the market with one water skin aboard, so the top bar reads 1/4 and the water line names the pack. 37_skins_low.png is The Skins Run Low. 38_departure_short.png is You will run dry before Brineford. 39_rescue.png is Dry and the first highlands line. Each of those cards is one frame.\n\n"
         + "The market panel shows standing with House Kharûn and progress to the next rank. That line stays off the top bar. 42_standing_ranks.png is Rank 5 with 40 / 100 still to go inside the rank. 43_standing_rankup.png is the short toast, Your standing with House Kharûn has risen to rank 1. A rank-up fires that toast. It is not the wood pause panel.\n\n"
         + "45_tavern_locked.png lists all six pieces with the first one locked. 46_tavern_buy.png shows one lead and 540 coin with a live Buy. 47_tavern_owned.png shows the first piece owned. 48_westmark_gate.png is the Westmark road to Sarn's Rest. 49_sarns_rest.png is the arrival card. 50_end_screen.png is the Embarked ledger.\n\n"
-        + "Kharûn's Tavern hires a scout, a haggler, and a guard. 51_tavern_agents.png lists them unhired. 52_tavern_agents_hired.png shows the scout's dawn wage and Dismiss. The gates panel shows the encounter chance when a scout is riding, which is 53_gates_scout.png. Rush can cost a cargo unit on a bad encounter.\n";
+        + "Kharûn's Tavern hires a scout, a haggler, and a guard. 51_tavern_agents.png lists them unhired. 52_tavern_agents_hired.png shows the scout's dawn wage and Dismiss. The gates panel shows the encounter chance when a scout is riding, which is 53_gates_scout.png. Rush can cost a cargo unit on a bad encounter.\n\n"
+        + "The run autosaves one slot on arrival in a town, at dawn, and on quit. The title shows CONTINUE above NEW GAME only when a valid save exists. NEW GAME over a save asks first. The Embarked ending clears the save.\n";
 
     static bool updateHooked;
     static bool modeHooked;
@@ -131,6 +135,7 @@ public static class UiScreenshots
         try
         {
             PrepareFolder();
+            BeginSaveSandbox();
             step = 0;
             phase = Phase.Wait;
             SessionState.SetString(RunKey, "enter");
@@ -188,6 +193,9 @@ public static class UiScreenshots
         {
             if (SessionState.GetString(RunKey, "") != "enter")
                 return;
+            string folder = SessionState.GetString(SandboxKey, "");
+            if (!string.IsNullOrEmpty(folder))
+                SaveSlot.DirectoryOverride = folder;
             SessionState.SetString(RunKey, "walk");
             step = 0;
             phase = Phase.Wait;
@@ -212,9 +220,12 @@ public static class UiScreenshots
         EditorSceneManager.playModeStartScene = null;
         if (key == "exit")
         {
+            EndSaveSandbox();
             Begin();
             return;
         }
+
+        EndSaveSandbox();
 
         if (SessionState.GetBool(PrevOk, false))
             RestoreSize();
@@ -396,6 +407,47 @@ public static class UiScreenshots
         RestoreSize();
         if (EditorApplication.isPlaying)
             EditorApplication.isPlaying = false;
+        else
+            EndSaveSandbox();
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void RestoreSaveSandbox()
+    {
+        string phase = SessionState.GetString(RunKey, "");
+        if (phase != "enter" && phase != "walk" && phase != "exit")
+            return;
+        string folder = SessionState.GetString(SandboxKey, "");
+        if (string.IsNullOrEmpty(folder))
+            return;
+        SaveSlot.DirectoryOverride = folder;
+    }
+
+    static void BeginSaveSandbox()
+    {
+        string folder = Path.Combine(Application.temporaryCachePath, "caravans-ui-shots");
+        if (Directory.Exists(folder))
+            Directory.Delete(folder, true);
+        Directory.CreateDirectory(folder);
+        SessionState.SetString(SandboxKey, folder);
+        SaveSlot.DirectoryOverride = folder;
+    }
+
+    static void EndSaveSandbox()
+    {
+        string folder = SessionState.GetString(SandboxKey, "");
+        SaveSlot.DirectoryOverride = null;
+        SessionState.SetString(SandboxKey, "");
+        if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+            return;
+        try
+        {
+            Directory.Delete(folder, true);
+        }
+        catch (Exception error)
+        {
+            UnityEngine.Debug.LogWarning("UI screenshot save folder was not removed. " + error.Message);
+        }
     }
 
     static bool DoApply(Shot shot)
@@ -403,16 +455,33 @@ public static class UiScreenshots
         switch (shot.Apply)
         {
             case "title":
-                return TitleOptions(false);
+                return TitleShot(false, false);
             case "title-options":
-                return TitleOptions(true);
+                return TitleShot(false, false) && TitleOptions(true);
+            case "title-continue":
+                return TitleShot(true, false);
+            case "title-new-confirm":
+                return TitleShot(true, true);
             case "show-play":
+                if (!TitleShot(false, false))
+                    return false;
                 Gate.ConfirmRun();
                 return true;
             default:
                 PlayPresenter play = UnityEngine.Object.FindAnyObjectByType<PlayPresenter>();
                 return play != null && play.Shot(shot.Apply);
         }
+    }
+
+    static bool TitleShot(bool hasSave, bool confirm)
+    {
+        TitleScreen title = UnityEngine.Object.FindAnyObjectByType<TitleScreen>();
+        if (title == null || !title.ShotReady)
+            return false;
+        title.ShotOptions(false);
+        title.ShotSaveState(hasSave);
+        title.ShotConfirm(confirm);
+        return true;
     }
 
     static bool TitleOptions(bool open)

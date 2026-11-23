@@ -35,5 +35,29 @@ namespace Caravans.Play
             unlocked.Clear();
             fires.Clear();
         }
+
+        internal void Export(out string[] ids, out int[] counts)
+        {
+            var list = new System.Collections.Generic.List<string>(unlocked);
+            list.Sort(System.StringComparer.Ordinal);
+            ids = list.ToArray();
+            counts = new int[ids.Length];
+            for (int i = 0; i < ids.Length; i++)
+                counts[i] = UnlockCount(ids[i]);
+        }
+
+        internal void Import(string[] ids, int[] counts)
+        {
+            Clear();
+            if (ids == null || counts == null || ids.Length != counts.Length)
+                return;
+            for (int i = 0; i < ids.Length; i++)
+            {
+                if (string.IsNullOrEmpty(ids[i]) || counts[i] < 1)
+                    continue;
+                unlocked.Add(ids[i]);
+                fires[ids[i]] = counts[i];
+            }
+        }
     }
 }
