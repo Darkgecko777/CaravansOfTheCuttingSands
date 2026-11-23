@@ -62,6 +62,7 @@ namespace Caravans.Play
             public GoodId Good;
             public float Integrity;
             public int DecayedOnDay;
+            public int Basis;
         }
 
         struct LoggedPrice
@@ -75,8 +76,9 @@ namespace Caravans.Play
         readonly float[,] eatAcc = new float[WorldIds.PlaceCount, WorldIds.GoodCount];
         readonly float[,] makeAcc = new float[WorldIds.PlaceCount, WorldIds.GoodCount];
         readonly float[,] influence = new float[WorldIds.PlaceCount, WorldIds.HouseCount];
-        readonly int[] standingOf = new int[WorldIds.HouseCount];
+        readonly bool[] kharunFlipSeen = new bool[WorldIds.PlaceCount];
         readonly HouseId?[] patron = new HouseId?[WorldIds.PlaceCount];
+        float kharunPoints;
         readonly List<CargoUnit> stacks = new List<CargoUnit>();
         readonly LoggedPrice[] loggedBuy = new LoggedPrice[WorldIds.GoodCount];
         readonly LoggedPrice[] loggedSale = new LoggedPrice[WorldIds.GoodCount];
@@ -351,10 +353,7 @@ namespace Caravans.Play
             HouseId? holder = PatronOf(place);
             if (holder == null || holder.Value == House.Value)
                 return 0;
-            int percent = EconomyRates.TariffBase - standingOf[(int)holder.Value];
-            if (percent < EconomyRates.TariffFloor)
-                percent = EconomyRates.TariffFloor;
-            return percent;
+            return EconomyRates.TariffBase;
         }
 
         public HouseId? PatronOf(PlaceId place)
@@ -446,7 +445,8 @@ namespace Caravans.Play
             {
                 Good = good,
                 Integrity = 1f,
-                DecayedOnDay = DecayStamp()
+                DecayedOnDay = DecayStamp(),
+                Basis = price
             });
             Coin -= price;
             NoteVisitBuy(good);
@@ -529,19 +529,51 @@ namespace Caravans.Play
 
         void SellUnit(int index)
         {
-            GoodId good = stacks[index].Good;
-            float integrity = stacks[index].Integrity;
+            CargoUnit unit = stacks[index];
+            GoodId good = unit.Good;
+            float integrity = unit.Integrity;
+            int basis = unit.Basis;
             int gross = Gross(Dock, good, integrity);
             int net = Net(Dock, good, integrity, TariffPercent(Dock));
+            HouseId? patronBefore = PatronOf(Dock);
+            int rankBefore = GetKharunRank();
             stacks.RemoveAt(index);
             GoodId shelf = ShelfGood(good);
             PutStock(Dock, shelf, StockOf(Dock, shelf) + 1);
             Coin += net;
-            if (!TakeVisitBuy(good) && House != null && !EconomyCatalog.IsCity(Dock))
+            bool sameVisit = TakeVisitBuy(good);
+            bool refreshed = false;
+            if (!sameVisit && House != null && !EconomyCatalog.IsCity(Dock))
             {
                 influence[(int)Dock, (int)House.Value] += gross;
                 RefreshPatron(Dock);
+                refreshed = true;
             }
+
+            if (basis >= 0 && !sameVisit && good != GoodId.Rations)
+            {
+                int profit = net - basis;
+                if (profit > 0)
+                {
+                    float divisor = EconomyRates.StandingCoinPerPointBase
+                        + EconomyRates.StandingCoinPerPointStep * (float)rankBefore;
+                    if (divisor > 0f)
+                        AddPoints(profit / divisor, false);
+                }
+            }
+
+            if (refreshed && patronBefore != HouseId.Kharun && !kharunFlipSeen[(int)Dock])
+            {
+                HouseId? patronAfter = PatronOf(Dock);
+                if (patronAfter == HouseId.Kharun)
+                {
+                    kharunFlipSeen[(int)Dock] = true;
+                    AddPoints(EconomyRates.StandingFlipBonus, false);
+                }
+            }
+
+            if (GetKharunRank() > rankBefore)
+                RankUpNotice = "Your standing with House Kharûn has risen to rank " + GetKharunRank() + ".";
 
             Touch();
         }
@@ -654,7 +686,8 @@ namespace Caravans.Play
             {
                 Good = good,
                 Integrity = integrity,
-                DecayedOnDay = DecayStamp()
+                DecayedOnDay = DecayStamp(),
+                Basis = -1
             });
             Touch();
         }
@@ -988,14 +1021,83 @@ namespace Caravans.Play
             Touch();
         }
 
-        public void SetStanding(HouseId house, int steps)
+        public float KharunPoints
         {
-            if (steps < 0)
-                steps = 0;
-            if (steps > EconomyRates.StandingMax)
-                steps = EconomyRates.StandingMax;
-            standingOf[(int)house] = steps;
+            get { return kharunPoints; }
+        }
+
+        public string RankUpNotice { get; private set; }
+
+        // TODO: a later task sells the six pieces at Kharûn's Tavern, gated by ranks 1, 3, 5, 7, 9, and 10.
+        // Leads discount the price. The rank gates the sale and does not discount it.
+        public int GetKharunRank()
+        {
+            int span = EconomyRates.StandingPointsPerRank;
+            if (span <= 0)
+                return 0;
+            int rank = Mathf.FloorToInt(kharunPoints / span);
+            int cap = EconomyRates.StandingCap;
+            if (rank > cap)
+                rank = cap;
+            if (rank < 0)
+                rank = 0;
+            return rank;
+        }
+
+        public string StandingLine()
+        {
+            int rank = GetKharunRank();
+            string line = "House " + HouseName(HouseId.Kharun) + "  ·  Rank " + rank;
+            int cap = EconomyRates.StandingCap;
+            if (rank >= cap && cap > 0)
+                return line;
+            int span = EconomyRates.StandingPointsPerRank;
+            if (span <= 0)
+                return line;
+            int into = Mathf.FloorToInt(kharunPoints) - rank * span;
+            if (into < 0)
+                into = 0;
+            if (into > span)
+                into = span;
+            return line + "  ·  " + into + " / " + span;
+        }
+
+        public void AddKharunPoints(float delta)
+        {
+            AddPoints(delta, true);
+            if (delta > 0f)
+                Touch();
+        }
+
+        public void SetKharunPoints(float points)
+        {
+            kharunPoints = points < 0f ? 0f : points;
             Touch();
+        }
+
+        public void ClearRankUpNotice()
+        {
+            RankUpNotice = null;
+        }
+
+        internal int BasisAt(int index)
+        {
+            return stacks[index].Basis;
+        }
+
+        internal bool KharunFlipSeen(PlaceId place)
+        {
+            return kharunFlipSeen[(int)place];
+        }
+
+        void AddPoints(float delta, bool toast)
+        {
+            if (delta <= 0f)
+                return;
+            int before = GetKharunRank();
+            kharunPoints += delta;
+            if (toast && GetKharunRank() > before)
+                RankUpNotice = "Your standing with House Kharûn has risen to rank " + GetKharunRank() + ".";
         }
 
         public void AddPresence(PlaceId place, HouseId house, int coin)
@@ -1209,6 +1311,11 @@ namespace Caravans.Play
                 // TODO: each lead is a discount on the next piece of Sarn's map bought at a Tavern.
                 if (effects.rumourStars > 0 && MapPieceLeads < 1)
                     MapPieceLeads = 1;
+                int standingGrant = effects.kharunPoints;
+                if (standingGrant > 25)
+                    standingGrant = 25;
+                if (standingGrant > 0)
+                    AddKharunPoints(standingGrant);
                 if (effects.setFlags != null)
                 {
                     for (int i = 0; i < effects.setFlags.Length; i++)
@@ -2264,8 +2371,10 @@ namespace Caravans.Play
                 }
             }
 
-            for (int i = 0; i < standingOf.Length; i++)
-                standingOf[i] = 0;
+            kharunPoints = 0f;
+            RankUpNotice = null;
+            for (int i = 0; i < kharunFlipSeen.Length; i++)
+                kharunFlipSeen[i] = false;
             ClearVisitBuys();
 
             ApplyDefaultCaravan();

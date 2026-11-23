@@ -131,14 +131,29 @@ namespace Caravans.Play
             get { return GameConfig.Prices.tariffBase; }
         }
 
-        public static int TariffFloor
+        public static int StandingCap
         {
-            get { return GameConfig.Prices.tariffFloor; }
+            get { return GameConfig.Prices.standingCap; }
         }
 
-        public static int StandingMax
+        public static int StandingPointsPerRank
         {
-            get { return GameConfig.Prices.standingMax; }
+            get { return GameConfig.Prices.standingPointsPerRank; }
+        }
+
+        public static int StandingCoinPerPointBase
+        {
+            get { return GameConfig.Prices.standingCoinPerPointBase; }
+        }
+
+        public static int StandingCoinPerPointStep
+        {
+            get { return GameConfig.Prices.standingCoinPerPointStep; }
+        }
+
+        public static int StandingFlipBonus
+        {
+            get { return GameConfig.Prices.standingFlipBonus; }
         }
 
         public static float InfluenceKeep

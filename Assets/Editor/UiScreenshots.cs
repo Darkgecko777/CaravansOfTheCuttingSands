@@ -42,11 +42,11 @@ public static class UiScreenshots
         ShotOf("show-play", null, null, null, Kind.Title, Kind.Play),
         ShotOf("intro", "03_intro_card.png", "SampleScene", "First-run intro card centred over the Kharûn market. Header, body, tagline, and a text-only BEGIN. Play input is locked.", Kind.Play, Kind.Play),
         ShotOf("seed", null, null, null, Kind.Play, Kind.Play),
-        ShotOf("market-empty", "10_market_empty.png", "SampleScene", "Market at Kharûn. No cell is selected. The wagon holds the seeded cargo. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.Play, Kind.Play),
-        ShotOf("market-buy", "11_market_selected_buy.png", "SampleScene", "Market at Kharûn. A shop cell with stock is selected. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.Play, Kind.Play),
-        ShotOf("market-sort", "12_market_sort_menu.png", "SampleScene", "Market at Kharûn. The sort menu is open. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.Play, Kind.Play),
-        ShotOf("market-wagon", "13_market_selected_wagon.png", "SampleScene", "Market at Kharûn. A wagon cell is selected. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.Play, Kind.Play),
-        ShotOf("ridgewatch", "15_market_ridgewatch.png", "SampleScene", "Market parked at Ridgewatch, so the top bar shows that longer name beside the water and rations readout. The cargo cap is 4/10. The wagon still holds the seeded cargo.", Kind.Play, Kind.Play),
+        ShotOf("market-empty", "10_market_empty.png", "SampleScene", "Market at Kharûn. No cell is selected. The wagon holds the seeded cargo. The town panel shows House Kharûn, Rank 0, and progress 0 / 100. The top bar shows water and rations, and the cargo cap is 4/10. The rank line is off the top bar.", Kind.Play, Kind.Play),
+        ShotOf("market-buy", "11_market_selected_buy.png", "SampleScene", "Market at Kharûn. A shop cell with stock is selected. The town panel shows House Kharûn, Rank 0, and progress 0 / 100. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.Play, Kind.Play),
+        ShotOf("market-sort", "12_market_sort_menu.png", "SampleScene", "Market at Kharûn. The sort menu is open. The town panel shows House Kharûn, Rank 0, and progress 0 / 100. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.Play, Kind.Play),
+        ShotOf("market-wagon", "13_market_selected_wagon.png", "SampleScene", "Market at Kharûn. A wagon cell is selected. The town panel shows House Kharûn, Rank 0, and progress 0 / 100. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.Play, Kind.Play),
+        ShotOf("ridgewatch", "15_market_ridgewatch.png", "SampleScene", "Market parked at Ridgewatch, so the top bar shows that longer name beside the water and rations readout. The town panel shows House Kharûn, Rank 0, and progress 0 / 100, and that line does not clip the Ridgewatch name. The cargo cap is 4/10. The wagon still holds the seeded cargo.", Kind.Play, Kind.Play),
         ShotOf("inn", "20_plaza_inn.png", "SampleScene", "Plaza, Inn, at Kharûn. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.Play, Kind.Play),
         ShotOf("gates", "21_plaza_gates.png", "SampleScene", "Plaza, Gates, at Kharûn. No road is lit. Neighbour road buttons sit inside the gates panel. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("logbook", "40_logbook.png", "SampleScene", "Logbook open over the market at Kharûn, between the bars. Seeded buy and sale figures are on the rows. An unseen price is a dash.", Kind.Play, Kind.Play),
@@ -57,10 +57,12 @@ public static class UiScreenshots
         ShotOf("encounter", "33_encounter.png", "SampleScene", "Encounter card open on the Draven road. The title is Soft Ground. The scene and two choices are visible.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("camp", "34_camp.png", "SampleScene", "Make camp card open on the Draven road.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("resume", "35_resume_pace.png", "SampleScene", "Pace card after camp on the Draven road. Dawn and dusk are offered. The camp has advanced the clock.", Kind.PlayMap, Kind.PlayMap),
-        ShotOf("supplies-hud", "36_supplies_hud.png", "SampleScene", "Market at Kharûn. The top bar shows one water skin in the packs, more than four days of water, four days of rations, and cargo 1/4. The weight cap is 10.", Kind.Play, Kind.Play),
+        ShotOf("supplies-hud", "36_supplies_hud.png", "SampleScene", "Market at Kharûn. The town panel shows House Kharûn, Rank 0, and progress 0 / 100. The top bar shows one water skin in the packs, more than four days of water, four days of rations, and cargo 1/4. The weight cap is 10.", Kind.Play, Kind.Play),
         ShotOf("skins-low", "37_skins_low.png", "SampleScene", "The Skins Run Low card on the Draven road. One frame, the title and the body in full, cream and gold, and one Continue.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("departure-short", "38_departure_short.png", "SampleScene", "You will run dry, before Brineford, with haul 1 water and 1 rations. Take the road anyway and Back are on the card.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("rescue", "39_rescue.png", "SampleScene", "Dry, the lead, and the first highlands rescue line. One Continue. The backdrop does not dismiss it.", Kind.PlayMap, Kind.PlayMap),
+        ShotOf("standing-ranks", "42_standing_ranks.png", "SampleScene", "Market at Kharûn. The town panel shows House Kharûn, a forced mid rank (e.g. Rank 5), and progress to the next rank (e.g. 40 / 100). Cream / ink text, circumflex on Kharûn, no toast covering the grid.", Kind.Play, Kind.Play),
+        ShotOf("standing-rankup", "43_standing_rankup.png", "SampleScene", "Rank-up toast over the market or dock: 'Your standing with House Kharûn has risen to rank 1.' Short toast, not a modal, hide-and-bone play chrome, not the wood pause panel.", Kind.Play, Kind.Play),
     };
 
     const string Notes =
@@ -71,7 +73,8 @@ public static class UiScreenshots
         + "03_intro_card.png is the first-run intro card, one wood panel over the Kharûn market. It shows the header, the body, the tagline, and a text-only BEGIN. Play input is locked. Later New Games skip the card unless Show intro again is on.\n\n"
         + "15_market_ridgewatch.png is the long dock name. Sarn's Rest is a landmark. House, Tavern, and Stables are off the bar in this capture.\n\n"
         + "The caravan is House Kharûn. This run buys the first goods Kharûn will sell until four units are aboard, and it records the buy and sale figures the market would show. The clock stays at the new-game hour until the camp card. A new game cargo cap is 4 slots and 10 weight. The top bar shows water and rations beside the coin.\n\n"
-        + "36_supplies_hud.png is the market with one water skin aboard, so the top bar reads 1/4 and the water line names the pack. 37_skins_low.png is The Skins Run Low. 38_departure_short.png is You will run dry before Brineford. 39_rescue.png is Dry and the first highlands line. Each of those cards is one frame.\n";
+        + "36_supplies_hud.png is the market with one water skin aboard, so the top bar reads 1/4 and the water line names the pack. 37_skins_low.png is The Skins Run Low. 38_departure_short.png is You will run dry before Brineford. 39_rescue.png is Dry and the first highlands line. Each of those cards is one frame.\n\n"
+        + "The market panel shows standing with House Kharûn and progress to the next rank. That line stays off the top bar. 42_standing_ranks.png is Rank 5 with 40 / 100 still to go inside the rank. 43_standing_rankup.png is the short toast, Your standing with House Kharûn has risen to rank 1. A rank-up fires that toast. It is not the wood pause panel.\n";
 
     static bool updateHooked;
     static bool modeHooked;

@@ -100,7 +100,7 @@ namespace Caravans.Play.Tests
         }
 
         [Test]
-        public void RivalCutFallsFromTwelveToFour()
+        public void ARivalCutStaysAtTwelve()
         {
             var session = new CaravanSession();
             session.AddPresence(PlaceId.Draven, HouseId.Zamath, 80);
@@ -109,19 +109,29 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(EconomyCatalog.CityHouse(PlaceId.Kharun), session.PatronOf(PlaceId.Kharun));
 
             int dravenAsk = SpreadAsk(session, PlaceId.Draven, GoodId.ShimmersteelJars);
-            session.SetStanding(HouseId.Zamath, 0);
+            Assert.AreEqual(0, session.GetKharunRank());
             Assert.AreEqual(12, session.TariffPercent(PlaceId.Draven));
             Assert.AreEqual(dravenAsk + Cut(dravenAsk, 12), session.BuyCost(PlaceId.Draven, GoodId.ShimmersteelJars));
-            session.SetStanding(HouseId.Zamath, 8);
-            Assert.AreEqual(4, session.TariffPercent(PlaceId.Draven));
-            Assert.AreEqual(dravenAsk + Cut(dravenAsk, 4), session.BuyCost(PlaceId.Draven, GoodId.ShimmersteelJars));
+            session.SetKharunPoints(1000f);
+            Assert.AreEqual(10, session.GetKharunRank());
+            Assert.AreEqual(12, session.TariffPercent(PlaceId.Draven));
+            Assert.AreEqual(dravenAsk + Cut(dravenAsk, 12), session.BuyCost(PlaceId.Draven, GoodId.ShimmersteelJars));
             Assert.AreEqual(0, session.TariffPercent(PlaceId.Kharun));
             int kharunAsk = SpreadAsk(session, PlaceId.Kharun, GoodId.ShimmersteelJars);
             Assert.AreEqual(kharunAsk, session.BuyCost(PlaceId.Kharun, GoodId.ShimmersteelJars));
+            session.AddPresence(PlaceId.Westmark, HouseId.Kharun, 40);
+            Assert.AreEqual(HouseId.Kharun, session.PatronOf(PlaceId.Westmark));
+            Assert.AreEqual(0, session.TariffPercent(PlaceId.Westmark));
+            Assert.IsFalse(session.KharunFlipSeen(PlaceId.Westmark));
+            Assert.AreEqual(0, session.TariffPercent(PlaceId.Ashar));
 
             float before = session.InfluenceOf(PlaceId.Draven, HouseId.Zamath);
+            float points = session.KharunPoints;
             session.TickMorning();
             Assert.AreEqual(before * 0.75f, session.InfluenceOf(PlaceId.Draven, HouseId.Zamath), 0.01f);
+            Assert.AreEqual(points, session.KharunPoints, 0.001f);
+            Assert.IsFalse(session.KharunFlipSeen(PlaceId.Draven));
+            Assert.IsTrue(string.IsNullOrEmpty(session.RankUpNotice));
         }
 
         [Test]
@@ -1384,8 +1394,7 @@ namespace Caravans.Play.Tests
             Assert.IsTrue(session.HasLoggedBuy(GoodId.FrostIron));
             session.SetRunFlag("prophet_ignored");
             session.AddPresence(PlaceId.Draven, HouseId.Zamath, 100);
-            session.SetStanding(HouseId.Zamath, 4);
-            Assert.AreEqual(EconomyRates.TariffBase - 4, session.TariffPercent(PlaceId.Draven));
+            Assert.AreEqual(EconomyRates.TariffBase, session.TariffPercent(PlaceId.Draven));
             Assert.AreEqual(HouseId.Zamath, session.PatronOf(PlaceId.Draven));
             session.GiveCargo(GoodId.MorRoot, 1f);
             session.SetKit(0.05f, 0.05f);
@@ -1419,7 +1428,7 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(3, session.StockOf(PlaceId.Kharun, GoodId.FrostIron));
             Assert.AreEqual(logged, session.LoggedBuy(GoodId.FrostIron));
             Assert.IsTrue(session.HasRunFlag("prophet_ignored"));
-            Assert.AreEqual(EconomyRates.TariffBase - 4, session.TariffPercent(PlaceId.Draven));
+            Assert.AreEqual(EconomyRates.TariffBase, session.TariffPercent(PlaceId.Draven));
             Assert.AreEqual(HouseId.Zamath, session.PatronOf(PlaceId.Draven));
             Assert.AreEqual(1, session.RescueCount);
 
@@ -1581,6 +1590,281 @@ namespace Caravans.Play.Tests
             }
             Assert.IsTrue(session.CampPending);
             return water - session.WaterLitres;
+        }
+
+        [Test]
+        public void ABuyKeepsItsOwnBasis()
+        {
+            var session = new CaravanSession();
+            session.SetCoin(4000);
+            session.SetShelf(PlaceId.Kharun, GoodId.DreamLotusNectar, 30);
+            int cost = session.BuyCost(PlaceId.Kharun, GoodId.DreamLotusNectar);
+            Assert.IsTrue(session.TryBuy(GoodId.DreamLotusNectar));
+            Assert.AreEqual(cost, session.BasisAt(0));
+            session.ApplyIntegrityHit(GoodId.DreamLotusNectar, 0.15f);
+            Assert.AreEqual(cost, session.BasisAt(0));
+            session.SetShelf(PlaceId.Kharun, GoodId.DreamLotusNectar, 1);
+            int later = session.BuyCost(PlaceId.Kharun, GoodId.DreamLotusNectar);
+            Assert.AreNotEqual(cost, later);
+            Assert.IsTrue(session.TryBuy(GoodId.DreamLotusNectar));
+            Assert.AreEqual(later, session.BasisAt(1));
+            Assert.Less(session.CargoIntegrityAt(0), session.CargoIntegrityAt(1));
+
+            session.ShotDockAt(PlaceId.Zamath);
+            session.SetShelf(PlaceId.Zamath, GoodId.DreamLotusNectar, 0);
+            int net = session.SellValue(PlaceId.Zamath, GoodId.DreamLotusNectar);
+            int profit = net - cost;
+            Assert.Greater(profit, 0);
+            float before = session.KharunPoints;
+            Assert.IsTrue(session.TrySell(GoodId.DreamLotusNectar));
+            float divisor = EconomyRates.StandingCoinPerPointBase;
+            Assert.AreEqual(before + profit / divisor, session.KharunPoints, 0.001f);
+            Assert.AreEqual(later, session.BasisAt(0));
+            Assert.AreEqual(0, session.GetKharunRank());
+        }
+
+        [Test]
+        public void FillsAndPoursAwardNoStanding()
+        {
+            var session = new CaravanSession();
+            session.SetCoin(400);
+            session.SetKit(10f, 16f);
+            float points = session.KharunPoints;
+            Assert.IsTrue(session.TryFillWater());
+            Assert.AreEqual(points, session.KharunPoints, 0.001f);
+            session.SetKit(40f, 4f);
+            Assert.IsTrue(session.TryFillFood());
+            Assert.AreEqual(points, session.KharunPoints, 0.001f);
+
+            session.GiveCargo(GoodId.Water, 1f);
+            Assert.AreEqual(-1, session.BasisAt(0));
+            session.SetKit(8f, 16f);
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            session.SpendRoadHours(1f);
+            Assert.AreEqual(0, session.CargoOf(GoodId.Water));
+            Assert.AreEqual(points, session.KharunPoints, 0.001f);
+            Assert.IsFalse(session.KharunFlipSeen(PlaceId.Draven));
+
+            var food = new CaravanSession();
+            food.GiveCargo(GoodId.Rations, 1f);
+            food.SetKit(40f, 3.2f);
+            Assert.IsTrue(food.DepartTo(PlaceId.Draven));
+            food.SpendRoadHours(1f);
+            Assert.AreEqual(0, food.CargoOf(GoodId.Rations));
+            Assert.AreEqual(0f, food.KharunPoints, 0.001f);
+        }
+
+        [Test]
+        public void AProfitableSaleAnywhereRaisesKharunPoints()
+        {
+            var kharun = new CaravanSession();
+            float city = SellDear(kharun, PlaceId.Kharun, PlaceId.Zamath);
+            Assert.Greater(city, 0f);
+            Assert.AreEqual(city, kharun.KharunPoints, 0.001f);
+            Assert.IsFalse(kharun.KharunFlipSeen(PlaceId.Zamath));
+            Assert.IsFalse(kharun.KharunFlipSeen(PlaceId.Kharun));
+
+            var rival = new CaravanSession();
+            float away = SellDear(rival, PlaceId.Draven, PlaceId.Zamath);
+            Assert.Greater(away, 0f);
+            Assert.AreEqual(away, rival.KharunPoints, 0.001f);
+            Assert.AreEqual(12, rival.TariffPercent(PlaceId.Zamath));
+
+            var held = new CaravanSession();
+            held.AddPresence(PlaceId.Draven, HouseId.Kharun, 80);
+            Assert.AreEqual(HouseId.Kharun, held.PatronOf(PlaceId.Draven));
+            Assert.IsFalse(held.KharunFlipSeen(PlaceId.Draven));
+            float home = SellDear(held, PlaceId.Kharun, PlaceId.Draven);
+            Assert.Greater(home, 0f);
+            Assert.AreEqual(home, held.KharunPoints, 0.001f);
+            Assert.IsFalse(held.KharunFlipSeen(PlaceId.Draven));
+            Assert.AreEqual(0, held.TariffPercent(PlaceId.Draven));
+
+            var open = new CaravanSession();
+            Assert.IsNull(open.PatronOf(PlaceId.Draven));
+            float flipped = SellDear(open, PlaceId.Kharun, PlaceId.Draven);
+            Assert.AreEqual(flipped + EconomyRates.StandingFlipBonus, open.KharunPoints, 0.001f);
+            Assert.IsTrue(open.KharunFlipSeen(PlaceId.Draven));
+            Assert.AreEqual(HouseId.Kharun, open.PatronOf(PlaceId.Draven));
+        }
+
+        [Test]
+        public void EighteenHundredCoinOfProfitReachesRankOne()
+        {
+            var session = new CaravanSession();
+            float profitCoin = 0f;
+            float points = 0f;
+            for (int n = 0; n < 40 && session.GetKharunRank() < 1; n++)
+            {
+                int rankBefore = session.GetKharunRank();
+                Assert.AreEqual(0, rankBefore);
+                float added = SellDear(session, PlaceId.Draven, PlaceId.Kharun);
+                Assert.Greater(added, 0f);
+                profitCoin += added * (EconomyRates.StandingCoinPerPointBase + EconomyRates.StandingCoinPerPointStep * rankBefore);
+                points += added;
+                Assert.AreEqual(points, session.KharunPoints, 0.02f);
+                Assert.IsFalse(session.KharunFlipSeen(PlaceId.Kharun));
+            }
+
+            Assert.GreaterOrEqual(profitCoin, 1800f);
+            Assert.GreaterOrEqual(session.KharunPoints, 100f);
+            Assert.AreEqual(1, session.GetKharunRank());
+            Assert.IsFalse(session.KharunFlipSeen(PlaceId.Draven));
+        }
+
+        [Test]
+        public void StandingSkipsLossesResalesFindsAndRations()
+        {
+            var loss = new CaravanSession();
+            loss.SetCoin(4000);
+            loss.ShotDockAt(PlaceId.Kharun);
+            loss.SetShelf(PlaceId.Kharun, GoodId.DreamLotusNectar, 1);
+            Assert.IsTrue(loss.TryBuy(GoodId.DreamLotusNectar));
+            loss.ShotDockAt(PlaceId.Zamath);
+            loss.SetShelf(PlaceId.Zamath, GoodId.DreamLotusNectar, 40);
+            int basis = loss.BasisAt(0);
+            int net = loss.SellValueAt(0);
+            Assert.LessOrEqual(net, basis);
+            Assert.IsTrue(loss.TrySell(GoodId.DreamLotusNectar));
+            Assert.AreEqual(0f, loss.KharunPoints, 0.001f);
+
+            var resale = new CaravanSession();
+            resale.SetCoin(4000);
+            resale.ShotDockAt(PlaceId.Draven);
+            resale.SetShelf(PlaceId.Draven, GoodId.ShimmersteelJars, 6);
+            Assert.IsTrue(resale.TryBuy(GoodId.ShimmersteelJars));
+            Assert.IsTrue(resale.TrySell(GoodId.ShimmersteelJars));
+            Assert.AreEqual(0f, resale.KharunPoints, 0.001f);
+            Assert.IsFalse(resale.KharunFlipSeen(PlaceId.Draven));
+            Assert.IsNull(resale.PatronOf(PlaceId.Draven));
+
+            var found = new CaravanSession();
+            found.GiveCargo(GoodId.ShimmersteelJars, 1f);
+            Assert.AreEqual(-1, found.BasisAt(0));
+            found.ShotDockAt(PlaceId.Kharun);
+            int purse = found.Coin;
+            int sold = found.SellValueAt(0);
+            Assert.IsTrue(found.TrySellStack(0));
+            Assert.AreEqual(purse + sold, found.Coin);
+            Assert.AreEqual(0f, found.KharunPoints, 0.001f);
+            Assert.IsFalse(found.KharunFlipSeen(PlaceId.Kharun));
+        }
+
+        [Test]
+        public void TheFirstPlayerFlipPaysOnce()
+        {
+            var village = new CaravanSession();
+            float sale = SellDear(village, PlaceId.Kharun, PlaceId.Draven);
+            Assert.AreEqual(sale + EconomyRates.StandingFlipBonus, village.KharunPoints, 0.001f);
+            Assert.IsTrue(village.KharunFlipSeen(PlaceId.Draven));
+            float hold = village.InfluenceOf(PlaceId.Draven, HouseId.Kharun);
+            village.AddPresence(PlaceId.Draven, HouseId.Zamath, Mathf.CeilToInt(hold) + 1);
+            Assert.AreEqual(HouseId.Zamath, village.PatronOf(PlaceId.Draven));
+            float again = SellDear(village, PlaceId.Kharun, PlaceId.Draven);
+            Assert.AreEqual(sale + EconomyRates.StandingFlipBonus + again, village.KharunPoints, 0.02f);
+            Assert.IsTrue(village.KharunFlipSeen(PlaceId.Draven));
+            Assert.AreEqual(HouseId.Kharun, village.PatronOf(PlaceId.Draven));
+
+            var post = new CaravanSession();
+            float west = SellDear(post, PlaceId.Kharun, PlaceId.Westmark);
+            Assert.AreEqual(west + EconomyRates.StandingFlipBonus, post.KharunPoints, 0.001f);
+            Assert.IsTrue(post.KharunFlipSeen(PlaceId.Westmark));
+            Assert.AreEqual(HouseId.Kharun, post.PatronOf(PlaceId.Westmark));
+
+            var npc = new CaravanSession();
+            npc.AddPresence(PlaceId.Draven, HouseId.Kharun, 40);
+            Assert.AreEqual(HouseId.Kharun, npc.PatronOf(PlaceId.Draven));
+            Assert.AreEqual(0f, npc.KharunPoints, 0.001f);
+            Assert.IsFalse(npc.KharunFlipSeen(PlaceId.Draven));
+            npc.AddPresence(PlaceId.Draven, HouseId.Zamath, 200);
+            Assert.AreEqual(HouseId.Zamath, npc.PatronOf(PlaceId.Draven));
+            float later = SellDear(npc, PlaceId.Kharun, PlaceId.Draven);
+            Assert.AreEqual(later + EconomyRates.StandingFlipBonus, npc.KharunPoints, 0.001f);
+            Assert.IsTrue(npc.KharunFlipSeen(PlaceId.Draven));
+        }
+
+        [Test]
+        public void RankCapsAtTenAndDoesNotDrop()
+        {
+            var session = new CaravanSession();
+            Assert.AreEqual(0, session.GetKharunRank());
+            Assert.AreEqual("House Kharûn  ·  Rank 0  ·  0 / 100", session.StandingLine());
+            session.SetKharunPoints(540f);
+            Assert.AreEqual(5, session.GetKharunRank());
+            Assert.AreEqual("House Kharûn  ·  Rank 5  ·  40 / 100", session.StandingLine());
+            Assert.IsTrue(string.IsNullOrEmpty(session.RankUpNotice));
+            session.SetKharunPoints(2500f);
+            Assert.AreEqual(10, session.GetKharunRank());
+            Assert.AreEqual(EconomyRates.StandingCap, session.GetKharunRank());
+            Assert.AreEqual("House Kharûn  ·  Rank 10", session.StandingLine());
+            float points = session.KharunPoints;
+            session.AddKharunPoints(80f);
+            Assert.AreEqual(points + 80f, session.KharunPoints, 0.001f);
+            Assert.AreEqual(10, session.GetKharunRank());
+            session.AddKharunPoints(0f);
+            Assert.AreEqual(points + 80f, session.KharunPoints, 0.001f);
+            session.SetCoin(4000);
+            session.ShotDockAt(PlaceId.Kharun);
+            session.SetShelf(PlaceId.Kharun, GoodId.DreamLotusNectar, 1);
+            Assert.IsTrue(session.TryBuy(GoodId.DreamLotusNectar));
+            session.ShotDockAt(PlaceId.Zamath);
+            session.SetShelf(PlaceId.Zamath, GoodId.DreamLotusNectar, 40);
+            int basis = session.BasisAt(0);
+            int net = session.SellValueAt(0);
+            Assert.LessOrEqual(net, basis);
+            Assert.IsTrue(session.TrySell(GoodId.DreamLotusNectar));
+            Assert.AreEqual(points + 80f, session.KharunPoints, 0.001f);
+        }
+
+        [Test]
+        public void ASoftResetKeepsKharunStanding()
+        {
+            var session = new CaravanSession();
+            SellDear(session, PlaceId.Kharun, PlaceId.Draven);
+            Assert.IsTrue(session.KharunFlipSeen(PlaceId.Draven));
+            session.ShotDockAt(PlaceId.Kharun);
+            session.SetKharunPoints(250f);
+            session.ClearRankUpNotice();
+            Assert.AreEqual(2, session.GetKharunRank());
+            session.GiveCargo(GoodId.MorRoot, 1f);
+            Assert.AreEqual(-1, session.BasisAt(session.CargoCount - 1));
+            session.SetKit(0f, 0f);
+            Assert.IsTrue(session.DepartTo(PlaceId.Draven));
+            session.SpendRoadHours(1f);
+            Assert.IsTrue(session.DeathPending);
+            session.ContinueDeath();
+            Assert.AreEqual(250f, session.KharunPoints, 0.001f);
+            Assert.AreEqual(2, session.GetKharunRank());
+            Assert.IsTrue(session.KharunFlipSeen(PlaceId.Draven));
+            Assert.AreEqual(0, session.CargoCount);
+            Assert.IsTrue(string.IsNullOrEmpty(session.RankUpNotice));
+        }
+
+        static float SellDear(CaravanSession session, PlaceId buyAt, PlaceId sellAt)
+        {
+            session.SetCoin(8000);
+            session.ShotDockAt(buyAt);
+            session.SetShelf(buyAt, GoodId.DreamLotusNectar, 30);
+            Assert.IsTrue(session.TryBuy(GoodId.DreamLotusNectar), "buy at " + buyAt);
+            int index = session.CargoCount - 1;
+            int basis = session.BasisAt(index);
+            int rankBefore = session.GetKharunRank();
+            session.ShotDockAt(sellAt);
+            session.SetShelf(sellAt, GoodId.DreamLotusNectar, 0);
+            int net = session.SellValueAt(index);
+            int profit = net - basis;
+            Assert.Greater(profit, 0, buyAt + " to " + sellAt);
+            float before = session.KharunPoints;
+            bool seen = session.KharunFlipSeen(sellAt);
+            HouseId? patronBefore = session.PatronOf(sellAt);
+            Assert.IsTrue(session.TrySellStack(index));
+            float divisor = EconomyRates.StandingCoinPerPointBase + EconomyRates.StandingCoinPerPointStep * rankBefore;
+            float added = profit / divisor;
+            float flip = !seen && patronBefore != HouseId.Kharun && session.KharunFlipSeen(sellAt)
+                ? EconomyRates.StandingFlipBonus
+                : 0f;
+            Assert.AreEqual(before + added + flip, session.KharunPoints, 0.02f);
+            return added;
         }
 
         static float Elapsed(CaravanSession session, int day, float hour)

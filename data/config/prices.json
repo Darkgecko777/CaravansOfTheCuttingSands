@@ -12,7 +12,10 @@
   "rationWeight": 1,
   "rationSpace": 1,
   "tariffBase": 12,
-  "tariffFloor": 4,
-  "standingMax": 8,
+  "standingCap": 10,
+  "standingPointsPerRank": 100,
+  "standingCoinPerPointBase": 18,
+  "standingCoinPerPointStep": 8,
+  "standingFlipBonus": 15,
   "influenceKeep": 0.75
 }

@@ -96,7 +96,9 @@ namespace Caravans.Play
                 "fullCoverDays", "ordinaryCoverDays", "emptyMultiplier", "fullMultiplier", "merchantSpread", "productionScale",
                 "waterBasePrice", "waterWeight", "waterSpace",
                 "rationBasePrice", "rationWeight", "rationSpace",
-                "tariffBase", "tariffFloor", "standingMax", "influenceKeep");
+                "tariffBase", "standingCap", "standingPointsPerRank",
+                "standingCoinPerPointBase", "standingCoinPerPointStep", "standingFlipBonus",
+                "influenceKeep");
             weather = Read<WeatherFile>("weather.json",
                 "heatStretch", "windStretch", "sandstormStretch",
                 "visionDay", "visionNight", "visionSandstorm");
@@ -284,8 +286,11 @@ namespace Caravans.Play
         public int rationWeight;
         public int rationSpace;
         public int tariffBase;
-        public int tariffFloor;
-        public int standingMax;
+        public int standingCap;
+        public int standingPointsPerRank;
+        public int standingCoinPerPointBase;
+        public int standingCoinPerPointStep;
+        public int standingFlipBonus;
         public float influenceKeep;
     }
 

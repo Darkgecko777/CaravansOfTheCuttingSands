@@ -998,6 +998,7 @@ namespace Caravans.Play
         public bool fillKit;
         public EncounterCargoOp[] cargo;
         public int rumourStars;
+        public int kharunPoints;
         public string[] setFlags;
         public string[] clearFlags;
     }

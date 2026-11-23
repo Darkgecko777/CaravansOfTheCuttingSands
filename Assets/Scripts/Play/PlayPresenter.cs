@@ -131,6 +131,10 @@ namespace Caravans.Play
         TextMeshProUGUI listenText;
         TextMeshProUGUI legText;
         TextMeshProUGUI housePageText;
+        TextMeshProUGUI standingText;
+        TextMeshProUGUI standingToast;
+        float standingToastLeft;
+        bool standingToastHold;
         RectTransform shopHost;
         RectTransform wagonHost;
         GridLayoutGroup shopGrid;
@@ -335,8 +339,35 @@ namespace Caravans.Play
             var panel = FrameSheet(Child(page, "MarketPanel"), false);
             Stretch(panel.rectTransform, FrameGap);
 
+            var standingBand = Child(panel.rectTransform, "Standing");
+            standingBand.anchorMin = new Vector2(0f, 1f);
+            standingBand.anchorMax = new Vector2(1f, 1f);
+            standingBand.pivot = new Vector2(0f, 1f);
+            standingBand.anchoredPosition = new Vector2(36f, -16f);
+            standingBand.sizeDelta = new Vector2(-72f, 28f);
+            standingText = Body(standingBand, UiType.Small, TextAlignmentOptions.Center);
+            standingText.color = Ink;
+            Stretch(standingText.rectTransform);
+            standingText.textWrappingMode = TextWrappingModes.NoWrap;
+            standingText.overflowMode = TextOverflowModes.Overflow;
+
+            var toastBar = Child(panel.rectTransform, "RankToast");
+            toastBar.anchorMin = new Vector2(0.5f, 1f);
+            toastBar.anchorMax = new Vector2(0.5f, 1f);
+            toastBar.pivot = new Vector2(0.5f, 1f);
+            toastBar.anchoredPosition = new Vector2(0f, -48f);
+            toastBar.sizeDelta = new Vector2(980f, 44f);
+            DarkBar(toastBar, false);
+            standingToast = Body(toastBar, UiType.Small, TextAlignmentOptions.Center);
+            standingToast.color = Ink;
+            Stretch(standingToast.rectTransform);
+            standingToast.textWrappingMode = TextWrappingModes.NoWrap;
+            standingToast.overflowMode = TextOverflowModes.Overflow;
+            toastBar.gameObject.SetActive(false);
+
             var columns = Child(panel.rectTransform, "Columns");
             Stretch(columns, 44f);
+            columns.offsetMax = new Vector2(-44f, -104f);
             var row = columns.gameObject.AddComponent<HorizontalLayoutGroup>();
             row.spacing = 0f;
             row.padding = new RectOffset(8, 8, 8, 8);
@@ -1377,6 +1408,8 @@ namespace Caravans.Play
             ShowRoadChoice(roadChoice);
 
             ApplyGround(session.Dock);
+            PaintStanding();
+            PollRankToast();
             outlookText.text = session.OutlookLine();
             nextCampText.text = NextCampLine();
             listenText.text = listenLine;
@@ -2212,6 +2245,22 @@ namespace Caravans.Play
                     legText.text = session.LastNotice;
                 else
                     legText.text = session.Traveling ? session.LegWeatherLine() : string.Empty;
+            }
+
+            PaintStanding();
+            PollRankToast();
+            if (!standingToastHold && standingToastLeft > 0f)
+            {
+                standingToastLeft -= Time.unscaledDeltaTime;
+                if (standingToast != null && standingToastLeft < 0.8f)
+                {
+                    Color ink = Ink;
+                    ink.a = Mathf.Clamp01(standingToastLeft / 0.8f);
+                    standingToast.color = ink;
+                }
+
+                if (standingToastLeft <= 0f)
+                    HideStandingToast();
             }
             TintPace(pauseButton, session.Pace == 0 && session.Traveling);
             TintPace(pace1, session.Pace == 1);
@@ -3319,6 +3368,31 @@ namespace Caravans.Play
                     plazaSpot = PlazaSpot.Gates;
                     FinishShot();
                     return session.DeathPending && session.RescueTitle == "Dry";
+                case "standing-ranks":
+                    ShotClearOverlays();
+                    if (session.Traveling || session.Dock != PlaceId.Kharun)
+                        session.ShotDockAt(PlaceId.Kharun);
+                    session.SetKharunPoints(540f);
+                    page = Page.Market;
+                    FinishShot();
+                    return page == Page.Market
+                        && standingText != null
+                        && standingText.text.Contains("Kharûn")
+                        && standingText.text.Contains("Rank 5")
+                        && standingText.text.Contains("40 / 100")
+                        && !StandingToastVisible();
+                case "standing-rankup":
+                    ShotClearOverlays();
+                    if (session.Traveling || session.Dock != PlaceId.Kharun)
+                        session.ShotDockAt(PlaceId.Kharun);
+                    session.SetKharunPoints(100f);
+                    page = Page.Market;
+                    ShowStandingToast("Your standing with House Kharûn has risen to rank 1.");
+                    standingToastHold = true;
+                    FinishShot();
+                    return page == Page.Market
+                        && StandingToastVisible()
+                        && standingToast.text == "Your standing with House Kharûn has risen to rank 1.";
                 default:
                     return false;
             }
@@ -3378,7 +3452,17 @@ namespace Caravans.Play
             departureOpen = false;
             shotDeparture = false;
             if (session != null)
+            {
                 session.ShotClearSupply();
+                session.ClearRankUpNotice();
+            }
+
+            HideStandingToast();
+        }
+
+        bool StandingToastVisible()
+        {
+            return standingToast != null && standingToast.transform.parent.gameObject.activeSelf;
         }
 
         GoodId ShotStocked()
@@ -3402,6 +3486,40 @@ namespace Caravans.Play
             Canvas.ForceUpdateCanvases();
         }
 #endif
+
+        void PaintStanding()
+        {
+            if (standingText != null && session != null)
+                standingText.text = session.StandingLine();
+        }
+
+        void PollRankToast()
+        {
+            if (standingToastHold || session == null || page != Page.Market || session.Traveling)
+                return;
+            if (string.IsNullOrEmpty(session.RankUpNotice))
+                return;
+            ShowStandingToast(session.RankUpNotice);
+            session.ClearRankUpNotice();
+        }
+
+        void ShowStandingToast(string line)
+        {
+            if (standingToast == null)
+                return;
+            standingToast.text = line;
+            standingToast.color = Ink;
+            standingToast.transform.parent.gameObject.SetActive(true);
+            standingToastLeft = 4.5f;
+        }
+
+        void HideStandingToast()
+        {
+            standingToastHold = false;
+            standingToastLeft = 0f;
+            if (standingToast != null)
+                standingToast.transform.parent.gameObject.SetActive(false);
+        }
     }
 
     sealed class IntroWord : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
