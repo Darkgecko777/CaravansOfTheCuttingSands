@@ -224,9 +224,11 @@ namespace Caravans.Play
             return shelves[(int)place, (int)good].Cap;
         }
 
-        // Haggler and house standing will read the spread here. They do not change it yet.
+        // A hired haggler uses the tighter spread. Standing does not change it.
         public float MerchantSpread()
         {
+            if (hagglerHired)
+                return EconomyRates.HagglerSpread;
             return EconomyRates.MerchantSpread;
         }
 
@@ -669,7 +671,7 @@ namespace Caravans.Play
             EncounterOutcome picked = EncounterCards.Roll(outcomes, encounterRandom);
             if (picked == null)
                 return;
-            ApplyOutcome(picked);
+            CommitOutcome(picked);
         }
 
         internal string ResolveOutcome(int choice, string key)
@@ -682,7 +684,7 @@ namespace Caravans.Play
             {
                 if (outcomes[i].key != key)
                     continue;
-                ApplyOutcome(outcomes[i]);
+                CommitOutcome(outcomes[i]);
                 return outcomes[i].key;
             }
 
@@ -730,7 +732,12 @@ namespace Caravans.Play
 
         public bool HasSkill(string tag)
         {
-            // TODO: consult the riding agents once that system exists. Agents are not wired, so every skill check fails closed.
+            if (tag == "Scout")
+                return scoutHired;
+            if (tag == "Guard")
+                return guardHired;
+            if (tag == "Haggler")
+                return hagglerHired;
             return false;
         }
 
@@ -1227,6 +1234,7 @@ namespace Caravans.Play
             criticalShown = false;
             criticalPending = false;
             ClearEncounter();
+            RestoreGuardSave();
             if (edgeLength <= 0.000001f)
             {
                 Arrive(destination);
@@ -1793,6 +1801,7 @@ namespace Caravans.Play
 
         void RunMorning()
         {
+            PayWages();
             for (int place = 0; place < WorldIds.PlaceCount; place++)
             {
                 for (int good = 0; good < WorldIds.GoodCount; good++)

@@ -180,6 +180,10 @@ namespace Caravans.Play
         Button gatesRush;
         Button embarkButton;
         TextMeshProUGUI nextCampText;
+        TextMeshProUGUI scoutGatesText;
+        TextMeshProUGUI scoutPaceText;
+        TextMeshProUGUI agentToast;
+        float agentToastLeft;
         Button backButton;
         Button gearButton;
         Button logbookButton;
@@ -312,6 +316,21 @@ namespace Caravans.Play
             marketPage = BuildMarket(body);
             plazaPage = BuildPlaza(body);
             housePage = BuildHousePage(body);
+
+            var agentBar = Child(body, "AgentToast");
+            agentBar.anchorMin = new Vector2(0.5f, 1f);
+            agentBar.anchorMax = new Vector2(0.5f, 1f);
+            agentBar.pivot = new Vector2(0.5f, 1f);
+            agentBar.anchoredPosition = new Vector2(0f, -8f);
+            agentBar.sizeDelta = new Vector2(1100f, 48f);
+            DarkBar(agentBar, false);
+            RaiseCanvas(agentBar.gameObject, 40);
+            agentToast = Body(agentBar, UiType.Small, TextAlignmentOptions.Center);
+            agentToast.color = Ink;
+            Stretch(agentToast.rectTransform);
+            agentToast.textWrappingMode = TextWrappingModes.NoWrap;
+            agentToast.overflowMode = TextOverflowModes.Overflow;
+            agentBar.gameObject.SetActive(false);
 
             var tabs = DarkBar(Child(dock, "Tabs"), false);
             BottomStrip(tabs.rectTransform, TabHeight);
@@ -637,6 +656,11 @@ namespace Caravans.Play
             nextCampText.color = Ink;
             nextCampText.richText = true;
             nextCampText.gameObject.AddComponent<LayoutElement>().preferredHeight = 88f;
+            scoutGatesText = Body(gatesColumn, UiType.Small, TextAlignmentOptions.Center);
+            scoutGatesText.color = Ink;
+            scoutGatesText.textWrappingMode = TextWrappingModes.Normal;
+            scoutGatesText.gameObject.AddComponent<LayoutElement>().preferredHeight = 40f;
+            scoutGatesText.gameObject.SetActive(false);
             embarkButton = StackButton(gatesColumn, "Embark", Embark);
 
             var tavern = Spot(page, "Tavern");
@@ -1026,6 +1050,16 @@ namespace Caravans.Play
             bodyRt.pivot = new Vector2(0.5f, 1f);
             bodyRt.sizeDelta = new Vector2(-96f, 72f);
             bodyRt.anchoredPosition = new Vector2(0f, -112f);
+            scoutPaceText = Body(panel, UiType.Small, TextAlignmentOptions.Center);
+            scoutPaceText.color = Ink;
+            scoutPaceText.raycastTarget = false;
+            var scoutPaceRt = scoutPaceText.rectTransform;
+            scoutPaceRt.anchorMin = new Vector2(0f, 1f);
+            scoutPaceRt.anchorMax = Vector2.one;
+            scoutPaceRt.pivot = new Vector2(0.5f, 1f);
+            scoutPaceRt.sizeDelta = new Vector2(-96f, 34f);
+            scoutPaceRt.anchoredPosition = new Vector2(0f, -186f);
+            scoutPaceText.gameObject.SetActive(false);
             carefulButton = ChoiceButton(panel, "Careful", new Vector2(-240f, 10f), () => PickPace(RoadPace.Careful));
             steadyButton = ChoiceButton(panel, "Steady", new Vector2(0f, 10f), () => PickPace(RoadPace.Steady));
             rushButton = ChoiceButton(panel, "Rush", new Vector2(240f, 10f), () => PickPace(RoadPace.Rush));
@@ -1417,6 +1451,7 @@ namespace Caravans.Play
             PollRankToast();
             outlookText.text = session.OutlookLine();
             nextCampText.text = NextCampLine();
+            PaintScoutGates();
             listenText.text = listenLine;
             waterButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill water", GoodId.Water, session.WaterLitres, session.KitWaterCapacity);
             foodButton.GetComponentInChildren<TextMeshProUGUI>().text = FillLabel("Fill food", GoodId.Rations, session.RationKg, session.KitRationCapacity);
@@ -1489,6 +1524,8 @@ namespace Caravans.Play
 
         void ShowRoadChoice(bool open)
         {
+            if (scoutPaceText != null)
+                scoutPaceText.gameObject.SetActive(false);
             bool death = session.DeathPending;
             bool critical = session.CriticalPending && !(session.EncounterPending && !session.EncounterResolved);
             if (death || critical || (departureOpen && !death && !critical))
@@ -1549,6 +1586,12 @@ namespace Caravans.Play
             TintPace(rushButton, draftPace == RoadPace.Rush);
             TintPace(steadyButton, draftPace == RoadPace.Steady);
             TintPace(carefulButton, draftPace == RoadPace.Careful);
+            string scoutLine = session.ScoutLine(draftPace, session.Traveling || session.AwaitingPace);
+            if (scoutPaceText != null && !string.IsNullOrEmpty(scoutLine))
+            {
+                scoutPaceText.text = scoutLine;
+                scoutPaceText.gameObject.SetActive(true);
+            }
         }
 
         void FitEncounterCard(bool encounter, bool choices)
@@ -2298,6 +2341,7 @@ namespace Caravans.Play
 
             PaintStanding();
             PollRankToast();
+            PollAgentToast();
             if (!standingToastHold && standingToastLeft > 0f)
             {
                 standingToastLeft -= Time.unscaledDeltaTime;
@@ -2558,6 +2602,21 @@ namespace Caravans.Play
             mapText.text = mapBlock;
             Stretch(mapText.rectTransform);
             mapText.textWrappingMode = TextWrappingModes.Normal;
+            string notes = session.RoadNotesBlock();
+            var noteRow = Child(logbookRows, "RoadNotes");
+            int noteLines = 1;
+            for (int n = 0; n < notes.Length; n++)
+            {
+                if (notes[n] == '\n')
+                    noteLines++;
+            }
+
+            noteRow.gameObject.AddComponent<LayoutElement>().preferredHeight = noteLines * 28f + 8f;
+            TextMeshProUGUI noteText = Body(noteRow, UiType.LogRow, TextAlignmentOptions.TopLeft);
+            noteText.color = ParchmentInk;
+            noteText.text = notes;
+            Stretch(noteText.rectTransform);
+            noteText.textWrappingMode = TextWrappingModes.Normal;
             for (int i = 0; i < WorldIds.GoodCount; i++)
             {
                 GoodId good = (GoodId)i;
@@ -3474,6 +3533,12 @@ namespace Caravans.Play
                     return ShotSarnsRest();
                 case "end-screen":
                     return ShotEndScreen();
+                case "tavern-agents":
+                    return ShotTavernAgents();
+                case "tavern-agents-hired":
+                    return ShotTavernAgentsHired();
+                case "gates-scout":
+                    return ShotGatesScout();
                 default:
                     return false;
             }
@@ -3540,9 +3605,12 @@ namespace Caravans.Play
                 session.ShotClearSupply();
                 session.ClearRankUpNotice();
                 session.ShotClearMapState();
+                session.ShotClearAgents();
             }
 
+            draftPace = RoadPace.Steady;
             HideStandingToast();
+            HideAgentToast();
         }
 
         bool StandingToastVisible()
@@ -3604,6 +3672,71 @@ namespace Caravans.Play
             standingToastLeft = 0f;
             if (standingToast != null)
                 standingToast.transform.parent.gameObject.SetActive(false);
+        }
+
+        void PaintScoutGates()
+        {
+            if (scoutGatesText == null || session == null)
+                return;
+            string line = session.ScoutLine(draftPace, roadLit || sarnRoadLit);
+            bool show = !string.IsNullOrEmpty(line);
+            scoutGatesText.gameObject.SetActive(show);
+            if (show)
+                scoutGatesText.text = line;
+        }
+
+        void PollAgentToast()
+        {
+            if (agentToast == null || session == null)
+                return;
+            GameObject bar = agentToast.transform.parent.gameObject;
+            if (!AgentToastQuiet())
+            {
+                bar.SetActive(false);
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(session.AgentNotice))
+            {
+                agentToast.text = session.AgentNotice;
+                agentToast.color = Ink;
+                bar.SetActive(true);
+                agentToastLeft = 4.5f;
+                session.ClearAgentNotice();
+            }
+
+            if (!bar.activeSelf || agentToastLeft <= 0f)
+                return;
+            agentToastLeft -= Time.unscaledDeltaTime;
+            if (agentToastLeft < 0.8f)
+            {
+                Color ink = Ink;
+                ink.a = Mathf.Clamp01(agentToastLeft / 0.8f);
+                agentToast.color = ink;
+            }
+
+            if (agentToastLeft <= 0f)
+                bar.SetActive(false);
+        }
+
+        bool AgentToastQuiet()
+        {
+            if (session.Traveling || lookingAtMap)
+                return false;
+            if (page == Page.Plaza && plazaSpot == PlazaSpot.Gates)
+                return false;
+            if (introOpen || optionsOpen || logbookOpen || departureOpen || session.EndScreenUp)
+                return false;
+            if (cardRoot != null && cardRoot.gameObject.activeSelf)
+                return false;
+            return true;
+        }
+
+        void HideAgentToast()
+        {
+            agentToastLeft = 0f;
+            if (agentToast != null)
+                agentToast.transform.parent.gameObject.SetActive(false);
         }
     }
 

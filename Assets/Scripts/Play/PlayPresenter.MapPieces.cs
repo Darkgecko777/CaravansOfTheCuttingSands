@@ -20,6 +20,7 @@ namespace Caravans.Play
         GameObject tavernListen;
         GameObject tavernBoard;
         RectTransform tavernRows;
+        ScrollRect tavernScroll;
         readonly List<Button> tavernBuys = new List<Button>();
         string tavernCopy = string.Empty;
         Button sarnRoadButton;
@@ -32,18 +33,45 @@ namespace Caravans.Play
         void BuildTavernBoard(RectTransform spot)
         {
             var board = Child(spot, "MapBoard");
-            Stretch(board, 24f);
+            Stretch(board, 16f);
             FrameSheet(board, false);
-            var layout = board.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 6f;
-            layout.padding = new RectOffset(28, 28, 18, 18);
+            var scrollRt = Child(board, "Scroll");
+            Stretch(scrollRt, 8f);
+            var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 24f;
+            var viewport = Child(scrollRt, "Viewport");
+            Stretch(viewport);
+            var viewportImage = viewport.gameObject.AddComponent<Image>();
+            viewportImage.sprite = quad;
+            viewportImage.color = new Color(1f, 1f, 1f, 0.01f);
+            viewportImage.raycastTarget = true;
+            var mask = viewport.gameObject.AddComponent<Mask>();
+            mask.showMaskGraphic = false;
+            var content = Child(viewport, "Content");
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.anchoredPosition = Vector2.zero;
+            content.sizeDelta = new Vector2(0f, 0f);
+            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 4f;
+            layout.padding = new RectOffset(12, 12, 8, 8);
             layout.childAlignment = TextAnchor.UpperCenter;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
-            tavernRows = board;
+            var fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            scroll.viewport = viewport;
+            scroll.content = content;
+            tavernRows = content;
             tavernBoard = board.gameObject;
+            tavernScroll = scroll;
         }
 
         void BuildEndScreen(RectTransform root)
@@ -103,10 +131,12 @@ namespace Caravans.Play
             tavernBuys.Clear();
             ClearChildren(tavernRows);
             var copy = new StringBuilder();
+            AppendAgentRows(copy);
             TextMeshProUGUI header = Body(tavernRows, UiType.Body, TextAlignmentOptions.Center);
             header.color = FrontUi.Gold;
             header.text = "Sarn's map";
             header.gameObject.AddComponent<LayoutElement>().preferredHeight = 36f;
+            copy.Append('\n');
             copy.Append(header.text);
             int count = 6;
             for (int i = 1; i <= count; i++)
@@ -150,6 +180,82 @@ namespace Caravans.Play
             }
 
             tavernCopy = copy.ToString();
+            Canvas.ForceUpdateCanvases();
+            if (tavernScroll != null)
+                tavernScroll.verticalNormalizedPosition = 1f;
+        }
+
+        void AppendAgentRows(StringBuilder copy)
+        {
+            TextMeshProUGUI header = Body(tavernRows, UiType.Body, TextAlignmentOptions.Center);
+            header.color = FrontUi.Gold;
+            header.text = "Agents";
+            header.gameObject.AddComponent<LayoutElement>().preferredHeight = 32f;
+            copy.Append(header.text);
+            AppendAgentRow(copy, "Scout", "Reads the encounter chance on the road ahead.");
+            AppendAgentRow(copy, "Haggler", "Cuts the merchant spread from 15% to 10% each way.");
+            AppendAgentRow(copy, "Guard", "Once a leg, turns the first bad encounter into a clean one.");
+        }
+
+        void AppendAgentRow(StringBuilder copy, string role, string effect)
+        {
+            var row = Child(tavernRows, role);
+            var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = 8f;
+            layout.padding = new RectOffset(0, 0, 2, 2);
+            layout.childAlignment = TextAnchor.MiddleLeft;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            row.gameObject.AddComponent<LayoutElement>().preferredHeight = 70f;
+            bool hired = session.AgentHired(role);
+            int cost = session.AgentHireCost(role);
+            int wage = session.AgentWage(role);
+            string price = hired ? "Wage " + wage + " coin at dawn" : "Hire · " + cost + " coin";
+            TextMeshProUGUI text = Body(row, UiType.Small, TextAlignmentOptions.MidlineLeft);
+            text.color = Ink;
+            text.textWrappingMode = TextWrappingModes.Normal;
+            text.text = role + "  ·  " + effect + "\n" + price;
+            var textFit = text.gameObject.AddComponent<LayoutElement>();
+            textFit.flexibleWidth = 1f;
+            textFit.preferredHeight = 64f;
+            copy.Append('\n');
+            copy.Append(text.text);
+            string shown = role;
+            if (hired)
+            {
+                Button dismiss = StackButton(row, "Dismiss", () => DismissShownAgent(shown));
+                dismiss.interactable = true;
+                var fit = dismiss.GetComponent<LayoutElement>();
+                fit.flexibleWidth = 0f;
+                fit.preferredHeight = 56f;
+                PaintTrade(dismiss);
+                tavernBuys.Add(dismiss);
+                copy.Append("\nDismiss");
+                return;
+            }
+
+            Button hire = StackButton(row, "Hire", () => HireShownAgent(shown));
+            hire.interactable = session.Coin >= cost;
+            var hireFit = hire.GetComponent<LayoutElement>();
+            hireFit.flexibleWidth = 0f;
+            hireFit.preferredHeight = 56f;
+            PaintTrade(hire);
+            tavernBuys.Add(hire);
+            copy.Append(hire.interactable ? "\nHire" : "\nHire grey");
+        }
+
+        void HireShownAgent(string role)
+        {
+            session.TryHireAgent(role);
+            Redraw();
+        }
+
+        void DismissShownAgent(string role)
+        {
+            session.TryDismissAgent(role);
+            Redraw();
         }
 
         string LeadPriceLine()
@@ -484,6 +590,76 @@ namespace Caravans.Play
                 && endBodyText.text.Contains("1 Vekmar, Year 112")
                 && endBodyText.text.Contains("Return to the title") == false
                 && session.EndButtonLabel == "Return to the title";
+        }
+
+        bool ShotTavernAgents()
+        {
+            ShotClearOverlays();
+            if (session.Traveling || session.Dock != PlaceId.Kharun)
+                session.ShotDockAt(PlaceId.Kharun);
+            page = Page.Plaza;
+            plazaSpot = PlazaSpot.Tavern;
+            FinishShot();
+            return plazaSpot == PlazaSpot.Tavern
+                && tavernCopy.Contains("Hire · 40 coin")
+                && tavernCopy.Contains("Hire · 80 coin")
+                && tavernCopy.Contains("Hire · 60 coin")
+                && tavernCopy.Contains("\nHire")
+                && !tavernCopy.Contains("\nHire grey")
+                && !tavernCopy.Contains("\nDismiss")
+                && tavernCopy.Contains("Sarn's map")
+                && tavernCopy.Contains("A fragment of Sarn's map.");
+        }
+
+        bool ShotTavernAgentsHired()
+        {
+            ShotClearOverlays();
+            if (session.Traveling || session.Dock != PlaceId.Kharun)
+                session.ShotDockAt(PlaceId.Kharun);
+            if (!session.TryHireAgent("Scout"))
+                return false;
+            page = Page.Plaza;
+            plazaSpot = PlazaSpot.Tavern;
+            FinishShot();
+            return session.ScoutHired
+                && !session.HagglerHired
+                && !session.GuardHired
+                && tavernCopy.Contains("Wage 6 coin at dawn")
+                && tavernCopy.Contains("\nDismiss")
+                && tavernCopy.Contains("Hire · 80 coin")
+                && tavernCopy.Contains("Hire · 60 coin")
+                && tavernCopy.Contains("\nHire")
+                && !tavernCopy.Contains("\nHire grey")
+                && !optionsOpen
+                && !departureOpen;
+        }
+
+        bool ShotGatesScout()
+        {
+            ShotClearOverlays();
+            if (session.Traveling || session.Dock != PlaceId.Kharun)
+                session.ShotDockAt(PlaceId.Kharun);
+            if (!session.TryHireAgent("Scout"))
+                return false;
+            page = Page.Plaza;
+            plazaSpot = PlazaSpot.Gates;
+            if (!session.CanTakeRoad())
+                return false;
+            pendingDest = PlaceId.Draven;
+            roadLit = true;
+            draftPace = RoadPace.Rush;
+            choosingRoad = false;
+            FinishShot();
+            return roadLit
+                && pendingDest == PlaceId.Draven
+                && draftPace == RoadPace.Rush
+                && scoutGatesText != null
+                && scoutGatesText.gameObject.activeSelf
+                && scoutGatesText.text == "Scout: 65% chance of an encounter at Rush."
+                && embarkButton != null
+                && embarkButton.interactable
+                && cardRoot != null
+                && !cardRoot.gameObject.activeSelf;
         }
 #endif
     }

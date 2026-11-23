@@ -226,6 +226,46 @@ namespace Caravans.Play
                 return table.FoodMake[(int)place];
             return table.WaterMake[(int)place];
         }
+
+        public static int ScoutHire
+        {
+            get { return GameConfig.Agents.scoutHire; }
+        }
+
+        public static int ScoutWage
+        {
+            get { return GameConfig.Agents.scoutWage; }
+        }
+
+        public static int HagglerHire
+        {
+            get { return GameConfig.Agents.hagglerHire; }
+        }
+
+        public static int HagglerWage
+        {
+            get { return GameConfig.Agents.hagglerWage; }
+        }
+
+        public static int GuardHire
+        {
+            get { return GameConfig.Agents.guardHire; }
+        }
+
+        public static int GuardWage
+        {
+            get { return GameConfig.Agents.guardWage; }
+        }
+
+        public static float HagglerSpread
+        {
+            get { return GameConfig.Agents.hagglerSpread; }
+        }
+
+        public static float RushCargoLossChance
+        {
+            get { return GameConfig.Agents.rushCargoLossChance; }
+        }
     }
 
     public struct Recipe

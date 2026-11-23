@@ -730,6 +730,7 @@ namespace Caravans.Play
             criticalShown = false;
             criticalPending = false;
             ClearEncounter();
+            RestoreGuardSave();
             if (kind == MapLegKind.Final)
                 SyncFinalCardHour();
             else

@@ -1,0 +1,10 @@
+{
+  "scoutHire": 40,
+  "scoutWage": 6,
+  "hagglerHire": 80,
+  "hagglerWage": 12,
+  "guardHire": 60,
+  "guardWage": 8,
+  "hagglerSpread": 0.10,
+  "rushCargoLossChance": 1.0
+}

@@ -21,6 +21,7 @@ namespace Caravans.Play
         static RescueFile rescue;
         static MapPieceFile mapPieces;
         static EndScreenFile endScreen;
+        static AgentFile agents;
 
         public static ConsumptionFile Consumption
         {
@@ -87,12 +88,18 @@ namespace Caravans.Play
             get { EnsureLoaded(); return endScreen; }
         }
 
+        public static AgentFile Agents
+        {
+            get { EnsureLoaded(); return agents; }
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset()
         {
             loaded = false;
             mapPieces = null;
             endScreen = null;
+            agents = null;
             EconomyCatalog.ForgetLoaded();
             EncounterCards.ForgetLoaded();
         }
@@ -142,6 +149,9 @@ namespace Caravans.Play
                 "finalCards", "title", "line", "fraction");
             endScreen = Read<EndScreenFile>("end_screen.json",
                 "schemaVersion", "title", "lines", "footer", "statsHeading", "stats", "key", "label", "buttons", "action");
+            agents = Read<AgentFile>("agents.json",
+                "scoutHire", "scoutWage", "hagglerHire", "hagglerWage",
+                "guardHire", "guardWage", "hagglerSpread", "rushCargoLossChance");
             EncounterCards.EnsureLoaded();
             loaded = true;
         }

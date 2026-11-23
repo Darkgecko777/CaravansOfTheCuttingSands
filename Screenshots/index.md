@@ -1,6 +1,6 @@
 # UI screenshots
 
-Captured 2026-11-23 at commit f38b94e (working tree).
+Captured 2026-11-23 at commit 9d22cef (working tree).
 
 | File | Scene | State |
 | --- | --- | --- |
@@ -34,6 +34,9 @@ Captured 2026-11-23 at commit f38b94e (working tree).
 | 48_westmark_gate.png | SampleScene | Gates at Westmark with all six pieces owned. The road to Sarn's Rest sits with the ordinary neighbours. No card covers the map. |
 | 49_sarns_rest.png | SampleScene | Sarn's Rest arrival card. Title and both choices, Embark and Return later, are readable. Hide-and-bone frame, not the wood pause panel. |
 | 50_end_screen.png | SampleScene | Embarked ledger. Dates, rank, villages and posts won, coin paid for the map, and Return to the title are readable. Hide-and-bone, not the wood pause panel. |
+| 51_tavern_agents.png | SampleScene | Tavern at Kharûn. The Agents block lists Scout, Haggler, and Guard, unhired, with hire costs (40 / 80 / 60) and a live Hire on each. The map-piece list is still visible. Hide-and-bone, cream on hide, one frame, type at least 22. |
+| 52_tavern_agents_hired.png | SampleScene | Tavern at Kharûn with the scout hired. The scout row shows the dawn wage and a live Dismiss; the other two still show Hire. No modal. |
+| 53_gates_scout.png | SampleScene | Gates at Kharûn with the Draven road lit, a scout hired, and Rush selected. The scout line reads 'Scout: 65% chance of an encounter at Rush.' Careful, Steady, and Rush are on the panel. Embark is live. No card covers the map. |
 
 The encounter card shows a title, a scene, and two choices. It is 33_encounter.png. The camp card and the after-camp pace card are 34_camp.png and 35_resume_pace.png. Play has no tooltip type and no separate dialog type.
 
@@ -54,3 +57,5 @@ The caravan is House Kharûn. This run buys the first goods Kharûn will sell un
 The market panel shows standing with House Kharûn and progress to the next rank. That line stays off the top bar. 42_standing_ranks.png is Rank 5 with 40 / 100 still to go inside the rank. 43_standing_rankup.png is the short toast, Your standing with House Kharûn has risen to rank 1. A rank-up fires that toast. It is not the wood pause panel.
 
 45_tavern_locked.png lists all six pieces with the first one locked. 46_tavern_buy.png shows one lead and 540 coin with a live Buy. 47_tavern_owned.png shows the first piece owned. 48_westmark_gate.png is the Westmark road to Sarn's Rest. 49_sarns_rest.png is the arrival card. 50_end_screen.png is the Embarked ledger.
+
+Kharûn's Tavern hires a scout, a haggler, and a guard. 51_tavern_agents.png lists them unhired. 52_tavern_agents_hired.png shows the scout's dawn wage and Dismiss. The gates panel shows the encounter chance when a scout is riding, which is 53_gates_scout.png. Rush can cost a cargo unit on a bad encounter.

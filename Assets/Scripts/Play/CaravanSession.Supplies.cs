@@ -250,6 +250,7 @@ namespace Caravans.Play
 
         void ApplyDefaultCaravan()
         {
+            ClearAgentRoles();
             KitFile file = GameConfig.Kit;
             KitCaravan shape = file != null ? file.defaultCaravan : null;
             if (shape == null)
@@ -462,6 +463,7 @@ namespace Caravans.Play
             criticalShown = false;
             lowNoted = false;
             lastNotice = string.Empty;
+            ClearAgentNotice();
             rescueCount++;
             ClearMapTravel();
             // TODO: ACH_DRAGGED_HOME increments with RescueCount. A later bank's BankedCoin stays through this reset.

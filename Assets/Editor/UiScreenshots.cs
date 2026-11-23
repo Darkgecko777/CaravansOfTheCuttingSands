@@ -69,6 +69,9 @@ public static class UiScreenshots
         ShotOf("westmark-gate", "48_westmark_gate.png", "SampleScene", "Gates at Westmark with all six pieces owned. The road to Sarn's Rest sits with the ordinary neighbours. No card covers the map.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("sarns-rest", "49_sarns_rest.png", "SampleScene", "Sarn's Rest arrival card. Title and both choices, Embark and Return later, are readable. Hide-and-bone frame, not the wood pause panel.", Kind.Play, Kind.Play),
         ShotOf("end-screen", "50_end_screen.png", "SampleScene", "Embarked ledger. Dates, rank, villages and posts won, coin paid for the map, and Return to the title are readable. Hide-and-bone, not the wood pause panel.", Kind.Play, Kind.Play),
+        ShotOf("tavern-agents", "51_tavern_agents.png", "SampleScene", "Tavern at Kharûn. The Agents block lists Scout, Haggler, and Guard, unhired, with hire costs (40 / 80 / 60) and a live Hire on each. The map-piece list is still visible. Hide-and-bone, cream on hide, one frame, type at least 22.", Kind.Play, Kind.Play),
+        ShotOf("tavern-agents-hired", "52_tavern_agents_hired.png", "SampleScene", "Tavern at Kharûn with the scout hired. The scout row shows the dawn wage and a live Dismiss; the other two still show Hire. No modal.", Kind.Play, Kind.Play),
+        ShotOf("gates-scout", "53_gates_scout.png", "SampleScene", "Gates at Kharûn with the Draven road lit, a scout hired, and Rush selected. The scout line reads 'Scout: 65% chance of an encounter at Rush.' Careful, Steady, and Rush are on the panel. Embark is live. No card covers the map.", Kind.PlayMap, Kind.PlayMap),
     };
 
     const string Notes =
@@ -81,7 +84,8 @@ public static class UiScreenshots
         + "The caravan is House Kharûn. This run buys the first goods Kharûn will sell until four units are aboard, and it records the buy and sale figures the market would show. The clock stays at the new-game hour until the camp card. A new game cargo cap is 4 slots and 10 weight. The top bar shows water and rations beside the coin.\n\n"
         + "36_supplies_hud.png is the market with one water skin aboard, so the top bar reads 1/4 and the water line names the pack. 37_skins_low.png is The Skins Run Low. 38_departure_short.png is You will run dry before Brineford. 39_rescue.png is Dry and the first highlands line. Each of those cards is one frame.\n\n"
         + "The market panel shows standing with House Kharûn and progress to the next rank. That line stays off the top bar. 42_standing_ranks.png is Rank 5 with 40 / 100 still to go inside the rank. 43_standing_rankup.png is the short toast, Your standing with House Kharûn has risen to rank 1. A rank-up fires that toast. It is not the wood pause panel.\n\n"
-        + "45_tavern_locked.png lists all six pieces with the first one locked. 46_tavern_buy.png shows one lead and 540 coin with a live Buy. 47_tavern_owned.png shows the first piece owned. 48_westmark_gate.png is the Westmark road to Sarn's Rest. 49_sarns_rest.png is the arrival card. 50_end_screen.png is the Embarked ledger.\n";
+        + "45_tavern_locked.png lists all six pieces with the first one locked. 46_tavern_buy.png shows one lead and 540 coin with a live Buy. 47_tavern_owned.png shows the first piece owned. 48_westmark_gate.png is the Westmark road to Sarn's Rest. 49_sarns_rest.png is the arrival card. 50_end_screen.png is the Embarked ledger.\n\n"
+        + "Kharûn's Tavern hires a scout, a haggler, and a guard. 51_tavern_agents.png lists them unhired. 52_tavern_agents_hired.png shows the scout's dawn wage and Dismiss. The gates panel shows the encounter chance when a scout is riding, which is 53_gates_scout.png. Rush can cost a cargo unit on a bad encounter.\n";
 
     static bool updateHooked;
     static bool modeHooked;
