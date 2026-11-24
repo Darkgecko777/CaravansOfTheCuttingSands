@@ -108,3 +108,12 @@ InitTestScene*.unity*
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# SteamCMD upload kit
+/tools/steam/steamcmd/
+/tools/steam/output/
+/tools/steam/generated/
+/tools/steam/logs/
+/tools/steam/*.log
+/tools/steam/ssfn*
+/tools/steam/steam_username.txt
