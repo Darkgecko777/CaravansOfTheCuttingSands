@@ -2,7 +2,7 @@
   "buildFolder": "Builds/Windows",
   "exeName": "Caravans of the Cutting Sands.exe",
   "apps": [
-    { "key": "main", "appId": 4765690, "depotId": 4765691 },
+    { "key": "main", "appId": 4765690, "depotId": 4765692 },
     { "key": "playtest", "appId": 4765820, "depotId": 4765822 }
   ]
 }

@@ -16,7 +16,7 @@ On a live run, if `tools/steam/steamcmd/steamcmd.exe` is missing, the script dow
 
 Both apps are uploaded in one login. Pass `-Only main` or `-Only playtest` to upload one of them. The same `Builds/Windows` player goes to both.
 
-Confirmed IDs: main app 4765690 / depot 4765691; Playtest app 4765820 / depot 4765822. The Playtest app is a separate Steam app, not a branch of the main app.
+Confirmed IDs: main app 4765690 / depot 4765692; Playtest app 4765820 / depot 4765822. The Playtest app is a separate Steam app, not a branch of the main app.
 
 On **Installation > General** for both apps, the launch-option executable must be exactly `Caravans of the Cutting Sands.exe` (spaces included), Windows, 64-bit. The install folder should be `Caravans of the Cutting Sands`.
 
