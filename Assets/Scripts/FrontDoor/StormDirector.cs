@@ -93,7 +93,11 @@ namespace Caravans.FrontDoor
             DontDestroyOnLoad(gameObject);
             fade = new StormFade();
             musicFade = new StormFade();
+#if UNITY_EDITOR
+            int seed = TrailerClock.Active ? TrailerClock.StormSeed : System.Environment.TickCount;
+#else
             int seed = System.Environment.TickCount;
+#endif
             sim = new SandBedSim(seed);
             wind = new TitleWind(seed + 101);
             BuildRig();
@@ -116,6 +120,17 @@ namespace Caravans.FrontDoor
             BeginFade();
         }
 
+#if UNITY_EDITOR
+        void Update()
+        {
+            if (!TrailerClock.Active)
+                return;
+            if (SceneManager.GetActiveScene().name != Gate.TitleScene)
+                return;
+            TrailerClock.Advance();
+        }
+#endif
+
         void LateUpdate()
         {
             if (instance != null && instance != this)
@@ -130,7 +145,11 @@ namespace Caravans.FrontDoor
             if (fade == null)
                 return;
 
+#if UNITY_EDITOR
+            float step = Mathf.Min(TrailerClock.Delta(Time.unscaledDeltaTime), FadeStepCap);
+#else
             float step = Mathf.Min(Time.unscaledDeltaTime, FadeStepCap);
+#endif
             if (fade.Active)
                 fade.Tick(step);
             TickTheme(step);
@@ -184,7 +203,11 @@ namespace Caravans.FrontDoor
         {
             bool onTitle = SceneManager.GetActiveScene().name == Gate.TitleScene;
             bool live = onTitle && !fade.Active && !fade.Finished;
+#if UNITY_EDITOR
+            float delta = live ? TrailerClock.Delta(Time.unscaledDeltaTime) : step;
+#else
             float delta = live ? Time.unscaledDeltaTime : step;
+#endif
             if (live)
                 heldGust = sim.Tick(delta);
             if (wind != null)
@@ -207,10 +230,17 @@ namespace Caravans.FrontDoor
             DontDestroyOnLoad(gameObject);
             fade = new StormFade();
             musicFade = new StormFade();
+#if UNITY_EDITOR
+            if (sim == null)
+                sim = new SandBedSim(TrailerClock.Active ? TrailerClock.StormSeed : System.Environment.TickCount);
+            if (wind == null)
+                wind = new TitleWind((TrailerClock.Active ? TrailerClock.StormSeed : System.Environment.TickCount) + 101);
+#else
             if (sim == null)
                 sim = new SandBedSim(System.Environment.TickCount);
             if (wind == null)
                 wind = new TitleWind(System.Environment.TickCount + 101);
+#endif
             ClearRig();
             BuildRig();
             SceneManager.sceneLoaded -= OnSceneLoaded;

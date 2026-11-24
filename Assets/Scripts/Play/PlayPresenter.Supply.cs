@@ -194,7 +194,11 @@ namespace Caravans.Play
         {
             if (hours <= session.CriticalHours + 0.0001f)
             {
+#if UNITY_EDITOR
+                float wave = 0.55f + 0.45f * Mathf.Abs(Mathf.Sin(Caravans.FrontDoor.TrailerClock.Time(Time.unscaledTime) * 4f));
+#else
                 float wave = 0.55f + 0.45f * Mathf.Abs(Mathf.Sin(Time.unscaledTime * 4f));
+#endif
                 return Color.Lerp(new Color(0.55f, 0.18f, 0.14f, 1f), new Color(0.86f, 0.32f, 0.24f, 1f), wave);
             }
 

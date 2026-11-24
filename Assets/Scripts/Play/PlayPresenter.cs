@@ -259,6 +259,9 @@ namespace Caravans.Play
 
         void Update()
         {
+#if UNITY_EDITOR
+            TrailerUpdate();
+#endif
             EnsureMap();
             bool blockPause = introOpen || departureOpen || session.EndScreenUp || session.RestPending || session.DeathPending || session.CriticalPending;
             bool readIntro;
@@ -270,12 +273,23 @@ namespace Caravans.Play
                 ReadEscape();
             introClosedThisFrame = false;
             if (!introOpen && !departureOpen && session.Traveling && !session.HoldTravel && !optionsOpen && !lookingAtMap)
+#if UNITY_EDITOR
+                session.Tick(Caravans.FrontDoor.TrailerClock.Delta(Time.unscaledDeltaTime));
+#else
                 session.Tick(Time.unscaledDeltaTime);
+#endif
             if (session.Revision != drawn)
                 Redraw();
+#if UNITY_EDITOR
+            StepWeatherLook(Caravans.FrontDoor.TrailerClock.Delta(Time.unscaledDeltaTime));
+#else
             StepWeatherLook(Time.unscaledDeltaTime);
+#endif
             UpdateLive();
             FlushAutosave();
+#if UNITY_EDITOR
+            TrailerSample();
+#endif
         }
 
         void FlushAutosave()
@@ -2422,7 +2436,11 @@ namespace Caravans.Play
             PollAgentToast();
             if (!standingToastHold && standingToastLeft > 0f)
             {
+#if UNITY_EDITOR
+                standingToastLeft -= Caravans.FrontDoor.TrailerClock.Delta(Time.unscaledDeltaTime);
+#else
                 standingToastLeft -= Time.unscaledDeltaTime;
+#endif
                 if (standingToast != null && standingToastLeft < 0.8f)
                 {
                     Color ink = Ink;
@@ -3789,7 +3807,11 @@ namespace Caravans.Play
 
             if (!bar.activeSelf || agentToastLeft <= 0f)
                 return;
+#if UNITY_EDITOR
+            agentToastLeft -= Caravans.FrontDoor.TrailerClock.Delta(Time.unscaledDeltaTime);
+#else
             agentToastLeft -= Time.unscaledDeltaTime;
+#endif
             if (agentToastLeft < 0.8f)
             {
                 Color ink = Ink;
