@@ -1,6 +1,6 @@
 # UI screenshots
 
-Captured 2026-11-23 at commit 80c5343 (working tree).
+Captured 2026-11-23 at commit e016398 (working tree).
 
 | File | Scene | State |
 | --- | --- | --- |
@@ -18,8 +18,8 @@ Captured 2026-11-23 at commit 80c5343 (working tree).
 | 21_plaza_gates.png | SampleScene | Plaza, Gates, at Kharûn. No road is lit. Neighbour road buttons sit inside the gates panel. The top bar shows water and rations, and the cargo cap is 4/10. The three weather masses show as soft static haze patches where a new game places them. |
 | 40_logbook.png | SampleScene | Logbook open over the market at Kharûn, between the bars. A Sarn's map block lists one owned piece and the day it was bought. Seeded buy and sale figures are on the rows. An unseen price is a dash. |
 | 41_pause_menu.png | SampleScene | Pause menu open over the Kharûn market. Compact wood panel, text-only RESUME, OPTIONS, MAIN MENU, and QUIT. No row bars. A bone tick marks the selected row. Gear is visible on the top bar. |
-| 30_travel_map.png | SampleScene | Gates at Kharûn with the Draven road lit. The painted trail and the destination circle are up. Neighbour road buttons stay on the gates panel. The top bar shows water and rations, and the cargo cap is 4/10. |
-| 31_road_choice.png | SampleScene | Gates at Kharûn with the Draven road lit. Careful, Steady, and Rush sit on the panel. Embark is live. No card covers the map. |
+| 30_travel_map.png | SampleScene | Gates at Kharûn with the Draven road lit. The painted trail and the destination circle are up. The player token is the thrask. NPC merchants are static duzhu tokens. Neighbour road buttons stay on the gates panel. The top bar shows water and rations, and the cargo cap is 4/10. |
+| 31_road_choice.png | SampleScene | Gates at Kharûn with the Draven road lit. Careful, Steady, and Rush sit on the panel. Embark is live. The player token is the thrask. No card covers the map. |
 | 32_departure.png | SampleScene | En route to Draven, paused at the Kharûn dock. The route line is drawn and the wagon has not moved. The top bar shows water and rations, and the cargo cap is 4/10. |
 | 33_encounter.png | SampleScene | Encounter card open on the Draven road. The title is Soft Ground. The scene and two choices are visible. |
 | 34_camp.png | SampleScene | Make camp card open on the Draven road. |
@@ -39,9 +39,12 @@ Captured 2026-11-23 at commit 80c5343 (working tree).
 | 51_tavern_agents.png | SampleScene | Tavern at Kharûn. The Agents block lists Scout, Haggler, and Guard, unhired, with hire costs (40 / 80 / 60) and a live Hire on each. The map-piece list is still visible. Hide-and-bone, cream on hide, one frame, type at least 22. |
 | 52_tavern_agents_hired.png | SampleScene | Tavern at Kharûn with the scout hired. The scout row shows the dawn wage and a live Dismiss; the other two still show Hire. No modal. |
 | 53_gates_scout.png | SampleScene | Gates at Kharûn with the Draven road lit, a scout hired, and Rush selected. The scout line reads 'Scout: 65% chance of an encounter at Rush.' Careful, Steady, and Rush are on the panel. Embark is live. No card covers the map. |
-| 54_map_sandstorm.png | SampleScene | On the Draven road, paused just out of Kharûn, inside a sandstorm. The vision circle is at its tightest. The map has a warm ochre grade and a static dust haze, darker toward the frame edges. The caravan token at the centre and the route line read clearly. The leg line reads On this leg: Sandstorm. The leg takes longer. |
+| 54_map_sandstorm.png | SampleScene | On the Draven road, paused just out of Kharûn, inside a sandstorm. The vision circle is at its tightest. The map has a warm ochre grade and a static dust haze, darker toward the frame edges. The thrask token at the centre stays about 48 px, planted on the road, and the route line reads clearly. The leg line reads On this leg: Sandstorm. The leg takes longer. |
 | 55_map_heat.png | SampleScene | On the Draven road, paused just out of Kharûn, in heat. The map is washed paler than in clear weather, with a faint cream wash toward the edges. The vision circle is its usual size for that hour. The leg line reads On this leg: Heat. The leg takes longer. |
-| 56_gates_storm_road.png | SampleScene | Gates at Kharûn with the Draven road lit and a sandstorm sitting across the middle of it. The storm is a soft ochre haze patch on the painted map, under the lit trail and the destination circle. Heat and wind show as paler patches where they sit. The weather line reads The road ahead is Sandstorm. |
+| 56_gates_storm_road.png | SampleScene | Gates at Kharûn with the Draven road lit and a sandstorm sitting across the middle of it. The storm is a soft ochre haze patch on the painted map, under the lit trail and the destination circle. The thrask token sits above the patch. Heat and wind show as paler patches where they sit. The weather line reads The road ahead is Sandstorm. |
+| 57_travel_duzhu.png | SampleScene | Gates at Kharûn with the Draven road lit. The player token is the duzhu. No highlight and no animation. |
+| 58_travel_pincer.png | SampleScene | Gates at Kharûn with the Draven road lit. The player token is the pincer beast. No highlight and no animation. |
+| 59_travel_npcs.png | SampleScene | Gates at Kharûn with the Draven road lit. Three NPC merchants sit on that road as darkhide, rust, and ivory duzhu tokens. The player token is the thrask. |
 
 The encounter card shows a title, a scene, and two choices. It is 33_encounter.png. The camp card and the after-camp pace card are 34_camp.png and 35_resume_pace.png. Play has no tooltip type and no separate dialog type.
 
@@ -68,3 +71,5 @@ Kharûn's Tavern hires a scout, a haggler, and a guard. 51_tavern_agents.png lis
 The run autosaves one slot on arrival in a town, at dawn, and on quit. The title shows CONTINUE above NEW GAME only when a valid save exists. NEW GAME over a save asks first. The Embarked ending clears the save.
 
 Weather is drawn statically. On the road, a sandstorm grades the map ochre and adds a dust haze darker at the edges, and heat or wind pale the map; the change fades in about 0.8 s. Each weather mass shows as a soft haze patch at its real place and size, under the roads and tokens, and the fog hides patches past the vision circle. Nothing on the map animates.
+
+The travel map and the Gates map use static caravan tokens. The player token follows the mount (thrask, duzhu, pincer beast) and survives Continue. NPC merchants are gear-coloured duzhus. Tokens sit above weather mass patches and the sight circle, and remain readable under the view-space haze. 57_travel_duzhu.png, 58_travel_pincer.png, and 59_travel_npcs.png show the other mounts and the three pack colours.

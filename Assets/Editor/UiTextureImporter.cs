@@ -19,6 +19,7 @@ public class UiTextureImporter : AssetPostprocessor
         "Assets/Resources/Ui/",
         "Assets/Resources/FrontDoor/",
         "Assets/Resources/Goods/",
+        "Assets/Resources/MapMarkers/",
     };
 
     void OnPreprocessTexture()
@@ -45,6 +46,7 @@ public class UiTextureImporter : AssetPostprocessor
             "Assets/Resources/Ui",
             "Assets/Resources/FrontDoor",
             "Assets/Resources/Goods",
+            "Assets/Resources/MapMarkers",
         });
         var dirty = new List<string>();
         for (int i = 0; i < guids.Length; i++)
@@ -118,6 +120,15 @@ public class UiTextureImporter : AssetPostprocessor
         return false;
     }
 
+    static bool TokenPivot(string path, out Vector2 pivot)
+    {
+        pivot = new Vector2(0.5f, 16f / 256f);
+        if (string.IsNullOrEmpty(path))
+            return false;
+        string slash = path.Replace('\\', '/');
+        return slash.StartsWith("Assets/Resources/MapMarkers/");
+    }
+
     static void Apply(TextureImporter importer)
     {
         importer.textureType = TextureImporterType.Sprite;
@@ -148,9 +159,21 @@ public class UiTextureImporter : AssetPostprocessor
         settings.npotScale = TextureImporterNPOTScale.None;
         if (MenuBorder(importer.assetPath, out Vector4 border))
             settings.spriteBorder = border;
+        if (TokenPivot(importer.assetPath, out Vector2 tokenPivot))
+        {
+            settings.spriteAlignment = (int)SpriteAlignment.Custom;
+            settings.spritePivot = tokenPivot;
+        }
+
         importer.SetTextureSettings(settings);
         if (MenuBorder(importer.assetPath, out border))
             importer.spriteBorder = border;
+        if (TokenPivot(importer.assetPath, out tokenPivot))
+        {
+            settings.spriteAlignment = (int)SpriteAlignment.Custom;
+            settings.spritePivot = tokenPivot;
+            importer.SetTextureSettings(settings);
+        }
 
         SetPlatform(importer.GetDefaultPlatformTextureSettings(), importer);
         var standalone = importer.GetPlatformTextureSettings("Standalone");
@@ -199,6 +222,17 @@ public class UiTextureImporter : AssetPostprocessor
         {
             float meter = importer.spriteBorder.x;
             if (meter < 78f || meter > 80f)
+                return false;
+        }
+
+        if (TokenPivot(importer.assetPath, out Vector2 tokenPivot))
+        {
+            var have = new TextureImporterSettings();
+            importer.ReadTextureSettings(have);
+            if (have.spriteAlignment != (int)SpriteAlignment.Custom)
+                return false;
+            if (Mathf.Abs(have.spritePivot.x - tokenPivot.x) > 0.0001f
+                || Mathf.Abs(have.spritePivot.y - tokenPivot.y) > 0.0001f)
                 return false;
         }
 

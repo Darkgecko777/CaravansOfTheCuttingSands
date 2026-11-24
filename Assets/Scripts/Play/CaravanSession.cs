@@ -41,6 +41,8 @@ namespace Caravans.Play
     {
         public Vector2 Point;
         public HouseId House;
+        public bool Traveling;
+        public float HeadingX;
     }
 
     public sealed partial class CaravanSession
@@ -150,6 +152,20 @@ namespace Caravans.Play
                     return RoadGraph.DockPoint(Dock);
                 return RoadGraph.PointAlong(travelFrom, travelTo, TravelDistance);
             }
+        }
+
+        public float TravelHeadingX()
+        {
+            if (!Traveling)
+                return 0f;
+            Vector2 from;
+            Vector2 to;
+            if (OnMapRoute(out from, out to))
+                return to.x - from.x;
+            const float step = 0.01f;
+            Vector2 here = RoadGraph.PointAlong(travelFrom, travelTo, TravelDistance);
+            Vector2 ahead = RoadGraph.PointAlong(travelFrom, travelTo, TravelDistance + step);
+            return ahead.x - here.x;
         }
 
         public CaravanSession()
@@ -403,7 +419,20 @@ namespace Caravans.Play
             Vector2 point = npc.Traveling
                 ? RoadGraph.PointAlong(npc.From, npc.To, npc.Distance)
                 : RoadGraph.DockPoint(npc.Dock);
-            return new NpcMark { Point = point, House = npc.House };
+            float heading = 0f;
+            if (npc.Traveling)
+            {
+                Vector2 ahead = RoadGraph.PointAlong(npc.From, npc.To, npc.Distance + 0.01f);
+                heading = ahead.x - point.x;
+            }
+
+            return new NpcMark
+            {
+                Point = point,
+                House = npc.House,
+                Traveling = npc.Traveling,
+                HeadingX = heading
+            };
         }
 
         public int NpcSpace(int index)
@@ -2575,6 +2604,66 @@ namespace Caravans.Play
         }
 
 #if UNITY_EDITOR
+        PlaceId[] shotNpcDock;
+        PlaceId[] shotNpcFrom;
+        PlaceId[] shotNpcTo;
+        float[] shotNpcDistance;
+        bool[] shotNpcTraveling;
+        bool shotNpcsMoved;
+
+        internal void ShotShowNpcTokens()
+        {
+            if (npcs.Count < 3)
+                return;
+            if (!shotNpcsMoved)
+            {
+                shotNpcDock = new PlaceId[3];
+                shotNpcFrom = new PlaceId[3];
+                shotNpcTo = new PlaceId[3];
+                shotNpcDistance = new float[3];
+                shotNpcTraveling = new bool[3];
+                for (int i = 0; i < 3; i++)
+                {
+                    shotNpcDock[i] = npcs[i].Dock;
+                    shotNpcFrom[i] = npcs[i].From;
+                    shotNpcTo[i] = npcs[i].To;
+                    shotNpcDistance[i] = npcs[i].Distance;
+                    shotNpcTraveling[i] = npcs[i].Traveling;
+                }
+
+                shotNpcsMoved = true;
+            }
+
+            float length = RoadGraph.Length(PlaceId.Kharun, PlaceId.Draven);
+            for (int i = 0; i < 3; i++)
+            {
+                NpcCaravan npc = npcs[i];
+                npc.Traveling = true;
+                npc.From = PlaceId.Kharun;
+                npc.To = PlaceId.Draven;
+                npc.Distance = length * (0.22f + 0.22f * i);
+                npc.EdgeLength = length;
+            }
+        }
+
+        internal void ShotClearNpcTokens()
+        {
+            if (!shotNpcsMoved || shotNpcDock == null || npcs.Count < 3)
+                return;
+            for (int i = 0; i < 3; i++)
+            {
+                NpcCaravan npc = npcs[i];
+                npc.Dock = shotNpcDock[i];
+                npc.From = shotNpcFrom[i];
+                npc.To = shotNpcTo[i];
+                npc.Distance = shotNpcDistance[i];
+                npc.Traveling = shotNpcTraveling[i];
+                npc.EdgeLength = npc.Traveling ? RoadGraph.Length(npc.From, npc.To) : 0f;
+            }
+
+            shotNpcsMoved = false;
+        }
+
         public void ShotSeed()
         {
             int bought = 0;

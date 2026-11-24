@@ -58,6 +58,9 @@ namespace Caravans.Play
         readonly List<Button> sortChoices = new List<Button>();
         readonly List<ShopSort> sortChoiceKinds = new List<ShopSort>();
         readonly List<Image> npcTokens = new List<Image>();
+        readonly Dictionary<string, Sprite> tokenSprites = new Dictionary<string, Sprite>();
+        readonly float[] npcFacing = new float[9];
+        float caravanFacing = 1f;
 
         CaravanSession session;
         bool endSlotCleared;
@@ -900,16 +903,22 @@ namespace Caravans.Play
             routeMark.rectTransform.sizeDelta = new Vector2(72f, 72f);
             routeRoot.gameObject.SetActive(false);
 
-            var tokenImage = ImageOn(Child(mapSheet, "Caravan"), new Color(0.93f, 0.82f, 0.55f, 1f), false);
+            var tokenImage = ImageOn(Child(mapSheet, "Caravan"), Color.white, false);
             tokenImage.sprite = disc;
+            tokenImage.type = Image.Type.Simple;
+            tokenImage.preserveAspect = true;
             token = tokenImage.rectTransform;
-            token.sizeDelta = new Vector2(22f, 22f);
+            token.sizeDelta = new Vector2(MapTokens.PixelSize, MapTokens.PixelSize);
+            token.pivot = MapTokens.Pivot;
 
             for (int i = 0; i < 9; i++)
             {
                 var npcImage = ImageOn(Child(mapSheet, "Npc" + i), Color.white, false);
                 npcImage.sprite = disc;
-                npcImage.rectTransform.sizeDelta = new Vector2(14f, 14f);
+                npcImage.type = Image.Type.Simple;
+                npcImage.preserveAspect = true;
+                npcImage.rectTransform.sizeDelta = new Vector2(MapTokens.PixelSize, MapTokens.PixelSize);
+                npcImage.rectTransform.pivot = MapTokens.Pivot;
                 npcTokens.Add(npcImage);
             }
 
@@ -2468,7 +2477,10 @@ namespace Caravans.Play
             float radius = session.VisionRadius();
             PlaceSheet(point, close, radius);
             UpdateRoute();
-            PlaceOnMap(token, point, 22f);
+            Image caravanImage = token.GetComponent<Image>();
+            ApplyToken(caravanImage, MapTokens.PlayerSpriteName(session.MerchantMountTier));
+            caravanFacing = MapTokens.FacingSign(session.TravelHeadingX(), caravanFacing);
+            PlaceToken(token, point, caravanFacing);
             int npcCount = session.NpcCount;
             for (int i = 0; i < npcTokens.Count; i++)
             {
@@ -2481,8 +2493,9 @@ namespace Caravans.Play
                 Vector2 shifted = mark.Point;
                 shifted.x += Mathf.Cos(angle) * 0.008f;
                 shifted.y += Mathf.Sin(angle) * 0.008f;
-                PlaceOnMap(npcTokens[i].rectTransform, shifted, 14f);
-                npcTokens[i].color = HouseColor(mark.House);
+                ApplyToken(npcTokens[i], MapTokens.NpcSpriteName(i));
+                npcFacing[i] = MapTokens.FacingSign(mark.HeadingX, npcFacing[i]);
+                PlaceToken(npcTokens[i].rectTransform, shifted, npcFacing[i]);
             }
 
             bool shade = close && fogMaterial != null;
@@ -2618,6 +2631,42 @@ namespace Caravans.Play
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = Vector2.zero;
             rect.sizeDelta = new Vector2(diameter, diameter);
+        }
+
+        void PlaceToken(RectTransform rect, Vector2 topLeft, float facing)
+        {
+            var anchor = new Vector2(topLeft.x, 1f - topLeft.y);
+            rect.anchorMin = anchor;
+            rect.anchorMax = anchor;
+            rect.pivot = MapTokens.Pivot;
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = new Vector2(MapTokens.PixelSize, MapTokens.PixelSize);
+            float sheet = mapSheet != null ? Mathf.Abs(mapSheet.localScale.x) : 1f;
+            if (sheet < 0.0001f)
+                sheet = 1f;
+            float fit = 1f / sheet;
+            float sign = facing < 0f ? -1f : 1f;
+            rect.localScale = new Vector3(sign * fit, fit, 1f);
+        }
+
+        void ApplyToken(Image image, string spriteName)
+        {
+            if (image == null)
+                return;
+            Sprite sprite;
+            if (!tokenSprites.TryGetValue(spriteName, out sprite))
+            {
+                sprite = Resources.Load<Sprite>(MapTokens.ResourcePath(spriteName));
+                tokenSprites[spriteName] = sprite;
+                if (sprite == null)
+                    Debug.LogWarning("Map token missing: " + spriteName);
+            }
+
+            image.sprite = sprite != null ? sprite : disc;
+            image.color = Color.white;
+            image.type = Image.Type.Simple;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
         }
 
         void EnsureMap()
@@ -2786,23 +2835,6 @@ namespace Caravans.Play
             var colors = button.colors;
             colors.normalColor = selected ? ButtonHot : Color.white;
             button.colors = colors;
-        }
-
-        static Color HouseColor(HouseId house)
-        {
-            switch (house)
-            {
-                case HouseId.Kharun:
-                    return new Color(0.55f, 0.72f, 0.84f, 1f);
-                case HouseId.Zamath:
-                    return new Color(0.45f, 0.62f, 0.38f, 1f);
-                case HouseId.Thalor:
-                    return new Color(0.72f, 0.28f, 0.22f, 1f);
-                case HouseId.Veythar:
-                    return new Color(0.55f, 0.38f, 0.68f, 1f);
-                default:
-                    return new Color(0.78f, 0.52f, 0.22f, 1f);
-            }
         }
 
         Button BarSeal(RectTransform parent, string label, Sprite normal, Sprite hover, Sprite pressed, UnityEngine.Events.UnityAction action, float labelSize = 0f)
@@ -3634,9 +3666,33 @@ namespace Caravans.Play
                     return ShotMapWeather(WeatherKind.Heat);
                 case "gates-storm":
                     return ShotGatesStorm();
+                case "travel-duzhu":
+                    return ShotMountedTravel(2);
+                case "travel-pincer":
+                    return ShotMountedTravel(3);
+                case "travel-npcs":
+                    return ShotNpcTokens();
                 default:
                     return false;
             }
+        }
+
+        bool ShotMountedTravel(int tier)
+        {
+            if (!ShotPlaza(PlazaSpot.Gates, true, false))
+                return false;
+            session.SetCaravan(tier, 0);
+            FinishShot();
+            return roadLit && pendingDest == PlaceId.Draven && session.MerchantMountTier == tier;
+        }
+
+        bool ShotNpcTokens()
+        {
+            if (!ShotPlaza(PlazaSpot.Gates, true, false))
+                return false;
+            session.ShotShowNpcTokens();
+            FinishShot();
+            return roadLit && pendingDest == PlaceId.Draven && session.MerchantMountTier == 1;
         }
 
         bool ShotPlaza(PlazaSpot spot, bool lit, bool choice)
@@ -3703,7 +3759,13 @@ namespace Caravans.Play
                 session.ClearRankUpNotice();
                 session.ShotClearMapState();
                 session.ShotClearAgents();
+                session.ShotClearNpcTokens();
+                session.SetCaravan(1, 0);
             }
+
+            caravanFacing = 1f;
+            for (int i = 0; i < npcFacing.Length; i++)
+                npcFacing[i] = 1f;
 
             draftPace = RoadPace.Steady;
             HideStandingToast();
