@@ -104,6 +104,7 @@ namespace Caravans.Play
 
         void OnDestroy()
         {
+            ReleaseSteamSync();
             if (hazeTexture != null)
                 Destroy(hazeTexture);
             if (massTexture != null)

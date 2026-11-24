@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Caravans.Steam;
 
 namespace Caravans.Play
 {
@@ -15,6 +16,14 @@ namespace Caravans.Play
             fires.TryGetValue(id, out count);
             fires[id] = count + 1;
             unlocked.Add(id);
+            try
+            {
+                SteamAchievements.Report(id);
+            }
+            catch (System.Exception)
+            {
+                // The local flag is already set. A missing Steam client must not throw.
+            }
         }
 
         public bool IsUnlocked(string id)

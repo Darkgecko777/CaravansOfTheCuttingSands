@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Caravans.Steam;
 using UnityEngine;
 
 [assembly: InternalsVisibleTo("Caravans.Play.EditModeTests")]
@@ -586,6 +587,7 @@ namespace Caravans.Play
             if (GetKharunRank() > rankBefore)
                 RankUpNotice = "Your standing with House Kharûn has risen to rank " + GetKharunRank() + ".";
 
+            NoteStandingAchievements();
             Touch();
         }
 
@@ -1115,6 +1117,7 @@ namespace Caravans.Play
         public void SetKharunPoints(float points)
         {
             kharunPoints = points < 0f ? 0f : points;
+            NoteStandingAchievements();
             Touch();
         }
 
@@ -1141,6 +1144,37 @@ namespace Caravans.Play
             kharunPoints += delta;
             if (toast && GetKharunRank() > before)
                 RankUpNotice = "Your standing with House Kharûn has risen to rank " + GetKharunRank() + ".";
+            NoteStandingAchievements();
+        }
+
+        const string RankAchievement = "ACH_RANK_5";
+        const string FlipAchievement = "ACH_FIRST_FLIP";
+
+        void NoteStandingAchievements()
+        {
+            if (GetKharunRank() >= 5 && !achievements.IsUnlocked(RankAchievement))
+                achievements.Unlock(RankAchievement);
+            if (AnyFlipSeen() && !achievements.IsUnlocked(FlipAchievement))
+                achievements.Unlock(FlipAchievement);
+        }
+
+        bool AnyFlipSeen()
+        {
+            for (int i = 0; i < kharunFlipSeen.Length; i++)
+            {
+                if (kharunFlipSeen[i])
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal void PushAchievementsToSteam()
+        {
+            string[] ids;
+            int[] counts;
+            achievements.Export(out ids, out counts);
+            SteamAchievements.Push(ids);
         }
 
         public void AddPresence(PlaceId place, HouseId house, int coin)

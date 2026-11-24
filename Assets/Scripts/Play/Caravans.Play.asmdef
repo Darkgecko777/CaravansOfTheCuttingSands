@@ -5,7 +5,8 @@
     "UnityEngine.UI",
     "Unity.TextMeshPro",
     "Unity.InputSystem",
-    "Caravans.FrontDoor"
+    "Caravans.FrontDoor",
+    "Caravans.Steam"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

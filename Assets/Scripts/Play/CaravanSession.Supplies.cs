@@ -467,6 +467,7 @@ namespace Caravans.Play
             rescueCount++;
             ClearMapTravel();
             // TODO: ACH_DRAGGED_HOME increments with RescueCount. A later bank's BankedCoin stays through this reset.
+            NoteStandingAchievements();
             MarkSaveDue();
             Touch();
         }

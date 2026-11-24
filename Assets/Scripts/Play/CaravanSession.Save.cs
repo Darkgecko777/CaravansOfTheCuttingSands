@@ -311,6 +311,7 @@ namespace Caravans.Play
             RestoreGuardSave();
             SyncHiredCount();
             Reseed(save.day, save.stretchChecks, save.legsTravelled);
+            NoteStandingAchievements();
             Touch();
         }
 

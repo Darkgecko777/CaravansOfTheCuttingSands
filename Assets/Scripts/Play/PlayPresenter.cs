@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Caravans.FrontDoor;
+using Caravans.Steam;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -215,6 +216,9 @@ namespace Caravans.Play
                 session = new CaravanSession();
             }
 
+            SteamAchievements.StatsReceived += PushSteamAchievements;
+            PushSteamAchievements();
+
             EnsureEventSystem();
             quad = MakeSprite(false);
             disc = MakeSprite(true);
@@ -237,6 +241,17 @@ namespace Caravans.Play
             }
 
             Redraw();
+        }
+
+        void PushSteamAchievements()
+        {
+            if (session != null)
+                session.PushAchievementsToSteam();
+        }
+
+        void ReleaseSteamSync()
+        {
+            SteamAchievements.StatsReceived -= PushSteamAchievements;
         }
 
         void Update()
