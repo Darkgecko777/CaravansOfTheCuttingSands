@@ -36,7 +36,7 @@ namespace Caravans.Play
         string lastRescueText;
         int rescueCount;
         int pendingRescueDays;
-        System.Random rescueRandom;
+        internal RunRandom rescueRandom;
 
         public float DailyWater
         {

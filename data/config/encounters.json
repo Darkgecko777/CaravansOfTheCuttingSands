@@ -4,6 +4,5 @@
   "rushOffset": 0.15,
   "floorChance": 0.05,
   "fireHourMin": 1,
-  "fireHourMax": 6,
-  "seed": 4817
+  "fireHourMax": 6
 }

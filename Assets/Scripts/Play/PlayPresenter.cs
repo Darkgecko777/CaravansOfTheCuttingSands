@@ -3456,6 +3456,7 @@ namespace Caravans.Play
                     ShotClearOverlays();
                     if (!shotSeeded)
                     {
+                        session.ShotPinRun();
                         session.ShotSeed();
                         shotSeeded = true;
                     }

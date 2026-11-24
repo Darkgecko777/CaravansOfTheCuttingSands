@@ -10,7 +10,7 @@ namespace Caravans.Play.Tests
         [Test]
         public void FullShelfIsCheaperThanAScarceOne()
         {
-            var session = new CaravanSession();
+            var session = new CaravanSession(1);
             int jarsAtKharun = session.PriceOf(PlaceId.Kharun, GoodId.ShimmersteelJars);
             int jarsAtDraven = session.PriceOf(PlaceId.Draven, GoodId.ShimmersteelJars);
             int fungusAtDraven = session.PriceOf(PlaceId.Draven, GoodId.FingerFungus);
@@ -67,7 +67,7 @@ namespace Caravans.Play.Tests
         public void ShelvesStartOnTheHopGradient()
         {
             EconomyCatalog.EnsureLoaded();
-            var session = new CaravanSession();
+            var session = new CaravanSession(1);
             Assert.AreEqual(21f, EconomyCatalog.WorldEat(GoodId.ShimmersteelJars), 0.01f);
             Assert.AreEqual(21f, EconomyCatalog.WorldEat(GoodId.Water), 0.01f);
             Assert.AreEqual(6, session.StockOf(PlaceId.Kharun, GoodId.ShimmersteelJars));
@@ -81,7 +81,7 @@ namespace Caravans.Play.Tests
         [Test]
         public void MorningEatsAndNightJarsWaitOnBars()
         {
-            var session = new CaravanSession();
+            var session = new CaravanSession(1);
             int rods = session.StockOf(PlaceId.Zamath, GoodId.WaterWitchingRods);
             int jars = session.StockOf(PlaceId.Draven, GoodId.ShimmersteelJars);
             session.TickMorning();
@@ -477,7 +477,7 @@ namespace Caravans.Play.Tests
         [Test]
         public void GradesOpenFoodAndWaterAtDifferentPrices()
         {
-            var session = new CaravanSession();
+            var session = new CaravanSession(1);
             Assert.Less(session.PriceOf(PlaceId.Veythar, GoodId.Rations), session.PriceOf(PlaceId.Thalor, GoodId.Rations));
             Assert.Less(session.PriceOf(PlaceId.Thalor, GoodId.Rations), session.PriceOf(PlaceId.Ashar, GoodId.Rations));
             Assert.Less(session.PriceOf(PlaceId.Ghorath, GoodId.Water), session.PriceOf(PlaceId.Kharun, GoodId.Water));

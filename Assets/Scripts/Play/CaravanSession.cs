@@ -127,7 +127,15 @@ namespace Caravans.Play
         float kitFactor = 1f;
         bool roadDrink;
         bool encounterArmed;
-        System.Random encounterRandom;
+        int runSeed;
+        int pinnedSeed;
+        internal RunRandom encounterRandom;
+        internal RunRandom npcRandom;
+
+        internal int RunSeed
+        {
+            get { return runSeed; }
+        }
         bool friendOfBandits;
         readonly HashSet<string> runFlags = new HashSet<string>(System.StringComparer.Ordinal);
 
@@ -169,7 +177,13 @@ namespace Caravans.Play
         }
 
         public CaravanSession()
+            : this(0)
         {
+        }
+
+        internal CaravanSession(int runSeed)
+        {
+            pinnedSeed = runSeed;
             ResetCaravan();
             SitAtKharun();
             MarkSaveDue();
@@ -448,6 +462,11 @@ namespace Caravans.Play
         public bool NpcTraveling(int index)
         {
             return npcs[index].Traveling;
+        }
+
+        internal PlaceId NpcDock(int index)
+        {
+            return npcs[index].Dock;
         }
 
         public int NpcHopsRemaining(int index)
@@ -1313,8 +1332,6 @@ namespace Caravans.Play
         void CheckLeg()
         {
             StretchChecks++;
-            if (encounterRandom == null)
-                encounterRandom = new System.Random(GameConfig.Encounters.seed);
             string scripted;
             if (mapLeg == MapLegKind.None && EncounterCards.ScriptedReplacement(travelFrom, travelTo, HasRunFlag, out scripted))
             {
@@ -1596,8 +1613,6 @@ namespace Caravans.Play
                 return false;
             }
 
-            if (encounterRandom == null)
-                encounterRandom = new System.Random(GameConfig.Encounters.seed);
             good = goods[encounterRandom.Next(goods.Count)];
             return true;
         }
@@ -2036,7 +2051,6 @@ namespace Caravans.Play
         void SpawnNpcs()
         {
             npcs.Clear();
-            var rng = new System.Random(EconomyRates.NpcSeed);
             HouseId[] houses =
             {
                 HouseId.Kharun,
@@ -2049,7 +2063,7 @@ namespace Caravans.Play
             {
                 var npc = new NpcCaravan();
                 npc.House = houses[i];
-                npc.Dock = (PlaceId)rng.Next(WorldIds.PlaceCount);
+                npc.Dock = (PlaceId)npcRandom.Next(WorldIds.PlaceCount);
                 npcs.Add(npc);
             }
 
@@ -2471,10 +2485,8 @@ namespace Caravans.Play
             }
         }
 
-        void ResetCaravan()
+        void OpenShelves()
         {
-            EconomyCatalog.EnsureLoaded();
-            stacks.Clear();
             for (int place = 0; place < WorldIds.PlaceCount; place++)
             {
                 var id = (PlaceId)place;
@@ -2494,6 +2506,23 @@ namespace Caravans.Play
                     };
                 }
             }
+        }
+
+        void BindStreams(int seed)
+        {
+            if (seed == 0)
+                seed = RunRandom.FreshSeed();
+            runSeed = seed;
+            encounterRandom = RunRandom.ForStream(seed, 0xE5C04111UL);
+            rescueRandom = RunRandom.ForStream(seed, 0x5E5C0E01UL);
+            npcRandom = RunRandom.ForStream(seed, 0x4E5C0DE5UL);
+        }
+
+        void ResetCaravan()
+        {
+            EconomyCatalog.EnsureLoaded();
+            stacks.Clear();
+            OpenShelves();
 
             kharunPoints = 0f;
             RankUpNotice = null;
@@ -2533,8 +2562,11 @@ namespace Caravans.Play
             MapPieceLeads = 0;
             LegTravelHours = 0f;
             StretchChecks = 0;
-            encounterRandom = new System.Random(GameConfig.Encounters.seed);
-            rescueRandom = new System.Random(GameConfig.Encounters.seed);
+            int seed = pinnedSeed;
+            pinnedSeed = 0;
+            if (seed == 0)
+                seed = RunRandom.FreshSeed();
+            BindStreams(seed);
             kitFactor = 1f;
             LegWeather = WeatherKind.Clear;
             LegScale = 1f;
@@ -2604,6 +2636,15 @@ namespace Caravans.Play
         }
 
 #if UNITY_EDITOR
+        internal const int EditorShotSeed = 4817;
+
+        internal void ShotPinRun()
+        {
+            OpenShelves();
+            BindStreams(EditorShotSeed);
+            SpawnNpcs();
+        }
+
         PlaceId[] shotNpcDock;
         PlaceId[] shotNpcFrom;
         PlaceId[] shotNpcTo;

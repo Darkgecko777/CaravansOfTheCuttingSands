@@ -4,7 +4,23 @@ namespace Caravans.Play
 {
     public static class MapTokens
     {
-        public const float PixelSize = 48f;
+        public const float DefaultPixelSize = 96f;
+
+        public static float PixelSize
+        {
+            get
+            {
+                MapTokenFile file = GameConfig.MapTokens;
+                if (file == null || file.pixelSize <= 0f)
+                    return DefaultPixelSize;
+                float size = file.pixelSize;
+                if (size < 24f)
+                    size = 24f;
+                if (size > 192f)
+                    size = 192f;
+                return size;
+            }
+        }
         public static readonly Vector2 Pivot = new Vector2(0.5f, 0.0625f);
 
         public static string PlayerSpriteName(int tier)

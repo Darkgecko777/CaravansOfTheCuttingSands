@@ -25,5 +25,13 @@ namespace Caravans.Play.Tests
             Assert.AreEqual("npc_duzhu_rust_256", MapTokens.NpcSpriteName(4));
             Assert.AreEqual("npc_duzhu_ivory_256", MapTokens.NpcSpriteName(8));
         }
+
+        [Test]
+        public void TokensReadAboutNinetySixPixels()
+        {
+            Assert.AreEqual(96f, MapTokens.DefaultPixelSize);
+            Assert.GreaterOrEqual(MapTokens.PixelSize, 24f);
+            Assert.LessOrEqual(MapTokens.PixelSize, 192f);
+        }
     }
 }

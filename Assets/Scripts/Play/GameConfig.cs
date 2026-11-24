@@ -23,6 +23,7 @@ namespace Caravans.Play
         static EndScreenFile endScreen;
         static AgentFile agents;
         static WeatherLookFile weatherLook;
+        static MapTokenFile mapTokens;
 
         public static ConsumptionFile Consumption
         {
@@ -99,6 +100,11 @@ namespace Caravans.Play
             get { EnsureLoaded(); return weatherLook; }
         }
 
+        public static MapTokenFile MapTokens
+        {
+            get { EnsureLoaded(); return mapTokens; }
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset()
         {
@@ -107,6 +113,7 @@ namespace Caravans.Play
             endScreen = null;
             agents = null;
             weatherLook = null;
+            mapTokens = null;
             global::Caravans.Play.WeatherLook.Forget();
             EconomyCatalog.ForgetLoaded();
             EncounterCards.ForgetLoaded();
@@ -137,10 +144,10 @@ namespace Caravans.Play
                 "travelWindowHours", "reserveHours", "townRestHours", "campHours",
                 "rushSpeed", "rushKit", "steadySpeed", "steadyKit", "carefulSpeed", "carefulKit",
                 "dayKit");
-            rivals = Read<RivalFile>("rivals.json", "hopLimit", "seed");
+            rivals = Read<RivalFile>("rivals.json", "hopLimit");
             encounters = Read<EncounterFile>("encounters.json",
                 "baseChance", "carefulOffset", "rushOffset", "floorChance",
-                "fireHourMin", "fireHourMax", "seed");
+                "fireHourMin", "fireHourMax");
             workshops = ReadWorkshops();
             abundance = ReadAbundance();
             kit = TryRead<KitFile>("kit_consumption.json",
@@ -169,6 +176,7 @@ namespace Caravans.Play
                 "massSandstorm", "massSandstormAlpha", "massHeat", "massHeatAlpha", "massWind", "massWindAlpha",
                 "massCore", "noiseScale", "noiseStrength", "noiseSeed");
             global::Caravans.Play.WeatherLook.Validate(weatherLook);
+            mapTokens = TryRead<MapTokenFile>("map_tokens.json", "schemaVersion", "pixelSize");
             EncounterCards.EnsureLoaded();
             loaded = true;
         }
@@ -382,7 +390,6 @@ namespace Caravans.Play
     public class RivalFile
     {
         public int hopLimit;
-        public int seed;
     }
 
     [Serializable]
@@ -394,7 +401,6 @@ namespace Caravans.Play
         public float floorChance;
         public int fireHourMin;
         public int fireHourMax;
-        public int seed;
     }
 
     [Serializable]

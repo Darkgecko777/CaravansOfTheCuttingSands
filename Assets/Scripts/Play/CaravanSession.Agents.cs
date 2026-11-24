@@ -253,7 +253,6 @@ namespace Caravans.Play
             // An empty hold must not spend the chance roll or a forced index.
             if (stacks.Count == 0)
                 return;
-            EnsureEncounterRandom();
             if (encounterRandom.NextDouble() >= RushChance())
                 return;
 
@@ -273,12 +272,6 @@ namespace Caravans.Play
         float RushChance()
         {
             return rushChanceForced ? rushChanceValue : EconomyRates.RushCargoLossChance;
-        }
-
-        void EnsureEncounterRandom()
-        {
-            if (encounterRandom == null)
-                encounterRandom = new System.Random(GameConfig.Encounters.seed);
         }
 
         static bool IsBad(string tone)

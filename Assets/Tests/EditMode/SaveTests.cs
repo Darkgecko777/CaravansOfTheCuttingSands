@@ -435,6 +435,44 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(first.EncounterHour, second.EncounterHour, 0.0001f);
         }
 
+        [Test]
+        public void ContinueResumesTheEncounterStream()
+        {
+            var session = new CaravanSession(17);
+            Leave(session, PlaceId.Draven);
+            Assert.IsTrue(session.AtSafePoint);
+            long state = session.encounterRandom.State;
+            var fresh = new CaravanSession(session.RunSeed);
+            Assert.AreNotEqual(state, fresh.encounterRandom.State);
+            Assert.IsTrue(RunSaveStore.TryWrite(session));
+            CaravanSession loaded;
+            Assert.IsTrue(RunSaveStore.TryLoad(out loaded));
+            Assert.AreEqual(session.RunSeed, loaded.RunSeed);
+            Assert.AreEqual(state, loaded.encounterRandom.State);
+            DepartSame(session, PlaceId.Kharun);
+            DepartSame(loaded, PlaceId.Kharun);
+            AdvanceToCard(session);
+            AdvanceToCard(loaded);
+            Assert.AreEqual(session.EncounterPending, loaded.EncounterPending);
+            Assert.AreEqual(session.EncounterId, loaded.EncounterId);
+            Assert.AreEqual(session.EncounterHour, loaded.EncounterHour, 0.0001f);
+            Assert.AreEqual(session.encounterRandom.State, loaded.encounterRandom.State);
+        }
+
+        static void AdvanceToCard(CaravanSession session)
+        {
+            for (int i = 0; i < 4000 && session.Traveling && !session.EncounterPending && !session.DeathPending; i++)
+            {
+                if (session.CampPending)
+                    session.MakeCamp();
+                if (session.AwaitingPace)
+                    session.ChooseRoadPace(RoadPace.Steady);
+                if (session.EncounterPending)
+                    break;
+                session.Tick(0.25f);
+            }
+        }
+
         static void AssertPlanted(CaravanSession session)
         {
             RunSave save = session.CaptureSave();
@@ -612,6 +650,10 @@ namespace Caravans.Play.Tests
             Assert.AreEqual(a.embarkedDay, b.embarkedDay);
             CollectionAssert.AreEqual(a.achievementIds, b.achievementIds);
             CollectionAssert.AreEqual(a.achievementFires, b.achievementFires);
+            Assert.AreEqual(a.runSeed, b.runSeed);
+            Assert.AreEqual(a.encounterRngState, b.encounterRngState);
+            Assert.AreEqual(a.rescueRngState, b.rescueRngState);
+            Assert.AreEqual(a.npcRngState, b.npcRngState);
         }
 
         static void SamePrices(RunSave.PriceRow[] a, RunSave.PriceRow[] b)

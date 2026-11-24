@@ -168,6 +168,10 @@ namespace Caravans.Play
             save.banditCoin = banditCoin;
             save.embarkedDay = embarkedDay < 1 ? 1 : embarkedDay;
             achievements.Export(out save.achievementIds, out save.achievementFires);
+            save.runSeed = runSeed;
+            save.encounterRngState = encounterRandom.State;
+            save.rescueRngState = rescueRandom.State;
+            save.npcRngState = npcRandom.State;
             return save;
         }
 
@@ -310,26 +314,18 @@ namespace Caravans.Play
             lastNotice = string.Empty;
             RestoreGuardSave();
             SyncHiredCount();
-            Reseed(save.day, save.stretchChecks, save.legsTravelled);
-            NoteStandingAchievements();
-            Touch();
-        }
-
-        void Reseed(int day, int checks, int legs)
-        {
-            int mix;
-            unchecked
+            if (save.runSeed == 0)
+                BindStreams(RunRandom.FreshSeed());
+            else
             {
-                mix = GameConfig.Encounters.seed;
-                mix = mix * 31 + day;
-                mix = mix * 31 + checks;
-                mix = mix * 31 + legs;
+                BindStreams(save.runSeed);
+                encounterRandom.State = save.encounterRngState;
+                rescueRandom.State = save.rescueRngState;
+                npcRandom.State = save.npcRngState;
             }
 
-            if (mix == int.MinValue)
-                mix = 1;
-            encounterRandom = new System.Random(mix);
-            rescueRandom = new System.Random(mix);
+            NoteStandingAchievements();
+            Touch();
         }
 
         static RunSave.PriceRow[] Prices(LoggedPrice[] source)

@@ -78,6 +78,11 @@ namespace Caravans.Play
         public string[] achievementIds;
         public int[] achievementFires;
 
+        public int runSeed;
+        public long encounterRngState;
+        public long rescueRngState;
+        public long npcRngState;
+
         [Serializable]
         public class PackRow
         {

@@ -785,8 +785,6 @@ namespace Caravans.Play
 
         bool TryOpenMapPoolCard()
         {
-            if (encounterRandom == null)
-                encounterRandom = new System.Random(GameConfig.Encounters.seed);
             string id = EncounterCards.Pick(
                 MapPool(LegWeather),
                 PlaceId.Westmark,

@@ -166,11 +166,6 @@ namespace Caravans.Play
             get { return GameConfig.Rivals.hopLimit; }
         }
 
-        public static int NpcSeed
-        {
-            get { return GameConfig.Rivals.seed; }
-        }
-
         public static float SeaHourFloor
         {
             get { return GameConfig.Travel.seaHourFloor; }
