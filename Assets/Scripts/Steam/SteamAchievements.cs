@@ -36,6 +36,10 @@ namespace Caravans.Steam
 
         public static void Report(string apiName)
         {
+#if UNITY_EDITOR
+            if (SteamManager.EditorSteamOff())
+                return;
+#endif
             if (string.IsNullOrEmpty(apiName) || !SteamManager.Initialized)
                 return;
             if (!ready)
@@ -49,6 +53,10 @@ namespace Caravans.Steam
 
         public static void Push(string[] apiNames)
         {
+#if UNITY_EDITOR
+            if (SteamManager.EditorSteamOff())
+                return;
+#endif
             if (apiNames == null)
                 return;
             for (int i = 0; i < apiNames.Length; i++)

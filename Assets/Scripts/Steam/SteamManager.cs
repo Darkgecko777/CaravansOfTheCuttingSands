@@ -33,9 +33,20 @@ namespace Caravans.Steam
             SteamAchievements.Reset();
         }
 
+#if UNITY_EDITOR
+        internal static bool EditorSteamOff()
+        {
+            return Environment.GetEnvironmentVariable("CARAVANS_EDITOR_NO_STEAM") == "1";
+        }
+#endif
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Bootstrap()
         {
+#if UNITY_EDITOR
+            if (EditorSteamOff())
+                return;
+#endif
             if (!Application.isPlaying || bootstrapped)
                 return;
             bootstrapped = true;

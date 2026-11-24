@@ -1,6 +1,6 @@
 # UI screenshots
 
-Captured 2026-11-23 at commit e016398 (working tree).
+Captured 2026-11-23 at commit e6d0819 (working tree).
 
 | File | Scene | State |
 | --- | --- | --- |
@@ -17,7 +17,7 @@ Captured 2026-11-23 at commit e016398 (working tree).
 | 20_plaza_inn.png | SampleScene | Plaza, Inn, at Kharûn. The top bar shows water and rations, and the cargo cap is 4/10. |
 | 21_plaza_gates.png | SampleScene | Plaza, Gates, at Kharûn. No road is lit. Neighbour road buttons sit inside the gates panel. The top bar shows water and rations, and the cargo cap is 4/10. The three weather masses show as soft static haze patches where a new game places them. |
 | 40_logbook.png | SampleScene | Logbook open over the market at Kharûn, between the bars. A Sarn's map block lists one owned piece and the day it was bought. Seeded buy and sale figures are on the rows. An unseen price is a dash. |
-| 41_pause_menu.png | SampleScene | Pause menu open over the Kharûn market. Compact wood panel, text-only RESUME, OPTIONS, MAIN MENU, and QUIT. No row bars. A bone tick marks the selected row. Gear is visible on the top bar. |
+| 41_pause_menu.png | SampleScene | Pause menu open over the Kharûn market. Compact wood panel, text-only RESUME, OPTIONS, MAIN MENU, and QUIT. No row bars. A bone tick marks the selected row. Options sits at the far right of the top bar, past a gold divider. |
 | 30_travel_map.png | SampleScene | Gates at Kharûn with the Draven road lit. The painted trail and the destination circle are up. The player token is the thrask. NPC merchants are static duzhu tokens. Neighbour road buttons stay on the gates panel. The top bar shows water and rations, and the cargo cap is 4/10. |
 | 31_road_choice.png | SampleScene | Gates at Kharûn with the Draven road lit. Careful, Steady, and Rush sit on the panel. Embark is live. The player token is the thrask. No card covers the map. |
 | 32_departure.png | SampleScene | En route to Draven, paused at the Kharûn dock. The route line is drawn and the wagon has not moved. The top bar shows water and rations, and the cargo cap is 4/10. |
@@ -39,7 +39,7 @@ Captured 2026-11-23 at commit e016398 (working tree).
 | 51_tavern_agents.png | SampleScene | Tavern at Kharûn. The Agents block lists Scout, Haggler, and Guard, unhired, with hire costs (40 / 80 / 60) and a live Hire on each. The map-piece list is still visible. Hide-and-bone, cream on hide, one frame, type at least 22. |
 | 52_tavern_agents_hired.png | SampleScene | Tavern at Kharûn with the scout hired. The scout row shows the dawn wage and a live Dismiss; the other two still show Hire. No modal. |
 | 53_gates_scout.png | SampleScene | Gates at Kharûn with the Draven road lit, a scout hired, and Rush selected. The scout line reads 'Scout: 65% chance of an encounter at Rush.' Careful, Steady, and Rush are on the panel. Embark is live. No card covers the map. |
-| 54_map_sandstorm.png | SampleScene | On the Draven road, paused just out of Kharûn, inside a sandstorm. The vision circle is at its tightest. The map has a warm ochre grade and a static dust haze, darker toward the frame edges. The thrask token at the centre stays about 48 px, planted on the road, and the route line reads clearly. The leg line reads On this leg: Sandstorm. The leg takes longer. |
+| 54_map_sandstorm.png | SampleScene | On the Draven road, paused just out of Kharûn, inside a sandstorm. The vision circle is at its tightest. The map has a warm ochre grade and a static dust haze, darker toward the frame edges. The thrask token at the centre stays about 96 px, planted on the road, and the route line reads clearly. The leg line reads On this leg: Sandstorm. The leg takes longer. |
 | 55_map_heat.png | SampleScene | On the Draven road, paused just out of Kharûn, in heat. The map is washed paler than in clear weather, with a faint cream wash toward the edges. The vision circle is its usual size for that hour. The leg line reads On this leg: Heat. The leg takes longer. |
 | 56_gates_storm_road.png | SampleScene | Gates at Kharûn with the Draven road lit and a sandstorm sitting across the middle of it. The storm is a soft ochre haze patch on the painted map, under the lit trail and the destination circle. The thrask token sits above the patch. Heat and wind show as paler patches where they sit. The weather line reads The road ahead is Sandstorm. |
 | 57_travel_duzhu.png | SampleScene | Gates at Kharûn with the Draven road lit. The player token is the duzhu. No highlight and no animation. |
@@ -52,7 +52,7 @@ The encounter card shows a title, a scene, and two choices. It is 33_encounter.p
 
 31_road_choice.png is the gates panel with the Draven road lit. Careful, Steady, and Rush are on that panel, and Embark leaves. No card covers the map. The pace card opens after camp, which is 35_resume_pace.png, in the order Careful, Steady, Rush.
 
-House and Stables stay off the layout while ShowUnfinishedFeatures is off. The Tavern is on at Kharûn and sells the six pieces of Sarn's map, gated by House Kharûn rank. Leads discount the next piece. The logbook lists owned pieces. All six open the Westmark road to Sarn's Rest. The run ends on the Embarked ledger. Gear stays on the top bar and opens the pause menu, which is part of play. The title menu is a compact wood panel under the tagline. The title, title Options, and the pause menu use that wood panel and text-only items, with a bone tick and no row bars. Title Options includes Show intro again.
+House and Stables stay off the layout while ShowUnfinishedFeatures is off. The Tavern is on at Kharûn and sells the six pieces of Sarn's map, gated by House Kharûn rank. Leads discount the next piece. The logbook lists owned pieces. All six open the Westmark road to Sarn's Rest. The run ends on the Embarked ledger. Options stays on the top bar and opens the pause menu, which is part of play. The title menu is a compact wood panel under the tagline. The title, title Options, and the pause menu use that wood panel and text-only items, with a bone tick and no row bars. Title Options includes Show intro again.
 
 03_intro_card.png is the first-run intro card, one wood panel over the Kharûn market. It shows the header, the body, the tagline, and a text-only BEGIN. Play input is locked. Later New Games skip the card unless Show intro again is on.
 

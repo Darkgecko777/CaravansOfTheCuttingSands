@@ -22,6 +22,7 @@ public static class UiScreenshots
     const int Width = 1920;
     const int Height = 1080;
     const double StepSeconds = 40d;
+    const string SteamOffVariable = "CARAVANS_EDITOR_NO_STEAM";
 
     enum Kind { Title, Play, PlayMap }
     enum Phase { Wait, Apply, Settle, Refresh, AfterRefresh, Capture, WaitFile }
@@ -53,7 +54,7 @@ public static class UiScreenshots
         ShotOf("inn", "20_plaza_inn.png", "SampleScene", "Plaza, Inn, at Kharûn. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.Play, Kind.Play),
         ShotOf("gates", "21_plaza_gates.png", "SampleScene", "Plaza, Gates, at Kharûn. No road is lit. Neighbour road buttons sit inside the gates panel. The top bar shows water and rations, and the cargo cap is 4/10. The three weather masses show as soft static haze patches where a new game places them.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("logbook", "40_logbook.png", "SampleScene", "Logbook open over the market at Kharûn, between the bars. A Sarn's map block lists one owned piece and the day it was bought. Seeded buy and sale figures are on the rows. An unseen price is a dash.", Kind.Play, Kind.Play),
-        ShotOf("options", "41_pause_menu.png", "SampleScene", "Pause menu open over the Kharûn market. Compact wood panel, text-only RESUME, OPTIONS, MAIN MENU, and QUIT. No row bars. A bone tick marks the selected row. Gear is visible on the top bar.", Kind.Play, Kind.Play),
+        ShotOf("options", "41_pause_menu.png", "SampleScene", "Pause menu open over the Kharûn market. Compact wood panel, text-only RESUME, OPTIONS, MAIN MENU, and QUIT. No row bars. A bone tick marks the selected row. Options sits at the far right of the top bar, past a gold divider.", Kind.Play, Kind.Play),
         ShotOf("travel", "30_travel_map.png", "SampleScene", "Gates at Kharûn with the Draven road lit. The painted trail and the destination circle are up. The player token is the thrask. NPC merchants are static duzhu tokens. Neighbour road buttons stay on the gates panel. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("road", "31_road_choice.png", "SampleScene", "Gates at Kharûn with the Draven road lit. Careful, Steady, and Rush sit on the panel. Embark is live. The player token is the thrask. No card covers the map.", Kind.PlayMap, Kind.PlayMap),
         ShotOf("depart", "32_departure.png", "SampleScene", "En route to Draven, paused at the Kharûn dock. The route line is drawn and the wagon has not moved. The top bar shows water and rations, and the cargo cap is 4/10.", Kind.PlayMap, Kind.PlayMap),
@@ -87,7 +88,7 @@ public static class UiScreenshots
         "The encounter card shows a title, a scene, and two choices. It is 33_encounter.png. The camp card and the after-camp pace card are 34_camp.png and 35_resume_pace.png. Play has no tooltip type and no separate dialog type.\n\n"
         + "21_plaza_gates.png is the gates with no road lit. 30_travel_map.png is those same gates with the Kharûn to Draven road lit. That gates view is the travel map the player opens, and the neighbour road buttons stay on its panel.\n\n"
         + "31_road_choice.png is the gates panel with the Draven road lit. Careful, Steady, and Rush are on that panel, and Embark leaves. No card covers the map. The pace card opens after camp, which is 35_resume_pace.png, in the order Careful, Steady, Rush.\n\n"
-        + "House and Stables stay off the layout while ShowUnfinishedFeatures is off. The Tavern is on at Kharûn and sells the six pieces of Sarn's map, gated by House Kharûn rank. Leads discount the next piece. The logbook lists owned pieces. All six open the Westmark road to Sarn's Rest. The run ends on the Embarked ledger. Gear stays on the top bar and opens the pause menu, which is part of play. The title menu is a compact wood panel under the tagline. The title, title Options, and the pause menu use that wood panel and text-only items, with a bone tick and no row bars. Title Options includes Show intro again.\n\n"
+        + "House and Stables stay off the layout while ShowUnfinishedFeatures is off. The Tavern is on at Kharûn and sells the six pieces of Sarn's map, gated by House Kharûn rank. Leads discount the next piece. The logbook lists owned pieces. All six open the Westmark road to Sarn's Rest. The run ends on the Embarked ledger. Options stays on the top bar and opens the pause menu, which is part of play. The title menu is a compact wood panel under the tagline. The title, title Options, and the pause menu use that wood panel and text-only items, with a bone tick and no row bars. Title Options includes Show intro again.\n\n"
         + "03_intro_card.png is the first-run intro card, one wood panel over the Kharûn market. It shows the header, the body, the tagline, and a text-only BEGIN. Play input is locked. Later New Games skip the card unless Show intro again is on.\n\n"
         + "15_market_ridgewatch.png is the long dock name. Sarn's Rest is a landmark. House and Stables are off the bar in this capture. The Tavern is off at Ridgewatch.\n\n"
         + "The caravan is House Kharûn. This run buys the first goods Kharûn will sell until four units are aboard, and it records the buy and sale figures the market would show. The clock stays at the new-game hour until the camp card. A new game cargo cap is 4 slots and 10 weight. The top bar shows water and rations beside the coin.\n\n"
@@ -157,6 +158,7 @@ public static class UiScreenshots
             }
 
             EditorSceneManager.playModeStartScene = scene;
+            Environment.SetEnvironmentVariable(SteamOffVariable, "1");
             EditorApplication.isPlaying = true;
         }
         catch (Exception error)
@@ -234,6 +236,7 @@ public static class UiScreenshots
         }
 
         EndSaveSandbox();
+        ReleaseSteamOff();
 
         if (SessionState.GetBool(PrevOk, false))
             RestoreSize();
@@ -416,7 +419,17 @@ public static class UiScreenshots
         if (EditorApplication.isPlaying)
             EditorApplication.isPlaying = false;
         else
+        {
             EndSaveSandbox();
+            ReleaseSteamOff();
+        }
+    }
+
+    static void ReleaseSteamOff()
+    {
+        if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+        Environment.SetEnvironmentVariable(SteamOffVariable, null);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

@@ -116,6 +116,13 @@ public class UiTextureImporter : AssetPostprocessor
             return true;
         }
 
+        string slash = path.Replace('\\', '/');
+        if (slash.StartsWith("Assets/Resources/Ui/Buttons/") && name.EndsWith(".png"))
+        {
+            border = new Vector4(24f, 24f, 24f, 24f);
+            return true;
+        }
+
         border = Vector4.zero;
         return false;
     }

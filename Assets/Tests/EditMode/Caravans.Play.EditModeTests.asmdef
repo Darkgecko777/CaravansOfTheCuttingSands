@@ -3,6 +3,7 @@
   "references": [
     "Caravans.Play",
     "Caravans.FrontDoor",
+    "Unity.TextMeshPro",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],

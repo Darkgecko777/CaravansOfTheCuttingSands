@@ -30,7 +30,7 @@ namespace Caravans.Play
         const float LogGoodW = 240f;
         const float LogPriceW = 300f;
 
-        // Off hides the stables and the house room. The tavern is on at Kharûn. Gear stays on the top bar.
+        // Off hides the stables and the house room. The tavern is on at Kharûn. Options stays on the top bar.
         public static bool ShowUnfinishedFeatures;
         const int ShopColumns = 8;
         const int WagonColumns = 2;
@@ -434,13 +434,12 @@ namespace Caravans.Play
             row.childControlHeight = true;
             row.childForceExpandWidth = false;
             row.childForceExpandHeight = false;
-            ApprovedArt art = ApprovedArt.Load();
-            marketTab = BarSeal(tabs.rectTransform, "Market", art != null ? art.sealMarket : null, art != null ? art.sealMarketHover : null, art != null ? art.sealMarketPressed : null, OpenMarket, UiType.Tab);
-            innTab = BarSeal(tabs.rectTransform, "Inn", art != null ? art.sealInn : null, art != null ? art.sealInnHover : null, art != null ? art.sealInnPressed : null, OpenInn, UiType.Tab);
-            houseTab = BarSeal(tabs.rectTransform, "House", art != null ? art.sealHouse : null, art != null ? art.sealHouseHover : null, art != null ? art.sealHousePressed : null, OpenHouse, UiType.Tab);
-            gatesTab = BarSeal(tabs.rectTransform, "Gates", art != null ? art.sealGates : null, art != null ? art.sealGatesHover : null, art != null ? art.sealGatesPressed : null, OpenGates, UiType.Tab);
-            tavernTab = BarSeal(tabs.rectTransform, "Tavern", null, null, null, OpenTavern, UiType.Tab);
-            stablesTab = BarSeal(tabs.rectTransform, "Stables", null, null, null, OpenStables, UiType.Tab);
+            marketTab = BarSeal(tabs.rectTransform, "Market", OpenMarket, UiType.Tab);
+            innTab = BarSeal(tabs.rectTransform, "Inn", OpenInn, UiType.Tab);
+            houseTab = BarSeal(tabs.rectTransform, "House", OpenHouse, UiType.Tab);
+            gatesTab = BarSeal(tabs.rectTransform, "Gates", OpenGates, UiType.Tab);
+            tavernTab = BarSeal(tabs.rectTransform, "Tavern", OpenTavern, UiType.Tab);
+            stablesTab = BarSeal(tabs.rectTransform, "Stables", OpenStables, UiType.Tab);
         }
 
         GameObject BuildMarket(RectTransform body)
@@ -517,8 +516,17 @@ namespace Caravans.Play
             shopTitle.color = FrontUi.Gold;
             shopTitle.text = "Settlement Sells";
             shopTitle.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1f;
-            sortButton = Tab(shopHead, "Sort", ToggleSortMenu);
+            sortButton = Tab(shopHead, "Sort", ToggleSortMenu, true);
             SquareSeal(sortButton, 64f);
+            var sortLabel = sortButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (sortLabel != null)
+            {
+                // A 64 px plate with the shared 16 px inset wraps "Sort".
+                sortLabel.textWrappingMode = TextWrappingModes.NoWrap;
+                sortLabel.overflowMode = TextOverflowModes.Overflow;
+                sortLabel.rectTransform.offsetMin = new Vector2(4f, 2f);
+                sortLabel.rectTransform.offsetMax = new Vector2(-4f, -2f);
+            }
 
             shopHost = Child(shop, "Cells");
             var shopHostFit = shopHost.gameObject.AddComponent<LayoutElement>();
@@ -579,9 +587,8 @@ namespace Caravans.Play
             tradeRow.childControlHeight = true;
             tradeRow.childForceExpandWidth = true;
             tradeRow.childForceExpandHeight = true;
-            ApprovedArt art = ApprovedArt.Load();
-            buyButton = TradeSeal(trades, "Buy", art != null ? art.sealBuy : null, art != null ? art.sealBuyHover : null, art != null ? art.sealBuyPressed : null, PressBuy);
-            sellButton = TradeSeal(trades, "Sell", art != null ? art.sealSell : null, art != null ? art.sealSellHover : null, art != null ? art.sealSellPressed : null, PressSell);
+            buyButton = TradeSeal(trades, "Buy", PressBuy);
+            sellButton = TradeSeal(trades, "Sell", PressSell);
             var detailSpacer = Child(detail, "Spacer");
             detailSpacer.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1f;
             var meter = Child(detail, "Meter");
@@ -738,9 +745,9 @@ namespace Caravans.Play
             speedRow.childControlHeight = true;
             speedRow.childForceExpandWidth = true;
             speedRow.childForceExpandHeight = true;
-            gatesCareful = Tab(speeds, "Careful", () => PickPace(RoadPace.Careful));
-            gatesSteady = Tab(speeds, "Steady", () => PickPace(RoadPace.Steady));
-            gatesRush = Tab(speeds, "Rush", () => PickPace(RoadPace.Rush));
+            gatesCareful = Tab(speeds, "Careful", () => PickPace(RoadPace.Careful), true);
+            gatesSteady = Tab(speeds, "Steady", () => PickPace(RoadPace.Steady), true);
+            gatesRush = Tab(speeds, "Rush", () => PickPace(RoadPace.Rush), true);
             gatesCareful.GetComponent<LayoutElement>().flexibleWidth = 1f;
             gatesSteady.GetComponent<LayoutElement>().flexibleWidth = 1f;
             gatesRush.GetComponent<LayoutElement>().flexibleWidth = 1f;
@@ -1042,8 +1049,31 @@ namespace Caravans.Play
             cargoText = HudText(cluster, 70f, TextAlignmentOptions.MidlineLeft);
             cargoText.color = Ink;
             cargoText.fontSize = UiType.Hud;
-            logbookButton = BarSeal(cluster, "Logbook", null, null, null, ToggleLogbook);
-            gearButton = BarSeal(cluster, "Gear", null, null, null, TogglePause);
+            logbookButton = BarSeal(cluster, "Logbook", ToggleLogbook);
+            var optionsGap = Child(cluster, "OptionsGap");
+            var gapFit = optionsGap.gameObject.AddComponent<LayoutElement>();
+            gapFit.preferredWidth = 32f;
+            gapFit.minWidth = 32f;
+            gapFit.preferredHeight = 40f;
+            gapFit.flexibleWidth = 0f;
+            var optionsRule = Child(cluster, "OptionsRule");
+            var ruleImage = optionsRule.gameObject.AddComponent<Image>();
+            ruleImage.color = FrontUi.Gold;
+            ruleImage.raycastTarget = false;
+            var ruleFit = optionsRule.gameObject.AddComponent<LayoutElement>();
+            ruleFit.preferredWidth = 2f;
+            ruleFit.minWidth = 2f;
+            ruleFit.preferredHeight = 40f;
+            ruleFit.flexibleWidth = 0f;
+            var optionsGroup = Child(cluster, "OptionsGroup");
+            var optionsLayout = optionsGroup.gameObject.AddComponent<HorizontalLayoutGroup>();
+            optionsLayout.padding = new RectOffset(12, 0, 0, 0);
+            optionsLayout.childAlignment = TextAnchor.MiddleRight;
+            optionsLayout.childControlWidth = true;
+            optionsLayout.childControlHeight = true;
+            optionsLayout.childForceExpandWidth = false;
+            optionsLayout.childForceExpandHeight = false;
+            gearButton = BarSeal(optionsGroup, "Options", TogglePause);
         }
 
         void BuildLogbook(RectTransform root)
@@ -1170,8 +1200,6 @@ namespace Caravans.Play
             backPaceButton = ChoiceButton(panel, "Back", new Vector2(300f, -120f), CloseRoadChoice);
             dawnButton.GetComponent<RectTransform>().sizeDelta = new Vector2(320f, 64f);
             duskButton.GetComponent<RectTransform>().sizeDelta = new Vector2(320f, 64f);
-            SplitSealLabel(dawnButton, 48f);
-            SplitSealLabel(duskButton, 48f);
             confirmPaceButton.GetComponent<RectTransform>().sizeDelta = new Vector2(360f, 96f);
             backPaceButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(300f, -165f);
             campButton.GetComponent<RectTransform>().sizeDelta = new Vector2(280f, 56f);
@@ -1180,36 +1208,21 @@ namespace Caravans.Play
             encounterChoiceB = ChoiceButton(panel, "ChoiceB", new Vector2(0f, -250f), () => PressRoadChoice(1));
             encounterChoiceA.GetComponent<RectTransform>().sizeDelta = new Vector2(640f, 64f);
             encounterChoiceB.GetComponent<RectTransform>().sizeDelta = new Vector2(640f, 64f);
-            SplitSealLabel(encounterChoiceA, 48f);
-            SplitSealLabel(encounterChoiceB, 48f);
             encounterChoiceA.gameObject.SetActive(false);
             encounterChoiceB.gameObject.SetActive(false);
             backPaceButton.GetComponent<RectTransform>().sizeDelta = new Vector2(160f, 56f);
             supplyGoButton = ChoiceButton(panel, "Take the road anyway", new Vector2(0f, -200f), ConfirmDeparture);
             supplyGoButton.GetComponent<RectTransform>().sizeDelta = new Vector2(460f, 56f);
-            SplitSealLabel(supplyGoButton, 48f);
             supplyGoButton.gameObject.SetActive(false);
-            var confirmImage = confirmPaceButton.GetComponent<Image>();
-            Sprite paceSeal = confirmImage.sprite;
-            confirmImage.sprite = quad;
-            confirmImage.preserveAspect = false;
-            confirmImage.color = new Color(1f, 1f, 1f, 0f);
-            Image seal = SealIcon(confirmPaceButton.transform, paceSeal, 48f);
-            var sealRt = seal.rectTransform;
-            sealRt.anchorMin = sealRt.anchorMax = new Vector2(0.5f, 1f);
-            sealRt.pivot = new Vector2(0.5f, 1f);
-            sealRt.sizeDelta = new Vector2(48f, 48f);
-            sealRt.anchoredPosition = new Vector2(0f, -4f);
-            seal.transform.SetAsFirstSibling();
             var confirmLabel = confirmPaceButton.GetComponentInChildren<TextMeshProUGUI>();
-            confirmLabel.color = Color.white;
             confirmLabel.richText = true;
+            confirmLabel.alignment = TextAlignmentOptions.Center;
+            confirmLabel.textWrappingMode = TextWrappingModes.Normal;
             var labelRt = confirmLabel.rectTransform;
-            labelRt.anchorMin = new Vector2(0f, 0f);
-            labelRt.anchorMax = new Vector2(1f, 0f);
-            labelRt.pivot = new Vector2(0.5f, 0f);
-            labelRt.sizeDelta = new Vector2(-12f, 44f);
-            labelRt.anchoredPosition = new Vector2(0f, 6f);
+            labelRt.anchorMin = Vector2.zero;
+            labelRt.anchorMax = Vector2.one;
+            labelRt.offsetMin = new Vector2(16f, 4f);
+            labelRt.offsetMax = new Vector2(-16f, -4f);
         }
 
         void CloseRoadChoice()
@@ -1231,30 +1244,6 @@ namespace Caravans.Play
         {
             draftPace = pace;
             Redraw();
-        }
-
-        void SplitSealLabel(Button button, float sealSize)
-        {
-            var image = button.GetComponent<Image>();
-            Sprite sprite = image.sprite;
-            image.sprite = quad;
-            image.preserveAspect = false;
-            image.color = new Color(1f, 1f, 1f, 0f);
-            Image seal = SealIcon(button.transform, sprite, sealSize);
-            var sealRt = seal.rectTransform;
-            sealRt.anchorMin = sealRt.anchorMax = new Vector2(0f, 0.5f);
-            sealRt.pivot = new Vector2(0f, 0.5f);
-            sealRt.sizeDelta = new Vector2(sealSize, sealSize);
-            sealRt.anchoredPosition = new Vector2(4f, 0f);
-            seal.transform.SetAsFirstSibling();
-            var label = button.GetComponentInChildren<TextMeshProUGUI>();
-            label.alignment = TextAlignmentOptions.MidlineLeft;
-            label.textWrappingMode = TextWrappingModes.NoWrap;
-            var labelRt = label.rectTransform;
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = Vector2.one;
-            labelRt.offsetMin = new Vector2(sealSize + 18f, 2f);
-            labelRt.offsetMax = new Vector2(-4f, -2f);
         }
 
         Button ChoiceButton(RectTransform panel, string label, Vector2 position, UnityEngine.Events.UnityAction action)
@@ -1608,18 +1597,7 @@ namespace Caravans.Play
 
         void PaintTrade(Button button)
         {
-            if (button == null)
-                return;
-            bool on = button.interactable;
-            var label = button.GetComponentInChildren<TextMeshProUGUI>();
-            if (label != null && !label.richText)
-                label.color = on ? Ink : FrontUi.Disabled;
-            Transform seal = button.transform.Find("Seal");
-            if (seal == null)
-                return;
-            var image = seal.GetComponent<Image>();
-            if (image != null)
-                image.color = on ? Color.white : new Color(1f, 1f, 1f, 0.35f);
+            ButtonSkin.Refresh(button);
         }
 
         void ShowRoadChoice(bool open)
@@ -2827,33 +2805,26 @@ namespace Caravans.Play
         {
             if (button == null)
                 return;
+            if (button.transition == Selectable.Transition.SpriteSwap)
+            {
+                ButtonSkin.SetChosen(button, selected);
+                return;
+            }
+
             var label = button.GetComponentInChildren<TextMeshProUGUI>();
             if (label != null && !label.richText)
                 label.color = selected ? FrontUi.Gold : Ink;
-            if (button.transition == Selectable.Transition.SpriteSwap)
-                return;
             var colors = button.colors;
             colors.normalColor = selected ? ButtonHot : Color.white;
             button.colors = colors;
         }
 
-        Button BarSeal(RectTransform parent, string label, Sprite normal, Sprite hover, Sprite pressed, UnityEngine.Events.UnityAction action, float labelSize = 0f)
+        Button BarSeal(RectTransform parent, string label, UnityEngine.Events.UnityAction action, float labelSize = 0f)
         {
-            Sprite quiet;
-            Sprite hot;
-            Sprite down;
-            SealSprites(normal, hover, pressed, out quiet, out hot, out down);
             var go = new GameObject(label, typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            var hit = go.AddComponent<Image>();
-            hit.sprite = quad;
-            hit.color = new Color(1f, 1f, 1f, 0.01f);
+            go.AddComponent<Image>();
             var button = go.AddComponent<Button>();
-            button.targetGraphic = hit;
-            button.transition = Selectable.Transition.None;
-            var nav = button.navigation;
-            nav.mode = Navigation.Mode.None;
-            button.navigation = nav;
             button.onClick.AddListener(action);
             float size = labelSize > 0f ? labelSize : UiType.Body;
             float textW = Mathf.Ceil(label.Length * size * 0.62f);
@@ -2862,64 +2833,52 @@ namespace Caravans.Play
             element.minWidth = 64f + textW;
             element.preferredWidth = element.minWidth;
             var row = go.AddComponent<HorizontalLayoutGroup>();
-            row.spacing = 8f;
-            row.padding = new RectOffset(4, 8, 2, 2);
+            row.spacing = 0f;
+            row.padding = new RectOffset(18, 18, 4, 4);
             row.childAlignment = TextAnchor.MiddleCenter;
             row.childControlWidth = true;
             row.childControlHeight = true;
             row.childForceExpandWidth = false;
             row.childForceExpandHeight = false;
-            Image seal = SealIcon(go.transform, quiet, 52f);
-            var text = Body(go.GetComponent<RectTransform>(), size, TextAlignmentOptions.MidlineLeft);
+            var text = Body(go.GetComponent<RectTransform>(), size, TextAlignmentOptions.Center);
             text.text = label;
-            text.color = Ink;
+            text.color = ButtonSkin.LabelNormal;
+            Shade(text);
             text.raycastTarget = false;
             text.textWrappingMode = TextWrappingModes.NoWrap;
             var textFit = text.gameObject.AddComponent<LayoutElement>();
             textFit.minWidth = textW;
             textFit.preferredWidth = textW;
             textFit.preferredHeight = 40f;
-            go.AddComponent<SealSwap>().Bind(seal, quiet, hot, down);
+            ButtonSkin.ApplyWide(button);
             buttons.Add(button);
             return button;
         }
 
-        Button TradeSeal(RectTransform parent, string label, Sprite normal, Sprite hover, Sprite pressed, UnityEngine.Events.UnityAction action)
+        Button TradeSeal(RectTransform parent, string label, UnityEngine.Events.UnityAction action)
         {
-            Sprite quiet;
-            Sprite hot;
-            Sprite down;
-            SealSprites(normal, hover, pressed, out quiet, out hot, out down);
             var go = new GameObject(label, typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            var hit = go.AddComponent<Image>();
-            hit.sprite = quad;
-            hit.color = new Color(1f, 1f, 1f, 0.01f);
+            go.AddComponent<Image>();
             var button = go.AddComponent<Button>();
-            button.targetGraphic = hit;
-            button.transition = Selectable.Transition.None;
-            var nav = button.navigation;
-            nav.mode = Navigation.Mode.None;
-            button.navigation = nav;
             button.onClick.AddListener(action);
             var element = go.AddComponent<LayoutElement>();
             element.preferredWidth = 110f;
             element.preferredHeight = 112f;
             var column = go.AddComponent<VerticalLayoutGroup>();
-            column.spacing = 4f;
+            column.padding = new RectOffset(8, 8, 8, 8);
             column.childAlignment = TextAnchor.MiddleCenter;
             column.childControlWidth = true;
             column.childControlHeight = true;
             column.childForceExpandWidth = false;
             column.childForceExpandHeight = false;
-            Image seal = SealIcon(go.transform, quiet, 72f);
             var text = Body(go.GetComponent<RectTransform>(), UiType.Trade, TextAlignmentOptions.Center);
             text.text = label;
-            text.color = Ink;
+            text.color = ButtonSkin.LabelNormal;
             Shade(text);
             text.raycastTarget = false;
             text.gameObject.AddComponent<LayoutElement>().preferredHeight = 32f;
-            go.AddComponent<SealSwap>().Bind(seal, quiet, hot, down);
+            ButtonSkin.ApplyCompact(button);
             buttons.Add(button);
             return button;
         }
@@ -2958,7 +2917,7 @@ namespace Caravans.Play
 
         Button RoadRow(RectTransform parent, string label, UnityEngine.Events.UnityAction action)
         {
-            Button button = BarSeal(parent, label, null, null, null, action);
+            Button button = BarSeal(parent, label, action);
             var element = button.GetComponent<LayoutElement>();
             element.minWidth = 0f;
             element.preferredWidth = 0f;
@@ -2980,33 +2939,6 @@ namespace Caravans.Play
             return button;
         }
 
-        static void SealSprites(Sprite normal, Sprite hover, Sprite pressed, out Sprite quiet, out Sprite hot, out Sprite down)
-        {
-            quiet = normal;
-            if (quiet == null)
-            {
-                ApprovedArt kit = ApprovedArt.Load();
-                quiet = kit != null && kit.sealBase != null ? kit.sealBase : FrontArt.ResinSeal();
-            }
-
-            hot = hover != null ? hover : quiet;
-            down = pressed != null ? pressed : quiet;
-        }
-
-        Image SealIcon(Transform parent, Sprite sprite, float size)
-        {
-            var go = new GameObject("Seal", typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var image = go.AddComponent<Image>();
-            image.sprite = sprite != null ? sprite : quad;
-            image.preserveAspect = true;
-            image.raycastTarget = false;
-            var fit = go.AddComponent<LayoutElement>();
-            fit.preferredWidth = size;
-            fit.preferredHeight = size;
-            return image;
-        }
-
         void FitSeal(Button button, float width, float height)
         {
             SquareSeal(button, height);
@@ -3017,46 +2949,36 @@ namespace Caravans.Play
             rect.sizeDelta = new Vector2(width, height);
         }
 
-        Button Tab(RectTransform parent, string label, UnityEngine.Events.UnityAction action)
+        Button Tab(RectTransform parent, string label, UnityEngine.Events.UnityAction action, bool compact = false)
         {
             var go = new GameObject(label, typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            var image = go.AddComponent<Image>();
-            ApprovedArt kit = ApprovedArt.Load();
-            Sprite panel = kit != null && kit.sealBase != null ? kit.sealBase : FrontArt.ResinSeal();
-            image.sprite = panel != null ? panel : quad;
-            image.type = Image.Type.Simple;
-            image.preserveAspect = true;
-            image.color = Color.white;
+            go.AddComponent<Image>();
             var button = go.AddComponent<Button>();
-            button.targetGraphic = image;
-            var colors = button.colors;
-            colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1f, 0.94f, 0.82f, 1f);
-            colors.pressedColor = new Color(0.78f, 0.68f, 0.48f, 1f);
-            colors.selectedColor = Color.white;
-            colors.disabledColor = ButtonOff;
-            colors.fadeDuration = 0.05f;
-            button.colors = colors;
-            var nav = button.navigation;
-            nav.mode = Navigation.Mode.None;
-            button.navigation = nav;
             button.onClick.AddListener(action);
             var element = go.AddComponent<LayoutElement>();
             element.preferredHeight = 64f;
             var text = Body(go.GetComponent<RectTransform>(), UiType.Body, TextAlignmentOptions.Center);
             text.text = label;
-            text.color = Ink;
+            text.color = ButtonSkin.LabelNormal;
             Shade(text);
             text.raycastTarget = false;
-            Stretch(text.rectTransform, 4f);
+            var textRt = text.rectTransform;
+            textRt.anchorMin = Vector2.zero;
+            textRt.anchorMax = Vector2.one;
+            textRt.offsetMin = new Vector2(16f, 2f);
+            textRt.offsetMax = new Vector2(-16f, -2f);
+            if (compact)
+                ButtonSkin.ApplyCompact(button);
+            else
+                ButtonSkin.ApplyWide(button);
             buttons.Add(button);
             return button;
         }
 
         Button StackButton(RectTransform parent, string label, UnityEngine.Events.UnityAction action)
         {
-            Button button = BarSeal(parent, label, null, null, null, action);
+            Button button = BarSeal(parent, label, action);
             button.GetComponent<LayoutElement>().preferredHeight = 56f;
             return button;
         }
@@ -3309,7 +3231,7 @@ namespace Caravans.Play
                 element = button.gameObject.AddComponent<LayoutElement>();
             var image = button.GetComponent<Image>();
             float aspect = 1f;
-            if (image != null && image.sprite != null && image.sprite.rect.height > 1f)
+            if (image != null && image.type != Image.Type.Sliced && image.sprite != null && image.sprite.rect.height > 1f)
                 aspect = image.sprite.rect.width / image.sprite.rect.height;
             element.preferredHeight = height;
             element.preferredWidth = height * aspect;
@@ -3980,45 +3902,4 @@ namespace Caravans.Play
         }
     }
 
-    sealed class SealSwap : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
-    {
-        Image seal;
-        Sprite quiet;
-        Sprite hot;
-        Sprite down;
-
-        public void Bind(Image image, Sprite normal, Sprite hover, Sprite pressed)
-        {
-            seal = image;
-            quiet = normal;
-            hot = hover != null ? hover : normal;
-            down = pressed != null ? pressed : normal;
-        }
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            if (seal != null)
-                seal.sprite = hot;
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            if (seal != null)
-                seal.sprite = quiet;
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            if (seal != null)
-                seal.sprite = down;
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            if (seal == null)
-                return;
-            bool over = RectTransformUtility.RectangleContainsScreenPoint((RectTransform)transform, eventData.position, eventData.pressEventCamera);
-            seal.sprite = over ? hot : quiet;
-        }
-    }
 }
