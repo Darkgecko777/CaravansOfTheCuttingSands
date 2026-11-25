@@ -14,8 +14,10 @@ namespace Caravans.Play
         const float FarParallax = 0.24f;
         const float MidParallax = 0.58f;
         const float NearParallax = 1.18f;
-        const float NearScaleX = 1.72f;
-        const float NearScaleY = 4.65f;
+        // Same scale on both axes. The old pair stretched the strips and left a hard seam.
+        const float NearScale = 4.65f;
+        // Source pixels of overlap. The right-hand tile fades across this strip.
+        const float NearOverlapPx = 56f;
         // Painted crest above the solid sand, in sprite units before the near scale.
         const float NearCrest = 0.19f;
         // Clear padding plus the bottom fade, in sprite units at scale 1.
@@ -25,6 +27,17 @@ namespace Caravans.Play
         const float FillBottom = -6.15f;
         const float PropPad = 0.12f;
         const float CaravanFoot = 0.08f;
+        // Distant land sits near 40% down a 5.4 view when the camera rests here.
+        const float CameraY = -0.48f;
+        const float SpawnMargin = 0.8f;
+        const float PropMinGap = 7f;
+        const float PropGapExtra = 9f;
+        const float PropClusterGap = 3.4f;
+        const float PropClusterExtra = 1.7f;
+        const float DepthApart = 0.30f;
+        // A couple of pixels at 100 px per world unit, one bob cycle about twice a second at Steady.
+        const float BobHeight = 0.025f;
+        const float BobRate = 4.5f;
         const int FarOrder = 0;
         const int MidOrder = 10;
         const int FillOrder = -15;
@@ -40,11 +53,14 @@ namespace Caravans.Play
         Texture2D skyTexture;
         Sprite proceduralSky;
         Transform caravan;
+        Transform shadow;
         Transform hazeRoot;
         SpriteRenderer hazeRenderer;
         Transform sandRoot;
         SpriteRenderer sandFill;
         Material unlit;
+        Material edge;
+        MaterialPropertyBlock edgeBlock;
         readonly List<GroundStrip> grounds = new List<GroundStrip>();
         readonly List<GroundStrip> backs = new List<GroundStrip>();
         readonly List<LayerStream> streams = new List<LayerStream>();
@@ -97,6 +113,8 @@ namespace Caravans.Play
             public bool tiles;
             public bool planted;
             public int tileSerial;
+            public int lastTile = -1;
+            public bool primed;
             public readonly List<Piece> pieces = new List<Piece>();
             public readonly List<Piece> pool = new List<Piece>();
         }
@@ -123,6 +141,9 @@ namespace Caravans.Play
             public float widest;
             public int seed;
             public int nextIndex;
+            public float nextEntry;
+            public int depthIndex = -1;
+            public float lastDepth = -1f;
             public bool started;
             public readonly List<PropPiece> pieces = new List<PropPiece>();
             public readonly List<PropPiece> pool = new List<PropPiece>();
@@ -136,7 +157,7 @@ namespace Caravans.Play
                 cam.orthographic = true;
                 cam.orthographicSize = 5.4f;
                 cam.clearFlags = CameraClearFlags.SolidColor;
-                cam.transform.position = new Vector3(0f, 0f, -10f);
+                cam.transform.position = new Vector3(0f, CameraY, -10f);
             }
 
             skyTexture = TravelDemoSprites.SkyTexture();
@@ -169,6 +190,16 @@ namespace Caravans.Play
             UseSprite(caravanRenderer);
             PlantCaravan();
 
+            var shadowObject = new GameObject("ContactShadow");
+            shadowObject.transform.SetParent(transform, false);
+            shadow = shadowObject.transform;
+            var shadowRenderer = shadowObject.AddComponent<SpriteRenderer>();
+            shadowRenderer.sprite = TravelDemoSprites.Shadow();
+            shadowRenderer.sortingOrder = CaravanOrder - 1;
+            UseSprite(shadowRenderer);
+            shadow.localScale = new Vector3(0.85f, 0.22f, 1f);
+            shadow.position = new Vector3(CaravanX, GroundLine, 0f);
+
             var hazeObject = new GameObject("Haze");
             hazeObject.transform.SetParent(transform, false);
             hazeRoot = hazeObject.transform;
@@ -185,9 +216,11 @@ namespace Caravans.Play
         {
             if (unlit != null)
                 Destroy(unlit);
+            if (edge != null)
+                Destroy(edge);
         }
 
-        public void Show(TravelDemoChart chart, float distance, float hour)
+        public void Show(TravelDemoChart chart, float distance, float hour, float scroll)
         {
             if (chart == null)
                 return;
@@ -206,7 +239,7 @@ namespace Caravans.Play
             ShowBands(chart, mix, distance, day);
             ShowProps(chart, distance, day, zenith);
             ShowHaze(distance, day);
-            TintCaravan(day);
+            TintCaravan(day, distance, scroll);
             FitSky();
         }
 
@@ -228,6 +261,28 @@ namespace Caravans.Play
             if (renderer == null)
                 return;
             renderer.sharedMaterial = SpriteMaterial();
+        }
+
+        Material EdgeMaterial()
+        {
+            if (edge != null)
+                return edge;
+            Shader shader = Shader.Find("Caravans/TravelDemoEdge");
+            if (shader == null)
+                return SpriteMaterial();
+            edge = new Material(shader);
+            edge.name = "TravelDemoEdge";
+            edge.hideFlags = HideFlags.HideAndDontSave;
+            return edge;
+        }
+
+        void ApplyEdge(SpriteRenderer renderer, float edgeUv)
+        {
+            if (edgeBlock == null)
+                edgeBlock = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(edgeBlock);
+            edgeBlock.SetFloat("_Edge", edgeUv);
+            renderer.SetPropertyBlock(edgeBlock);
         }
 
         public static Color DayTint(float hour)
@@ -537,9 +592,9 @@ namespace Caravans.Play
             if (layer == 2 && kit != null && kit.nearTiles && native > 0.5f)
             {
                 stream.tiles = true;
-                stream.minScale = NearScaleX;
-                stream.maxScale = NearScaleX;
-                stream.scaleY = NearScaleY;
+                stream.minScale = NearScale;
+                stream.maxScale = NearScale;
+                stream.scaleY = NearScale;
                 stream.minGap = native * stream.minScale;
                 stream.maxGap = stream.minGap;
                 stream.y = GroundLine;
@@ -620,9 +675,7 @@ namespace Caravans.Play
         void FillStream(LayerStream stream, float distance, float half)
         {
             float travel = distance * stream.parallax;
-            // Ahead of the camera's right edge by one screen plus the widest sprite.
-            // Distance already carries the pace, and travel scales it by this layer's parallax.
-            float lead = half + half * 2f + stream.widest;
+            bool backfill = !stream.primed;
             if (!stream.started)
             {
                 stream.cursor = -half + travel - stream.maxGap - stream.widest;
@@ -630,9 +683,11 @@ namespace Caravans.Play
             }
 
             int guard = 0;
-            while (stream.cursor - travel < lead && guard < 64)
+            while (guard < 64)
             {
                 guard++;
+                if (stream.cursor - travel > half + SpawnMargin + stream.widest)
+                    break;
                 if (stream.tiles)
                 {
                     SpawnTile(stream);
@@ -641,46 +696,69 @@ namespace Caravans.Play
 
                 float gap = Mathf.Lerp(stream.minGap, stream.maxGap, (float)stream.rng.NextDouble());
                 stream.cursor += gap;
-                Spawn(stream);
+                Spawn(stream, travel, half, backfill);
             }
+
+            stream.primed = true;
         }
 
         void SpawnTile(LayerStream stream)
         {
-            int variant = stream.tileSerial++;
+            int count = stream.paths != null && stream.paths.Length > 0 ? stream.paths.Length : 1;
+            int variant = stream.rng.Next(0, count);
+            if (count > 1 && variant == stream.lastTile)
+                variant = (variant + 1 + stream.rng.Next(0, count - 1)) % count;
+            stream.lastTile = variant;
+            stream.tileSerial++;
             Sprite sprite = SpriteAt(stream.paths, variant, stream.terrain, stream.layer);
-            float scaleX = stream.minScale;
-            float scaleY = stream.scaleY > 0.01f ? stream.scaleY : scaleX;
+            float scale = stream.minScale;
+            float scaleY = stream.scaleY > 0.01f ? stream.scaleY : scale;
             float spriteWidth = sprite != null ? sprite.bounds.size.x : 4f;
             float spriteHeight = sprite != null ? sprite.bounds.size.y : 1.15f;
-            float width = Mathf.Max(0.5f, spriteWidth * scaleX);
+            float width = Mathf.Max(0.5f, spriteWidth * scale);
+            float ppu = sprite != null && sprite.pixelsPerUnit > 0.01f ? sprite.pixelsPerUnit : 100f;
+            float overlap = NearOverlapPx / ppu * scale;
+            if (overlap > width * 0.45f)
+                overlap = width * 0.45f;
+            float edgeUv = sprite != null ? NearOverlapPx / Mathf.Max(1f, sprite.rect.width) : 0.05f;
             Piece piece = TakePiece(stream, "GroundStrip");
-            piece.root.localScale = new Vector3(scaleX, scaleY, 1f);
+            piece.root.localScale = new Vector3(scale, scaleY, 1f);
             piece.renderer.sprite = sprite;
+            piece.renderer.sharedMaterial = EdgeMaterial();
+            ApplyEdge(piece.renderer, edgeUv);
             piece.renderer.sortingOrder = stream.order;
             piece.halfWidth = width * 0.5f;
             piece.stripX = stream.cursor + piece.halfWidth;
             // Centre pivot. The crest line, not the texture top, is the ground.
             float top = GroundLine + NearCrest * scaleY;
             piece.y = top - spriteHeight * scaleY * 0.5f;
-            stream.cursor += width * 0.992f;
+            stream.cursor += width - overlap;
         }
 
-        void Spawn(LayerStream stream)
+        void Spawn(LayerStream stream, float travel, float half, bool backfill)
         {
             int variant = stream.rng.Next(0, 6);
             float scale = Mathf.Lerp(stream.minScale, stream.maxScale, (float)stream.rng.NextDouble());
             bool flip = stream.rng.NextDouble() > 0.5f;
             float jitter = ((float)stream.rng.NextDouble() * 2f - 1f) * (stream.planted ? 0.04f : 0.12f);
             Sprite sprite = SpriteAt(stream.paths, variant, stream.terrain, stream.layer);
+            float spriteWidth = sprite != null ? sprite.bounds.size.x : 3f;
+            float halfWidth = spriteWidth * scale * 0.5f;
+            // Later spawns stay fully past the right edge. Travel already includes this layer's speed.
+            if (!backfill)
+            {
+                float minCenter = travel + half + SpawnMargin + halfWidth;
+                if (stream.cursor < minCenter)
+                    stream.cursor = minCenter;
+            }
+
             Piece piece = TakePiece(stream, "Feature");
             float signed = flip ? -scale : scale;
             piece.root.localScale = new Vector3(signed, scale, 1f);
             piece.renderer.sprite = sprite;
             piece.renderer.sortingOrder = stream.order;
             piece.stripX = stream.cursor;
-            float spriteWidth = sprite != null ? sprite.bounds.size.x : 3f;
-            piece.halfWidth = spriteWidth * scale * 0.5f;
+            piece.halfWidth = halfWidth;
             // Bottom pivot. The fade hangs below the contact line into the surface behind it.
             piece.y = stream.planted ? stream.y - FeatureFade * scale + jitter : stream.y + jitter;
         }
@@ -725,6 +803,29 @@ namespace Caravans.Play
                 piece.root.position = new Vector3(worldX, piece.y, 0f);
                 Color lift = stream.lift;
                 piece.renderer.color = new Color(lift.r * day.r, lift.g * day.g, lift.b * day.b, alpha);
+            }
+
+            if (stream.tiles)
+                OrderTiles(stream);
+        }
+
+        void OrderTiles(LayerStream stream)
+        {
+            int count = stream.pieces.Count;
+            for (int i = 0; i < count; i++)
+            {
+                int above = 0;
+                float x = stream.pieces[i].stripX;
+                for (int j = 0; j < count; j++)
+                {
+                    if (stream.pieces[j].stripX > x)
+                        above++;
+                }
+
+                int boost = count - 1 - above;
+                if (boost > 3)
+                    boost = 3;
+                stream.pieces[i].renderer.sortingOrder = stream.order + boost;
             }
         }
 
@@ -835,8 +936,10 @@ namespace Caravans.Play
             var layer = new PropLayer();
             layer.terrain = terrain;
             layer.paths = kit.props;
-            layer.speedMin = kit.propSpeedMin > 0.01f ? kit.propSpeedMin : 0.90f;
-            layer.speedMax = kit.propSpeedMax > layer.speedMin ? kit.propSpeedMax : layer.speedMin + 0.15f;
+            // Far props keep mid-dune pace. Near props run slightly ahead of the ground.
+            float near = kit.nearSpeed > 0.001f ? kit.nearSpeed : NearParallax;
+            layer.speedMin = near * 0.50f;
+            layer.speedMax = near * 1.05f;
             layer.seed = MixSeed(chart.Seed, terrain, 9);
             layer.widest = NativeWidth(layer.paths) * 1.2f;
             if (layer.widest < 1f)
@@ -846,51 +949,96 @@ namespace Caravans.Play
 
         void FillProps(PropLayer layer, float distance, float half)
         {
-            const float spacing = 8.6f;
-            float lead = half + half * 2f + layer.widest;
+            float slow = Mathf.Max(0.25f, layer.speedMin);
+            float reach = (half * 2f + SpawnMargin + layer.widest) / slow;
+            float lead = (half + SpawnMargin + layer.widest) / slow;
             if (!layer.started)
             {
-                float startRoute = (-half - layer.widest - spacing) + distance * layer.speedMin;
-                layer.nextIndex = Mathf.FloorToInt(startRoute / spacing) - 1;
+                layer.nextIndex = 0;
+                layer.nextEntry = 0f;
                 layer.started = true;
             }
 
             int guard = 0;
-            while (guard < 64)
+            float window = distance - reach;
+            while (layer.nextEntry < window && guard < 96)
             {
-                float route = PropRoute(layer, layer.nextIndex);
-                if (route - distance * layer.speedMin > lead)
-                    break;
-                SpawnProp(layer, layer.nextIndex, route);
-                layer.nextIndex++;
                 guard++;
+                layer.nextIndex++;
+                layer.nextEntry += GapBefore(layer, layer.nextIndex);
+            }
+
+            while (layer.nextEntry < distance + lead && guard < 96)
+            {
+                guard++;
+                SpawnProp(layer, layer.nextIndex, layer.nextEntry, half);
+                layer.nextIndex++;
+                layer.nextEntry += GapBefore(layer, layer.nextIndex);
             }
         }
 
-        static float PropRoute(PropLayer layer, int index)
+        static float GapBefore(PropLayer layer, int index)
         {
-            float jitter = (Hash01(layer.seed, index * 3) - 0.5f) * 2.8f;
-            return index * 8.6f + jitter;
+            if (index <= 0)
+                return PropMinGap;
+            int group = index / 3;
+            int place = index % 3;
+            if (Hash01(layer.seed, group * 13 + 7) < 0.18f)
+            {
+                int size = Hash01(layer.seed, group * 13 + 8) < 0.5f ? 2 : 3;
+                if (place > 0 && place < size)
+                    return PropClusterGap + Hash01(layer.seed, index * 5 + 2) * PropClusterExtra;
+            }
+
+            return PropMinGap + Hash01(layer.seed, index * 5) * PropGapExtra;
         }
 
-        void SpawnProp(PropLayer layer, int index, float route)
+        float DepthAt(PropLayer layer, int index)
         {
-            float depth = Hash01(layer.seed, index * 3 + 1);
+            if (index == layer.depthIndex)
+                return layer.lastDepth;
+            int from = layer.depthIndex + 1;
+            if (index < layer.depthIndex)
+            {
+                from = 0;
+                layer.lastDepth = -1f;
+            }
+
+            float depth = layer.lastDepth;
+            for (int i = from; i <= index; i++)
+            {
+                float raw = Hash01(layer.seed, i * 5 + 1);
+                if (depth >= 0f && Mathf.Abs(raw - depth) < DepthApart)
+                    raw = Mathf.Repeat(depth + 0.42f + Hash01(layer.seed, i * 5 + 4) * 0.22f, 1f);
+                depth = raw;
+            }
+
+            layer.lastDepth = depth;
+            layer.depthIndex = index;
+            return depth;
+        }
+
+        void SpawnProp(PropLayer layer, int index, float entry, float half)
+        {
+            float depth = DepthAt(layer, index);
             float speed = Mathf.Lerp(layer.speedMin, layer.speedMax, depth);
             float scale = Mathf.Lerp(0.6f, 1.2f, depth);
-            bool flip = Hash01(layer.seed, index * 3 + 4) > 0.5f;
+            bool flip = Hash01(layer.seed, index * 5 + 3) > 0.5f;
             int variant = 0;
             if (layer.paths != null && layer.paths.Length > 0)
-                variant = Mathf.FloorToInt(Hash01(layer.seed, index * 3 + 2) * layer.paths.Length) % layer.paths.Length;
+                variant = Mathf.FloorToInt(Hash01(layer.seed, index * 5 + 2) * layer.paths.Length) % layer.paths.Length;
             Sprite sprite = SpriteAt(layer.paths, variant, layer.terrain, 3);
             float spriteWidth = sprite != null ? sprite.bounds.size.x : 1.5f;
+            float halfWidth = spriteWidth * scale * 0.5f;
+            // Born with its left edge past the right of the frame. Its own speed carries it in.
+            float entryX = half + SpawnMargin + halfWidth;
             PropPiece piece = TakeProp(layer);
             float signed = flip ? -scale : scale;
             piece.root.localScale = new Vector3(signed, scale, 1f);
             piece.renderer.sprite = sprite;
             piece.index = index;
-            piece.routeX = route;
-            piece.halfWidth = spriteWidth * scale * 0.5f;
+            piece.routeX = entryX + entry * speed;
+            piece.halfWidth = halfWidth;
             piece.depth = depth;
             piece.speed = speed;
             // Depth 0 is far: higher, smaller, slower. Feet stay on the near sand.
@@ -968,7 +1116,8 @@ namespace Caravans.Play
             float viewH = cam != null ? cam.orthographicSize * 2f : 10.8f;
             hazeRenderer.size = new Vector2(viewW, viewH);
             float shift = Mathf.Repeat(distance * 0.35f, 3f);
-            hazeRoot.position = new Vector3(-shift, 0f, 0f);
+            float hazeY = cam != null ? cam.transform.position.y : 0f;
+            hazeRoot.position = new Vector3(-shift, hazeY, 0f);
             hazeRenderer.color = new Color(day.r, day.g * 0.92f, day.b * 0.75f, 0.2f);
         }
 
@@ -1000,11 +1149,14 @@ namespace Caravans.Play
             caravan.position = new Vector3(CaravanX, GroundLine - CaravanFoot, 0f);
         }
 
-        void TintCaravan(Color day)
+        void TintCaravan(Color day, float distance, float scroll)
         {
             if (caravan == null)
                 return;
-            PlantCaravan();
+            float bob = scroll > 0.01f ? Mathf.Sin(distance * BobRate) * BobHeight : 0f;
+            caravan.position = new Vector3(CaravanX, GroundLine - CaravanFoot + bob, 0f);
+            if (shadow != null)
+                shadow.position = new Vector3(CaravanX, GroundLine, 0f);
             var renderer = caravan.GetComponent<SpriteRenderer>();
             if (renderer != null)
                 renderer.color = day;

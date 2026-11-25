@@ -110,6 +110,30 @@ namespace Caravans.Play
             });
         }
 
+        public static Sprite Shadow()
+        {
+            return Cached("shadow", delegate
+            {
+                var sheet = new Sheet(64, 32);
+                float cx = 31.5f;
+                float cy = 15.5f;
+                for (int y = 0; y < sheet.Height; y++)
+                {
+                    for (int x = 0; x < sheet.Width; x++)
+                    {
+                        float nx = (x - cx) / 30f;
+                        float ny = (y - cy) / 12f;
+                        float fall = 1f - (nx * nx + ny * ny);
+                        float alpha = Mathf.Clamp01(fall);
+                        alpha = alpha * alpha * 0.5f;
+                        sheet.Set(x, y, new Color(0f, 0f, 0f, alpha));
+                    }
+                }
+
+                return sheet.ToSprite(new Vector2(0.5f, 0.5f), 32f, false);
+            });
+        }
+
         public static Sprite Haze()
         {
             return Cached("haze", delegate

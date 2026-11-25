@@ -96,7 +96,7 @@ namespace Caravans.Play
                 distance = 0f;
             food = Mathf.Max(0f, food - FoodRate() * delta);
             water = Mathf.Max(0f, water - WaterRate() * delta);
-            view.Show(chart, distance, hour);
+            view.Show(chart, distance, hour, ScrollSpeed());
             if (foodFill != null)
                 foodFill.fillAmount = food;
             if (waterFill != null)
@@ -151,7 +151,7 @@ namespace Caravans.Play
             }
 
             PaintPace();
-            view.Show(chart, distance, hour);
+            view.Show(chart, distance, hour, ScrollSpeed());
         }
 
         float ScrollSpeed()
