@@ -94,6 +94,22 @@ namespace Caravans.Play
             });
         }
 
+        public static Sprite Solid()
+        {
+            return Cached("solid", delegate
+            {
+                var sheet = new Sheet(4, 4);
+                var white = new Color(1f, 1f, 1f, 1f);
+                for (int y = 0; y < sheet.Height; y++)
+                {
+                    for (int x = 0; x < sheet.Width; x++)
+                        sheet.Set(x, y, white);
+                }
+
+                return sheet.ToSprite(new Vector2(0.5f, 0.5f), 4f, false);
+            });
+        }
+
         public static Sprite Haze()
         {
             return Cached("haze", delegate

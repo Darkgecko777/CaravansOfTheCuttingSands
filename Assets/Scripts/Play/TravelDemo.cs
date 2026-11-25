@@ -274,7 +274,7 @@ namespace Caravans.Play
         {
             if (supply == null || cam == null || canvas == null)
                 return;
-            Vector3 screen = cam.WorldToScreenPoint(new Vector3(TravelDemoView.CaravanX, TravelDemoView.Horizon, 0f));
+            Vector3 screen = cam.WorldToScreenPoint(new Vector3(TravelDemoView.CaravanX, TravelDemoView.GroundLine, 0f));
             Vector2 local;
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas, screen, null, out local))
                 return;

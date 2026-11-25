@@ -7,13 +7,27 @@ namespace Caravans.Play
     public sealed class TravelDemoView : MonoBehaviour
     {
         public const float Horizon = -1.35f;
+        // Top of the near sand. Near strips, the placeholder, and props share this line.
+        public const float GroundLine = -1.55f;
         public const float CaravanX = -3.55f;
 
         const float FarParallax = 0.24f;
         const float MidParallax = 0.58f;
         const float NearParallax = 1.18f;
+        const float NearScaleX = 1.72f;
+        const float NearScaleY = 4.65f;
+        // Painted crest above the solid sand, in sprite units before the near scale.
+        const float NearCrest = 0.19f;
+        // Clear padding plus the bottom fade, in sprite units at scale 1.
+        const float FeatureFade = 0.36f;
+        const float FarContact = -0.90f;
+        const float FillTop = 0.35f;
+        const float FillBottom = -6.15f;
+        const float PropPad = 0.12f;
+        const float CaravanFoot = 0.08f;
         const int FarOrder = 0;
         const int MidOrder = 10;
+        const int FillOrder = -15;
         const int GroundOrder = 20;
         const int PropOrder = 30;
         const int CaravanOrder = 40;
@@ -28,6 +42,9 @@ namespace Caravans.Play
         Transform caravan;
         Transform hazeRoot;
         SpriteRenderer hazeRenderer;
+        Transform sandRoot;
+        SpriteRenderer sandFill;
+        Material unlit;
         readonly List<GroundStrip> grounds = new List<GroundStrip>();
         readonly List<GroundStrip> backs = new List<GroundStrip>();
         readonly List<LayerStream> streams = new List<LayerStream>();
@@ -78,8 +95,10 @@ namespace Caravans.Play
             public string[] paths;
             public float scaleY;
             public bool tiles;
+            public bool planted;
             public int tileSerial;
             public readonly List<Piece> pieces = new List<Piece>();
+            public readonly List<Piece> pool = new List<Piece>();
         }
 
         class PropPiece
@@ -106,6 +125,7 @@ namespace Caravans.Play
             public int nextIndex;
             public bool started;
             public readonly List<PropPiece> pieces = new List<PropPiece>();
+            public readonly List<PropPiece> pool = new List<PropPiece>();
         }
 
         public void Build(Camera camera)
@@ -127,17 +147,27 @@ namespace Caravans.Play
             proceduralSky = TravelDemoSprites.Sky(skyTexture);
             skyRenderer.sprite = proceduralSky;
             skyRenderer.sortingOrder = -100;
+            UseSprite(skyRenderer);
             FitSky();
+
+            var sandObject = new GameObject("SandFill");
+            sandObject.transform.SetParent(transform, false);
+            sandRoot = sandObject.transform;
+            sandFill = sandObject.AddComponent<SpriteRenderer>();
+            sandFill.sprite = TravelDemoSprites.Solid();
+            sandFill.sortingOrder = FillOrder;
+            UseSprite(sandFill);
 
             var caravanObject = new GameObject("Caravan");
             caravanObject.transform.SetParent(transform, false);
             caravan = caravanObject.transform;
-            caravan.position = new Vector3(CaravanX, Horizon, 0f);
             var caravanRenderer = caravanObject.AddComponent<SpriteRenderer>();
             caravanRenderer.sprite = TravelDemoSprites.LoadOrNull("Travel/caravan");
             if (caravanRenderer.sprite == null)
                 caravanRenderer.sprite = TravelDemoSprites.Caravan();
             caravanRenderer.sortingOrder = CaravanOrder;
+            UseSprite(caravanRenderer);
+            PlantCaravan();
 
             var hazeObject = new GameObject("Haze");
             hazeObject.transform.SetParent(transform, false);
@@ -148,6 +178,13 @@ namespace Caravans.Play
                 hazeRenderer.sprite = TravelDemoSprites.Haze();
             hazeRenderer.drawMode = SpriteDrawMode.Tiled;
             hazeRenderer.sortingOrder = HazeOrder;
+            UseSprite(hazeRenderer);
+        }
+
+        void OnDestroy()
+        {
+            if (unlit != null)
+                Destroy(unlit);
         }
 
         public void Show(TravelDemoChart chart, float distance, float hour)
@@ -163,6 +200,7 @@ namespace Caravans.Play
             ShowSky(chart, mix, zenith, horizon, day);
             if (cam != null)
                 cam.backgroundColor = zenith;
+            ShowSand(chart, mix, day);
             ShowGround(chart, mix, distance, day);
             ShowBack(chart, mix, distance, day);
             ShowBands(chart, mix, distance, day);
@@ -170,6 +208,26 @@ namespace Caravans.Play
             ShowHaze(distance, day);
             TintCaravan(day);
             FitSky();
+        }
+
+        Material SpriteMaterial()
+        {
+            if (unlit != null)
+                return unlit;
+            Shader shader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
+            if (shader == null)
+                shader = Shader.Find("Sprites/Default");
+            unlit = new Material(shader);
+            unlit.name = "TravelDemoSprite";
+            unlit.hideFlags = HideFlags.HideAndDontSave;
+            return unlit;
+        }
+
+        void UseSprite(SpriteRenderer renderer)
+        {
+            if (renderer == null)
+                return;
+            renderer.sharedMaterial = SpriteMaterial();
         }
 
         public static Color DayTint(float hour)
@@ -353,6 +411,7 @@ namespace Caravans.Play
             renderer.sprite = sprite;
             renderer.drawMode = SpriteDrawMode.Tiled;
             renderer.sortingOrder = -30;
+            UseSprite(renderer);
             float worldH = sprite.bounds.size.y * scaleY;
             var strip = new GroundStrip();
             strip.terrain = terrain;
@@ -391,6 +450,7 @@ namespace Caravans.Play
             renderer.sprite = sprite;
             renderer.drawMode = SpriteDrawMode.Tiled;
             renderer.sortingOrder = GroundOrder;
+            UseSprite(renderer);
             var strip = new GroundStrip();
             strip.terrain = terrain;
             strip.root = host.transform;
@@ -477,33 +537,35 @@ namespace Caravans.Play
             if (layer == 2 && kit != null && kit.nearTiles && native > 0.5f)
             {
                 stream.tiles = true;
-                stream.minScale = 1.72f;
-                stream.maxScale = 1.72f;
-                stream.scaleY = 4.15f;
+                stream.minScale = NearScaleX;
+                stream.maxScale = NearScaleX;
+                stream.scaleY = NearScaleY;
                 stream.minGap = native * stream.minScale;
                 stream.maxGap = stream.minGap;
-                stream.y = Horizon;
+                stream.y = GroundLine;
                 stream.lift = Color.white;
                 stream.tileSerial = stream.rng.Next(0, Mathf.Max(1, stream.paths.Length));
                 stream.widest = native * stream.minScale;
             }
             else if (painted && layer == 0)
             {
+                stream.planted = true;
                 stream.minScale = 0.48f;
                 stream.maxScale = 0.70f;
                 stream.minGap = native * 0.34f;
                 stream.maxGap = native * 0.52f;
-                stream.y = Horizon + 0.42f;
+                stream.y = FarContact;
                 stream.lift = new Color(0.90f, 0.93f, 0.97f, 1f);
                 stream.widest = Widest(stream);
             }
             else if (painted && layer == 1)
             {
+                stream.planted = true;
                 stream.minScale = 0.78f;
                 stream.maxScale = 1.08f;
                 stream.minGap = native * 0.46f;
                 stream.maxGap = native * 0.70f;
-                stream.y = Horizon + 0.02f;
+                stream.y = GroundLine;
                 stream.lift = Color.white;
                 stream.widest = Widest(stream);
             }
@@ -590,21 +652,17 @@ namespace Caravans.Play
             float scaleX = stream.minScale;
             float scaleY = stream.scaleY > 0.01f ? stream.scaleY : scaleX;
             float spriteWidth = sprite != null ? sprite.bounds.size.x : 4f;
-            float spriteHeight = sprite != null ? sprite.bounds.size.y : 1f;
+            float spriteHeight = sprite != null ? sprite.bounds.size.y : 1.15f;
             float width = Mathf.Max(0.5f, spriteWidth * scaleX);
-            var host = new GameObject("GroundStrip");
-            host.transform.SetParent(transform, false);
-            host.transform.localScale = new Vector3(scaleX, scaleY, 1f);
-            var renderer = host.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            renderer.sortingOrder = stream.order;
-            var piece = new Piece();
-            piece.root = host.transform;
-            piece.renderer = renderer;
+            Piece piece = TakePiece(stream, "GroundStrip");
+            piece.root.localScale = new Vector3(scaleX, scaleY, 1f);
+            piece.renderer.sprite = sprite;
+            piece.renderer.sortingOrder = stream.order;
             piece.halfWidth = width * 0.5f;
             piece.stripX = stream.cursor + piece.halfWidth;
-            piece.y = -5.9f + spriteHeight * scaleY * 0.5f;
-            stream.pieces.Add(piece);
+            // Centre pivot. The crest line, not the texture top, is the ground.
+            float top = GroundLine + NearCrest * scaleY;
+            piece.y = top - spriteHeight * scaleY * 0.5f;
             stream.cursor += width * 0.992f;
         }
 
@@ -613,23 +671,42 @@ namespace Caravans.Play
             int variant = stream.rng.Next(0, 6);
             float scale = Mathf.Lerp(stream.minScale, stream.maxScale, (float)stream.rng.NextDouble());
             bool flip = stream.rng.NextDouble() > 0.5f;
-            float jitter = ((float)stream.rng.NextDouble() * 2f - 1f) * 0.12f;
+            float jitter = ((float)stream.rng.NextDouble() * 2f - 1f) * (stream.planted ? 0.04f : 0.12f);
             Sprite sprite = SpriteAt(stream.paths, variant, stream.terrain, stream.layer);
-            var host = new GameObject("Feature");
-            host.transform.SetParent(transform, false);
+            Piece piece = TakePiece(stream, "Feature");
             float signed = flip ? -scale : scale;
-            host.transform.localScale = new Vector3(signed, scale, 1f);
-            var renderer = host.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            renderer.sortingOrder = stream.order;
-            var piece = new Piece();
-            piece.root = host.transform;
-            piece.renderer = renderer;
+            piece.root.localScale = new Vector3(signed, scale, 1f);
+            piece.renderer.sprite = sprite;
+            piece.renderer.sortingOrder = stream.order;
             piece.stripX = stream.cursor;
             float spriteWidth = sprite != null ? sprite.bounds.size.x : 3f;
             piece.halfWidth = spriteWidth * scale * 0.5f;
-            piece.y = stream.y + jitter;
+            // Bottom pivot. The fade hangs below the contact line into the surface behind it.
+            piece.y = stream.planted ? stream.y - FeatureFade * scale + jitter : stream.y + jitter;
+        }
+
+        Piece TakePiece(LayerStream stream, string label)
+        {
+            Piece piece;
+            int last = stream.pool.Count - 1;
+            if (last >= 0)
+            {
+                piece = stream.pool[last];
+                stream.pool.RemoveAt(last);
+                piece.root.gameObject.SetActive(true);
+            }
+            else
+            {
+                var host = new GameObject(label);
+                host.transform.SetParent(transform, false);
+                piece = new Piece();
+                piece.root = host.transform;
+                piece.renderer = host.AddComponent<SpriteRenderer>();
+                UseSprite(piece.renderer);
+            }
+
             stream.pieces.Add(piece);
+            return piece;
         }
 
         void PlaceStream(LayerStream stream, float distance, float half, Color day, float alpha)
@@ -641,9 +718,7 @@ namespace Caravans.Play
                 float worldX = piece.stripX - travel;
                 if (worldX + piece.halfWidth < -half)
                 {
-                    if (piece.root != null)
-                        Destroy(piece.root.gameObject);
-                    stream.pieces.RemoveAt(i);
+                    ReleasePiece(stream, i);
                     continue;
                 }
 
@@ -701,6 +776,7 @@ namespace Caravans.Play
                     var renderer = host.AddComponent<SpriteRenderer>();
                     renderer.sprite = sprite;
                     renderer.sortingOrder = PropOrder;
+                    UseSprite(renderer);
                     props.Add(renderer);
                     propRouteX.Add(mark.routeX);
                 }
@@ -762,7 +838,7 @@ namespace Caravans.Play
             layer.speedMin = kit.propSpeedMin > 0.01f ? kit.propSpeedMin : 0.90f;
             layer.speedMax = kit.propSpeedMax > layer.speedMin ? kit.propSpeedMax : layer.speedMin + 0.15f;
             layer.seed = MixSeed(chart.Seed, terrain, 9);
-            layer.widest = NativeWidth(layer.paths) * 0.64f;
+            layer.widest = NativeWidth(layer.paths) * 1.2f;
             if (layer.widest < 1f)
                 layer.widest = 2f;
             propLayers.Add(layer);
@@ -801,31 +877,51 @@ namespace Caravans.Play
         {
             float depth = Hash01(layer.seed, index * 3 + 1);
             float speed = Mathf.Lerp(layer.speedMin, layer.speedMax, depth);
-            float scale = Mathf.Lerp(0.28f, 0.62f, depth);
+            float scale = Mathf.Lerp(0.6f, 1.2f, depth);
             bool flip = Hash01(layer.seed, index * 3 + 4) > 0.5f;
             int variant = 0;
             if (layer.paths != null && layer.paths.Length > 0)
                 variant = Mathf.FloorToInt(Hash01(layer.seed, index * 3 + 2) * layer.paths.Length) % layer.paths.Length;
             Sprite sprite = SpriteAt(layer.paths, variant, layer.terrain, 3);
             float spriteWidth = sprite != null ? sprite.bounds.size.x : 1.5f;
-            var host = new GameObject("Prop");
-            host.transform.SetParent(transform, false);
+            PropPiece piece = TakeProp(layer);
             float signed = flip ? -scale : scale;
-            host.transform.localScale = new Vector3(signed, scale, 1f);
-            var renderer = host.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            var piece = new PropPiece();
+            piece.root.localScale = new Vector3(signed, scale, 1f);
+            piece.renderer.sprite = sprite;
             piece.index = index;
-            piece.root = host.transform;
-            piece.renderer = renderer;
             piece.routeX = route;
             piece.halfWidth = spriteWidth * scale * 0.5f;
             piece.depth = depth;
             piece.speed = speed;
-            piece.y = Mathf.Lerp(Horizon - 0.05f, Horizon - 1.25f, depth);
-            piece.order = 22 + Mathf.RoundToInt(depth * 16f);
-            renderer.sortingOrder = piece.order;
+            // Depth 0 is far: higher, smaller, slower. Feet stay on the near sand.
+            float feet = Mathf.Lerp(GroundLine - 0.06f, GroundLine - 1.45f, depth);
+            piece.y = feet - PropPad * scale;
+            piece.order = 24 + Mathf.RoundToInt(depth * 14f);
+            piece.renderer.sortingOrder = piece.order;
+        }
+
+        PropPiece TakeProp(PropLayer layer)
+        {
+            PropPiece piece;
+            int last = layer.pool.Count - 1;
+            if (last >= 0)
+            {
+                piece = layer.pool[last];
+                layer.pool.RemoveAt(last);
+                piece.root.gameObject.SetActive(true);
+            }
+            else
+            {
+                var host = new GameObject("Prop");
+                host.transform.SetParent(transform, false);
+                piece = new PropPiece();
+                piece.root = host.transform;
+                piece.renderer = host.AddComponent<SpriteRenderer>();
+                UseSprite(piece.renderer);
+            }
+
             layer.pieces.Add(piece);
+            return piece;
         }
 
         void PlaceProps(PropLayer layer, float distance, float half, Color day, Color sky, float alpha)
@@ -836,9 +932,7 @@ namespace Caravans.Play
                 float worldX = piece.routeX - distance * piece.speed;
                 if (worldX + piece.halfWidth < -half)
                 {
-                    if (piece.root != null)
-                        Destroy(piece.root.gameObject);
-                    layer.pieces.RemoveAt(i);
+                    ReleaseProp(layer, i);
                     continue;
                 }
 
@@ -878,10 +972,39 @@ namespace Caravans.Play
             hazeRenderer.color = new Color(day.r, day.g * 0.92f, day.b * 0.75f, 0.2f);
         }
 
+        void ShowSand(TravelDemoChart chart, TravelDemoChart.Mix mix, Color day)
+        {
+            if (sandFill == null)
+                return;
+            float alpha = 0f;
+            if (NearTiles(chart, mix.a))
+                alpha += Weight(mix, mix.a);
+            if (mix.b != mix.a && NearTiles(chart, mix.b))
+                alpha += Weight(mix, mix.b);
+            alpha = Mathf.Clamp01(alpha);
+            sandRoot.gameObject.SetActive(alpha > 0.01f);
+            if (alpha <= 0.01f)
+                return;
+            float width = ViewWidth() + 4f;
+            float height = FillTop - FillBottom;
+            sandRoot.localScale = new Vector3(width, height, 1f);
+            float x = cam != null ? cam.transform.position.x : 0f;
+            sandRoot.position = new Vector3(x, (FillTop + FillBottom) * 0.5f, 0f);
+            sandFill.color = new Color(0.86f * day.r, 0.63f * day.g, 0.35f * day.b, alpha);
+        }
+
+        void PlantCaravan()
+        {
+            if (caravan == null)
+                return;
+            caravan.position = new Vector3(CaravanX, GroundLine - CaravanFoot, 0f);
+        }
+
         void TintCaravan(Color day)
         {
             if (caravan == null)
                 return;
+            PlantCaravan();
             var renderer = caravan.GetComponent<SpriteRenderer>();
             if (renderer != null)
                 renderer.color = day;
@@ -951,6 +1074,26 @@ namespace Caravans.Play
             propLayers.Clear();
         }
 
+        void ReleasePiece(LayerStream stream, int index)
+        {
+            Piece piece = stream.pieces[index];
+            stream.pieces.RemoveAt(index);
+            if (piece.root == null)
+                return;
+            piece.root.gameObject.SetActive(false);
+            stream.pool.Add(piece);
+        }
+
+        void ReleaseProp(PropLayer layer, int index)
+        {
+            PropPiece piece = layer.pieces[index];
+            layer.pieces.RemoveAt(index);
+            if (piece.root == null)
+                return;
+            piece.root.gameObject.SetActive(false);
+            layer.pool.Add(piece);
+        }
+
         void ClearPropPieces(PropLayer layer)
         {
             for (int i = 0; i < layer.pieces.Count; i++)
@@ -960,7 +1103,15 @@ namespace Caravans.Play
                     Destroy(piece.root.gameObject);
             }
 
+            for (int i = 0; i < layer.pool.Count; i++)
+            {
+                PropPiece piece = layer.pool[i];
+                if (piece.root != null)
+                    Destroy(piece.root.gameObject);
+            }
+
             layer.pieces.Clear();
+            layer.pool.Clear();
         }
 
         void ClearPieces(LayerStream stream)
@@ -972,7 +1123,15 @@ namespace Caravans.Play
                     Destroy(piece.root.gameObject);
             }
 
+            for (int i = 0; i < stream.pool.Count; i++)
+            {
+                Piece piece = stream.pool[i];
+                if (piece.root != null)
+                    Destroy(piece.root.gameObject);
+            }
+
             stream.pieces.Clear();
+            stream.pool.Clear();
         }
 
         void ClearProps()
