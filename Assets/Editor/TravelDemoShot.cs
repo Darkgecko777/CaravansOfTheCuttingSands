@@ -17,6 +17,8 @@ public static class TravelDemoShot
     const string PrevKey = "Caravans.TravelDemoShot.PrevSize";
     const string PrevOk = "Caravans.TravelDemoShot.PrevOk";
     const string SteamOffVariable = "CARAVANS_EDITOR_NO_STEAM";
+    const string BackgroundKey = "Caravans.TravelDemoShot.Background";
+    const string BackgroundOk = "Caravans.TravelDemoShot.BackgroundOk";
     const string FileName = "60_travel_demo.png";
     const int Width = 1920;
     const int Height = 1080;
@@ -46,6 +48,9 @@ public static class TravelDemoShot
         }
 
         Environment.SetEnvironmentVariable(SteamOffVariable, "1");
+        SessionState.SetBool(BackgroundKey, Application.runInBackground);
+        SessionState.SetBool(BackgroundOk, true);
+        Application.runInBackground = true;
         ForceGameView();
         var scene = AssetDatabase.LoadAssetAtPath<SceneAsset>("Assets/Scenes/TitleScreen.unity");
         if (scene != null)
@@ -70,6 +75,8 @@ public static class TravelDemoShot
             return;
         if (!EditorApplication.isPlaying)
             return;
+        // An unfocused Editor skips player frames, so the queued shot never lands.
+        Application.runInBackground = true;
         string phase = SessionState.GetString(PhaseKey, "title");
         if (EditorApplication.timeSinceStartup - phaseStart > 25d)
         {
@@ -140,6 +147,7 @@ public static class TravelDemoShot
             Debug.Log("Captured travel demo to Screenshots/" + FileName + ".");
             SessionState.SetBool(Key, false);
             RestoreSize();
+            RestoreBackground();
             EditorApplication.isPlaying = false;
         }
     }
@@ -161,6 +169,7 @@ public static class TravelDemoShot
         Debug.LogError(message);
         SessionState.SetBool(Key, false);
         RestoreSize();
+        RestoreBackground();
         EditorApplication.isPlaying = false;
     }
 
@@ -242,6 +251,14 @@ public static class TravelDemoShot
         }
 
         SessionState.SetBool(PrevOk, false);
+    }
+
+    static void RestoreBackground()
+    {
+        if (!SessionState.GetBool(BackgroundOk, false))
+            return;
+        Application.runInBackground = SessionState.GetBool(BackgroundKey, false);
+        SessionState.SetBool(BackgroundOk, false);
     }
 
     static EditorWindow GameView()

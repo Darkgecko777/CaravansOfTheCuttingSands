@@ -21,6 +21,7 @@ public class UiTextureImporter : AssetPostprocessor
         "Assets/Resources/Goods/",
         "Assets/Resources/MapMarkers/",
         "Assets/Resources/Travel/",
+        "Assets/Art/Travel/",
     };
 
     void OnPreprocessTexture()
@@ -48,6 +49,7 @@ public class UiTextureImporter : AssetPostprocessor
             "Assets/Resources/FrontDoor",
             "Assets/Resources/Goods",
             "Assets/Resources/MapMarkers",
+            "Assets/Art/Travel",
         });
         var dirty = new List<string>();
         for (int i = 0; i < guids.Length; i++)
@@ -128,6 +130,25 @@ public class UiTextureImporter : AssetPostprocessor
         return false;
     }
 
+    static bool TravelArt(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return false;
+        return path.Replace('\\', '/').StartsWith("Assets/Art/Travel/");
+    }
+
+    static bool TravelFeet(string path)
+    {
+        string slash = path.Replace('\\', '/');
+        return slash.Contains("/props/") || slash.Contains("/far/") || slash.Contains("/mid/");
+    }
+
+    static bool TravelRepeat(string path)
+    {
+        string slash = path.Replace('\\', '/');
+        return slash.Contains("/back/") || slash.Contains("/near/");
+    }
+
     static bool TokenPivot(string path, out Vector2 pivot)
     {
         pivot = new Vector2(0.5f, 16f / 256f);
@@ -183,6 +204,21 @@ public class UiTextureImporter : AssetPostprocessor
             importer.SetTextureSettings(settings);
         }
 
+        if (TravelArt(importer.assetPath))
+        {
+            settings.spriteMeshType = SpriteMeshType.FullRect;
+            settings.spritePixelsPerUnit = 100f;
+            settings.wrapMode = TravelRepeat(importer.assetPath) ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
+            if (TravelFeet(importer.assetPath))
+            {
+                settings.spriteAlignment = (int)SpriteAlignment.Custom;
+                settings.spritePivot = new Vector2(0.5f, 0f);
+            }
+
+            importer.wrapMode = settings.wrapMode;
+            importer.SetTextureSettings(settings);
+        }
+
         SetPlatform(importer.GetDefaultPlatformTextureSettings(), importer);
         var standalone = importer.GetPlatformTextureSettings("Standalone");
         standalone.name = "Standalone";
@@ -209,7 +245,10 @@ public class UiTextureImporter : AssetPostprocessor
         if (!importer.mipmapEnabled || importer.filterMode != FilterMode.Trilinear)
             return false;
         if (importer.wrapMode != TextureWrapMode.Clamp)
-            return false;
+        {
+            if (!TravelRepeat(importer.assetPath) || importer.wrapMode != TextureWrapMode.Repeat)
+                return false;
+        }
         if (importer.textureCompression != TextureImporterCompression.Uncompressed || importer.crunchedCompression)
             return false;
         if (importer.isReadable != NeedsReadable(importer.assetPath))
@@ -242,6 +281,24 @@ public class UiTextureImporter : AssetPostprocessor
             if (Mathf.Abs(have.spritePivot.x - tokenPivot.x) > 0.0001f
                 || Mathf.Abs(have.spritePivot.y - tokenPivot.y) > 0.0001f)
                 return false;
+        }
+
+        if (TravelArt(importer.assetPath))
+        {
+            var have = new TextureImporterSettings();
+            importer.ReadTextureSettings(have);
+            if (Mathf.Abs(have.spritePixelsPerUnit - 100f) > 0.01f)
+                return false;
+            TextureWrapMode wrap = TravelRepeat(importer.assetPath) ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
+            if (importer.wrapMode != wrap || have.wrapMode != wrap)
+                return false;
+            if (TravelFeet(importer.assetPath))
+            {
+                if (have.spriteAlignment != (int)SpriteAlignment.Custom)
+                    return false;
+                if (Mathf.Abs(have.spritePivot.x - 0.5f) > 0.0001f || Mathf.Abs(have.spritePivot.y) > 0.0001f)
+                    return false;
+            }
         }
 
         TextureImporterPlatformSettings standalone = importer.GetPlatformTextureSettings("Standalone");

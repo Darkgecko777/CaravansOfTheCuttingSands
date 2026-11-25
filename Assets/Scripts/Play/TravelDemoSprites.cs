@@ -10,6 +10,9 @@ namespace Caravans.Play
         static readonly Dictionary<string, Sprite> made = new Dictionary<string, Sprite>();
         static readonly List<Object> owned = new List<Object>();
 
+        // Editor play loads travel art that lives outside Resources. The player has no hook.
+        public static System.Func<string, Sprite> ArtLoader;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset()
         {
@@ -37,6 +40,8 @@ namespace Caravans.Play
             if (loaded.TryGetValue(resource, out sprite))
                 return sprite;
             sprite = Resources.Load<Sprite>(resource);
+            if (sprite == null && ArtLoader != null)
+                sprite = ArtLoader(resource);
             loaded[resource] = sprite;
             return sprite;
         }

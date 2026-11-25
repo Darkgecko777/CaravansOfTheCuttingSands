@@ -5,10 +5,40 @@
   "terrains": [
     {
       "name": "Dune Sea",
-      "ground": "Travel/DuneSea/ground",
-      "far": ["Travel/DuneSea/far_a", "Travel/DuneSea/far_b", "Travel/DuneSea/far_c"],
-      "mid": ["Travel/DuneSea/mid_a", "Travel/DuneSea/mid_b", "Travel/DuneSea/mid_c"],
-      "near": ["Travel/DuneSea/near_a", "Travel/DuneSea/near_b"]
+      "sky": "Art/Travel/DuneSea/sky/sky_gradient_01",
+      "skyStrip": "Art/Travel/DuneSea/sky/sky_gradient_01_strip",
+      "back": "Art/Travel/DuneSea/back/back_plain_01",
+      "backSpeed": 0.08,
+      "far": [
+        "Art/Travel/DuneSea/far/far_dunes_01",
+        "Art/Travel/DuneSea/far/far_dunes_02",
+        "Art/Travel/DuneSea/far/far_dunes_03",
+        "Art/Travel/DuneSea/far/far_dunes_04"
+      ],
+      "farSpeed": 0.18,
+      "mid": [
+        "Art/Travel/DuneSea/mid/mid_crest_01",
+        "Art/Travel/DuneSea/mid/mid_crest_02",
+        "Art/Travel/DuneSea/mid/mid_crest_03",
+        "Art/Travel/DuneSea/mid/mid_crest_04"
+      ],
+      "midSpeed": 0.48,
+      "near": [
+        "Art/Travel/DuneSea/near/near_sand_01",
+        "Art/Travel/DuneSea/near/near_sand_02",
+        "Art/Travel/DuneSea/near/near_sand_03",
+        "Art/Travel/DuneSea/near/near_sand_04"
+      ],
+      "nearSpeed": 0.92,
+      "nearTiles": true,
+      "props": [
+        "Art/Travel/DuneSea/props/prop_dry_scrub_01",
+        "Art/Travel/DuneSea/props/prop_sandstone_outcrop_01",
+        "Art/Travel/DuneSea/props/prop_rock_cluster_01",
+        "Art/Travel/DuneSea/props/prop_reed_tuft_01"
+      ],
+      "propSpeedMin": 0.9,
+      "propSpeedMax": 1.05
     },
     {
       "name": "Salt Flats",
