@@ -1,0 +1,49 @@
+{
+  "caravan": "Travel/caravan",
+  "haze": "Travel/haze",
+  "propFolder": "Travel/props",
+  "terrains": [
+    {
+      "name": "Dune Sea",
+      "ground": "Travel/DuneSea/ground",
+      "far": ["Travel/DuneSea/far_a", "Travel/DuneSea/far_b", "Travel/DuneSea/far_c"],
+      "mid": ["Travel/DuneSea/mid_a", "Travel/DuneSea/mid_b", "Travel/DuneSea/mid_c"],
+      "near": ["Travel/DuneSea/near_a", "Travel/DuneSea/near_b"]
+    },
+    {
+      "name": "Salt Flats",
+      "ground": "Travel/SaltFlats/ground",
+      "far": ["Travel/SaltFlats/far_a", "Travel/SaltFlats/far_b", "Travel/SaltFlats/far_c"],
+      "mid": ["Travel/SaltFlats/mid_a", "Travel/SaltFlats/mid_b", "Travel/SaltFlats/mid_c"],
+      "near": ["Travel/SaltFlats/near_a", "Travel/SaltFlats/near_b"]
+    },
+    {
+      "name": "Badlands",
+      "ground": "Travel/Badlands/ground",
+      "far": ["Travel/Badlands/far_a", "Travel/Badlands/far_b", "Travel/Badlands/far_c"],
+      "mid": ["Travel/Badlands/mid_a", "Travel/Badlands/mid_b", "Travel/Badlands/mid_c"],
+      "near": ["Travel/Badlands/near_a", "Travel/Badlands/near_b"]
+    },
+    {
+      "name": "Dry Scrub",
+      "ground": "Travel/DryScrub/ground",
+      "far": ["Travel/DryScrub/far_a", "Travel/DryScrub/far_b", "Travel/DryScrub/far_c"],
+      "mid": ["Travel/DryScrub/mid_a", "Travel/DryScrub/mid_b", "Travel/DryScrub/mid_c"],
+      "near": ["Travel/DryScrub/near_a", "Travel/DryScrub/near_b"]
+    },
+    {
+      "name": "Highlands",
+      "ground": "Travel/Highlands/ground",
+      "far": ["Travel/Highlands/far_a", "Travel/Highlands/far_b", "Travel/Highlands/far_c"],
+      "mid": ["Travel/Highlands/mid_a", "Travel/Highlands/mid_b", "Travel/Highlands/mid_c"],
+      "near": ["Travel/Highlands/near_a", "Travel/Highlands/near_b"]
+    },
+    {
+      "name": "Coast",
+      "ground": "Travel/Coast/ground",
+      "far": ["Travel/Coast/far_a", "Travel/Coast/far_b", "Travel/Coast/far_c"],
+      "mid": ["Travel/Coast/mid_a", "Travel/Coast/mid_b", "Travel/Coast/mid_c"],
+      "near": ["Travel/Coast/near_a", "Travel/Coast/near_b"]
+    }
+  ]
+}

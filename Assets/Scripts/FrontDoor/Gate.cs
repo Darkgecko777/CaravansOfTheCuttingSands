@@ -7,6 +7,7 @@ namespace Caravans.FrontDoor
     {
         public const string TitleScene = "TitleScreen";
         public const string PlayScene = "SampleScene";
+        public const string TravelDemoScene = "TravelDemo";
 
         public static bool RunConfirmed { get; private set; }
 
@@ -43,6 +44,9 @@ namespace Caravans.FrontDoor
             if (RunConfirmed)
                 return;
             if (Object.FindAnyObjectByType<TitleScreen>() != null)
+                return;
+            // The editor sandbox is not a run. Stay on it.
+            if (SceneManager.GetActiveScene().name == TravelDemoScene)
                 return;
             ShowTitle();
         }

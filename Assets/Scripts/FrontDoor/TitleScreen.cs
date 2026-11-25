@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Caravans.FrontDoor
@@ -72,6 +73,9 @@ namespace Caravans.FrontDoor
             BuildOptions(canvas);
             BuildConfirm(canvas);
             SelectDefault();
+#if UNITY_EDITOR
+            BuildEditorTravelDemo(canvas);
+#endif
             StormDirector.Ensure().Resume();
         }
 
@@ -287,6 +291,27 @@ namespace Caravans.FrontDoor
         }
 
 #if UNITY_EDITOR
+        // Editor-only. Kept off the wood panel so a player build does not show it.
+        void BuildEditorTravelDemo(RectTransform canvas)
+        {
+            var host = FrontUi.Box(canvas, "EditorTravelDemo", new Vector2(280f, 64f));
+            host.anchorMin = host.anchorMax = new Vector2(0f, 0f);
+            host.pivot = new Vector2(0f, 0f);
+            host.anchoredPosition = new Vector2(36f, 28f);
+            FrontUi.MenuItem(host, "TRAVEL DEMO", true, OpenTravelDemo, 260f, 64f);
+        }
+
+        void OpenTravelDemo()
+        {
+            if (!Application.CanStreamedLevelBeLoaded(Gate.TravelDemoScene))
+            {
+                Debug.LogError("Travel Demo scene is not in the build.");
+                return;
+            }
+
+            SceneManager.LoadScene(Gate.TravelDemoScene);
+        }
+
         public bool ShotReady => optionsRoot != null && confirmRoot != null && menuFrame != null;
 
         public void ShotOptions(bool open)

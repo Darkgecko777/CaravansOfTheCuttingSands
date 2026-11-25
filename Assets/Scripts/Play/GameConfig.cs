@@ -105,6 +105,11 @@ namespace Caravans.Play
             get { EnsureLoaded(); return mapTokens; }
         }
 
+        public static T ReadFile<T>(string file, params string[] keys) where T : class
+        {
+            return Read<T>(file, keys);
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset()
         {

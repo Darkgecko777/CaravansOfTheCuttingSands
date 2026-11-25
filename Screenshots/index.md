@@ -45,6 +45,7 @@ Captured 2026-11-23 at commit e6d0819 (working tree).
 | 57_travel_duzhu.png | SampleScene | Gates at Kharûn with the Draven road lit. The player token is the duzhu. No highlight and no animation. |
 | 58_travel_pincer.png | SampleScene | Gates at Kharûn with the Draven road lit. The player token is the pincer beast. No highlight and no animation. |
 | 59_travel_npcs.png | SampleScene | Gates at Kharûn with the Draven road lit. Three NPC merchants sit on that road as darkhide, rust, and ivory duzhu tokens. The player token is the thrask. |
+| 60_travel_demo.png | TravelDemo | Editor travel sandbox. Dune Sea, Brineford to Moraq, Steady, food and water bars, Camp / Steady / Push, and the caravan. Live travel is still the map. |
 
 The encounter card shows a title, a scene, and two choices. It is 33_encounter.png. The camp card and the after-camp pace card are 34_camp.png and 35_resume_pace.png. Play has no tooltip type and no separate dialog type.
 
@@ -71,5 +72,7 @@ Kharûn's Tavern hires a scout, a haggler, and a guard. 51_tavern_agents.png lis
 The run autosaves one slot on arrival in a town, at dawn, and on quit. The title shows CONTINUE above NEW GAME only when a valid save exists. NEW GAME over a save asks first. The Embarked ending clears the save.
 
 Weather is drawn statically. On the road, a sandstorm grades the map ochre and adds a dust haze darker at the edges, and heat or wind pale the map; the change fades in about 0.8 s. Each weather mass shows as a soft haze patch at its real place and size, under the roads and tokens, and the fog hides patches past the vision circle. Nothing on the map animates.
+
+60_travel_demo.png is the Editor travel sandbox on a Dune Sea road, Brineford to Moraq, at Steady. Food and water bars, Camp / Steady / Push, and the caravan are in the frame. Live travel is still the painted map.
 
 The travel map and the Gates map use static caravan tokens. The player token follows the mount (thrask, duzhu, pincer beast) and survives Continue. NPC merchants are gear-coloured duzhus. Tokens sit above weather mass patches and the sight circle, and remain readable under the view-space haze. 57_travel_duzhu.png, 58_travel_pincer.png, and 59_travel_npcs.png show the other mounts and the three pack colours.

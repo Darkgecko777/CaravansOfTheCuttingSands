@@ -12,6 +12,7 @@ using UnityEngine.SceneManagement;
 static class FrontDoorSceneSetup
 {
     const string TitlePath = "Assets/Scenes/TitleScreen.unity";
+    const string TravelPath = "Assets/Scenes/TravelDemo.unity";
     const string MaterialPath = "Assets/Resources/FrontDoor/SandGrain.mat";
 
     [InitializeOnLoadMethod]
@@ -44,6 +45,7 @@ static class FrontDoorSceneSetup
     {
 
         EnsureScene(TitlePath, "TitleScreen", new Color(0.45f, 0.32f, 0.18f, 1f), typeof(TitleScreen));
+        EnsureScene(TravelPath, "TravelDemo", new Color(0.42f, 0.55f, 0.78f, 1f), typeof(TravelDemo));
         EnsureMaterial();
         EnsureBuildSettings();
         EnsurePlayStartsAtTitle();
@@ -63,7 +65,21 @@ static class FrontDoorSceneSetup
         if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) != null)
             return;
 
-        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+        // Additive NewScene refuses while an untitled scene is open.
+        // Replace one only when it has no unsaved changes.
+        var mode = NewSceneMode.Additive;
+        if (HasUntitledScene())
+        {
+            if (HasDirtyUntitled())
+            {
+                Debug.LogError("Cannot create " + path + ". An untitled scene has unsaved changes.");
+                return;
+            }
+
+            mode = NewSceneMode.Single;
+        }
+
+        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, mode);
         var cameraObject = new GameObject("Main Camera");
         cameraObject.tag = "MainCamera";
         var camera = cameraObject.AddComponent<Camera>();
@@ -82,7 +98,31 @@ static class FrontDoorSceneSetup
         var host = new GameObject(hostName);
         host.AddComponent(screen);
         EditorSceneManager.SaveScene(scene, path);
-        EditorSceneManager.CloseScene(scene, true);
+        if (mode == NewSceneMode.Additive)
+            EditorSceneManager.CloseScene(scene, true);
+    }
+
+    static bool HasUntitledScene()
+    {
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            if (string.IsNullOrEmpty(SceneManager.GetSceneAt(i).path))
+                return true;
+        }
+
+        return false;
+    }
+
+    static bool HasDirtyUntitled()
+    {
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            var open = SceneManager.GetSceneAt(i);
+            if (string.IsNullOrEmpty(open.path) && open.isDirty)
+                return true;
+        }
+
+        return false;
     }
 
     static void EnsureMaterial()
@@ -100,7 +140,8 @@ static class FrontDoorSceneSetup
 
     static void EnsureBuildSettings()
     {
-        if (AssetDatabase.LoadAssetAtPath<SceneAsset>(TitlePath) == null)
+        if (AssetDatabase.LoadAssetAtPath<SceneAsset>(TitlePath) == null
+            || AssetDatabase.LoadAssetAtPath<SceneAsset>(TravelPath) == null)
         {
             if (buildAttempts++ < 8)
                 EditorApplication.delayCall += EnsureBuildSettings;
@@ -112,6 +153,7 @@ static class FrontDoorSceneSetup
         for (int i = 0; i < current.Length; i++)
         {
             if (current[i].path == TitlePath
+                || current[i].path == TravelPath
                 || current[i].path == "Assets/Scenes/HouseSelect.unity"
                 || current[i].path == "Assets/Scenes/CargoSounds.unity")
                 continue;
@@ -123,6 +165,7 @@ static class FrontDoorSceneSetup
             new EditorBuildSettingsScene(TitlePath, true),
         };
         ordered.AddRange(kept);
+        ordered.Add(new EditorBuildSettingsScene(TravelPath, true));
 
         bool same = current.Length == ordered.Count;
         for (int i = 0; same && i < current.Length; i++)

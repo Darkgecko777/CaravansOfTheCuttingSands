@@ -1,0 +1,1450 @@
+{
+  "schemaVersion": 2,
+  "status": "draft",
+  "generated": "2026-11-25",
+  "title": "Caravans of the Cutting Sands — travel-scene route segments",
+  "chart": "Approved by Darkgecko, 2026-11-25. Terrain and shares come from the chart, not the painted map.",
+  "graph": {
+    "source": "RoadGraph.cs Add()/AddSea() order",
+    "placeCount": 20,
+    "chartRouteCount": 18,
+    "roadCount": 18,
+    "seaOpeningCount": 2,
+    "segmentCount": 36,
+    "endgameJourneysNoScene": 2
+  },
+  "terrainSets": [
+    "Dune Sea",
+    "Salt Flats",
+    "Badlands",
+    "Dry Scrub",
+    "Highlands",
+    "Coast"
+  ],
+  "terrainCounts": {
+    "Dune Sea": 11,
+    "Salt Flats": 1,
+    "Badlands": 6,
+    "Dry Scrub": 7,
+    "Highlands": 7,
+    "Coast": 4
+  },
+  "rules": {
+    "segmentOrder": "Ordered from the chart's first-named town to the second. If RoadGraph Add() runs the other way, reverse the list when following the graph. On this chart every first-named town matches the graph from.",
+    "shares": "Integer percent of the route. Sum 100 on each chart route.",
+    "paint": "The map is a planning screen only. Paint does not govern terrain.",
+    "badlands": "Rough broken country between scrub and highlands.",
+    "coast": "Coast appears only on chart routes 3 (Kharûn–Brineford), 4 (Kharûn–Westmark), 5 (Kaleth–Zamath) and 17 (Ghûl–Ghorath).",
+    "frost": "Prop feature, not a biome. Used on the Draven roads.",
+    "noLiveCreatures": "Props are remains, sheds, pens, harvest, trophies, and camp structures only.",
+    "seaOpenings": "In the graph. No travel scene, no segments.",
+    "hours": "Unchanged from the road-graph clear Steady figures. Kharûn–Kaleth is 10.71 h; the intended benchmark is about 11 h.",
+    "noWagons": "No vehicles, no wagons, no sled.",
+    "endgame": "Westmark–Sarn's Rest and the final run have no travel scene and no segments. Hours are metadata only."
+  },
+  "nameMismatches": [],
+  "sources": [
+    {
+      "id": "terrain_chart",
+      "ref": "Approved terrain chart, Darkgecko via Caravans Bot, 2026-11-25",
+      "at": "Terrain sets and shares for the 18 land roads. Paint no longer governs terrain. Coast only on chart routes 3, 4, 5 and 17. Badlands is rough broken country between scrub and highlands. Sea openings get no travel scene."
+    },
+    {
+      "id": "roadgraph",
+      "ref": "/workspace/cb_read/Scripts/Play/RoadGraph.cs (box copy of the Unity checkout)",
+      "at": "18 Add + 2 AddSea edges. Hours from painted length / Kharûn–Draven * dayHours (24). Hours were not changed in this pass."
+    },
+    {
+      "id": "travel_json",
+      "ref": "/workspace/cb_read/config/travel.json",
+      "at": "dayHours 24."
+    },
+    {
+      "id": "route_tags",
+      "ref": "/workspace/Route_Tags.md",
+      "at": "Encounter tags, settlement lists, sea openings."
+    },
+    {
+      "id": "rescue",
+      "ref": "/workspace/systems/endgame/rescue_texts.json",
+      "at": "Rescue regions. Death on Westmark–Sarn's Rest or the final run uses the westmark region."
+    },
+    {
+      "id": "lore_brief",
+      "ref": "/workspace/Lore_Brief.md",
+      "at": "Settlement looks, goods, Ishka camps, Ghorath pool and bog, Thalor mine, Sorel flats, Draven frost and caves, Sarn's Rest landmark."
+    },
+    {
+      "id": "bible",
+      "ref": "/workspace/Caravans_Game_Bible.md",
+      "at": "Places, houses, Ishka, Sarn's Rest, shores that draw sea water."
+    },
+    {
+      "id": "goods",
+      "ref": "/workspace/Caravans_Goods.md",
+      "at": "Origin goods and short place lines."
+    },
+    {
+      "id": "endgame",
+      "ref": "/workspace/systems/endgame/map_pieces.json and map_pieces_notes.md",
+      "at": "Hours metadata only. Darkgecko (2026-11-25): no Westmark–Sarn's Rest travel scene (conceptual journey); leaving Sarn's Rest fades to the story end and credits, so the final run has no travel scene either."
+    },
+    {
+      "id": "encounters",
+      "ref": "/workspace/systems/encounters/encounters_batch2_notes.md and schema.md",
+      "at": "Region/road spread used only for prop context, not to override the chart."
+    }
+  ],
+  "tbd": [
+    "Neth's built look, cult, Arkhul, and Reth are not locked.",
+    "Kharûn–Kaleth is 10.71 clear Steady hours from the road graph. The intended benchmark is about 11 h. Hours were not changed."
+  ],
+  "routes": [
+    {
+      "id": "kharun-draven",
+      "chartIndex": 1,
+      "from": "kharun",
+      "to": "draven",
+      "fromName": "Kharûn",
+      "toName": "Draven",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 24.0,
+      "graphFrom": "kharun",
+      "graphTo": "draven",
+      "directionMatchesGraph": true,
+      "rescueRegion": "highlands",
+      "routeTags": [
+        "wilderness-mountain",
+        "kharun",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 40,
+          "terrain": "Dry Scrub",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "scrubstone_spires",
+              "near": "kharun",
+              "text": "Organic scrubstone spires, crystal-glinting, stalagmite-like.",
+              "confidence": "high"
+            },
+            {
+              "id": "tiger_cactus",
+              "near": "kharun",
+              "text": "Tiger cactus grows in the Kharûn region. Plant, not a creature.",
+              "confidence": "high"
+            },
+            {
+              "id": "kharun_gate",
+              "near": "kharun",
+              "text": "Tawny scrubstone fortress, double-towered gate, mint spires.",
+              "confidence": "high"
+            }
+          ],
+          "near": "kharun"
+        },
+        {
+          "index": 1,
+          "sharePercent": 25,
+          "terrain": "Badlands",
+          "confidence": "high",
+          "props": []
+        },
+        {
+          "index": 2,
+          "sharePercent": 35,
+          "terrain": "Highlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "frost_patches",
+              "near": "draven",
+              "text": "Frost spreads from the ore. Prop feature, not a biome.",
+              "confidence": "high"
+            },
+            {
+              "id": "frost_iron_mine",
+              "near": "draven",
+              "text": "Small frost-iron mine in the range. Not the shimmersteel seat.",
+              "confidence": "high"
+            },
+            {
+              "id": "draven_caves",
+              "near": "draven",
+              "text": "Caves around the highland village; finger fungus is cut there.",
+              "confidence": "high"
+            }
+          ],
+          "near": "draven"
+        }
+      ]
+    },
+    {
+      "id": "kharun-kaleth",
+      "chartIndex": 2,
+      "from": "kharun",
+      "to": "kaleth",
+      "fromName": "Kharûn",
+      "toName": "Kaleth",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 10.71,
+      "graphFrom": "kharun",
+      "graphTo": "kaleth",
+      "directionMatchesGraph": true,
+      "rescueRegion": "zamath_coast",
+      "routeTags": [
+        "kharun",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 70,
+          "terrain": "Dry Scrub",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "scrubstone_spires",
+              "near": "kharun",
+              "text": "Organic scrubstone spires, crystal-glinting, stalagmite-like.",
+              "confidence": "high"
+            },
+            {
+              "id": "tiger_cactus",
+              "near": "kharun",
+              "text": "Tiger cactus grows in the Kharûn region. Plant, not a creature.",
+              "confidence": "high"
+            },
+            {
+              "id": "kharun_gate",
+              "near": "kharun",
+              "text": "Tawny scrubstone fortress, double-towered gate, mint spires.",
+              "confidence": "high"
+            }
+          ],
+          "near": "kharun"
+        },
+        {
+          "index": 1,
+          "sharePercent": 30,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "kaleth_post",
+              "near": "kaleth",
+              "text": "Road post. Kaleth draws sea water. Shared post architecture.",
+              "confidence": "high"
+            }
+          ],
+          "near": "kaleth"
+        }
+      ],
+      "note": "Clear Steady hours from the road graph are 10.71. The intended benchmark is about 11 h. Hours were not changed."
+    },
+    {
+      "id": "kharun-brineford",
+      "chartIndex": 3,
+      "from": "kharun",
+      "to": "brineford",
+      "fromName": "Kharûn",
+      "toName": "Brineford",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 25.15,
+      "graphFrom": "kharun",
+      "graphTo": "brineford",
+      "directionMatchesGraph": true,
+      "rescueRegion": "east",
+      "routeTags": [
+        "wildlife-sea",
+        "kharun",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 20,
+          "terrain": "Dry Scrub",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "scrubstone_spires",
+              "near": "kharun",
+              "text": "Organic scrubstone spires, crystal-glinting, stalagmite-like.",
+              "confidence": "high"
+            },
+            {
+              "id": "tiger_cactus",
+              "near": "kharun",
+              "text": "Tiger cactus grows in the Kharûn region. Plant, not a creature.",
+              "confidence": "high"
+            },
+            {
+              "id": "kharun_gate",
+              "near": "kharun",
+              "text": "Tawny scrubstone fortress, double-towered gate, mint spires.",
+              "confidence": "high"
+            }
+          ],
+          "near": "kharun"
+        },
+        {
+          "index": 1,
+          "sharePercent": 65,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": []
+        },
+        {
+          "index": 2,
+          "sharePercent": 15,
+          "terrain": "Coast",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "brineford_post",
+              "near": "brineford",
+              "text": "Road post. Draws sea water. Shared post architecture.",
+              "confidence": "high"
+            }
+          ],
+          "near": "brineford"
+        }
+      ]
+    },
+    {
+      "id": "kharun-westmark",
+      "chartIndex": 4,
+      "from": "kharun",
+      "to": "westmark",
+      "fromName": "Kharûn",
+      "toName": "Westmark",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 24.32,
+      "graphFrom": "kharun",
+      "graphTo": "westmark",
+      "directionMatchesGraph": true,
+      "rescueRegion": "westmark",
+      "routeTags": [
+        "wilderness-mountain",
+        "kharun",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 25,
+          "terrain": "Dry Scrub",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "scrubstone_spires",
+              "near": "kharun",
+              "text": "Organic scrubstone spires, crystal-glinting, stalagmite-like.",
+              "confidence": "high"
+            },
+            {
+              "id": "tiger_cactus",
+              "near": "kharun",
+              "text": "Tiger cactus grows in the Kharûn region. Plant, not a creature.",
+              "confidence": "high"
+            },
+            {
+              "id": "kharun_gate",
+              "near": "kharun",
+              "text": "Tawny scrubstone fortress, double-towered gate, mint spires.",
+              "confidence": "high"
+            }
+          ],
+          "near": "kharun"
+        },
+        {
+          "index": 1,
+          "sharePercent": 40,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": []
+        },
+        {
+          "index": 2,
+          "sharePercent": 25,
+          "terrain": "Badlands",
+          "confidence": "high",
+          "props": []
+        },
+        {
+          "index": 3,
+          "sharePercent": 10,
+          "terrain": "Coast",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "westmark_post",
+              "near": "westmark",
+              "text": "Road post. Draws sea water. Shared post architecture. Sea opening to Rukh.",
+              "confidence": "high"
+            }
+          ],
+          "near": "westmark"
+        }
+      ]
+    },
+    {
+      "id": "kaleth-zamath",
+      "chartIndex": 5,
+      "from": "kaleth",
+      "to": "zamath",
+      "fromName": "Kaleth",
+      "toName": "Zamath",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 22.83,
+      "graphFrom": "kaleth",
+      "graphTo": "zamath",
+      "directionMatchesGraph": true,
+      "rescueRegion": "zamath_coast",
+      "routeTags": [
+        "wildlife-sea",
+        "zamath",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 20,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "kaleth_post",
+              "near": "kaleth",
+              "text": "Road post. Kaleth draws sea water. Shared post architecture.",
+              "confidence": "high"
+            }
+          ],
+          "near": "kaleth"
+        },
+        {
+          "index": 1,
+          "sharePercent": 80,
+          "terrain": "Coast",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "elder_trees",
+              "near": "zamath",
+              "text": "Eyed elder trees around the unwalled shore city. Do not describe palms.",
+              "confidence": "high"
+            },
+            {
+              "id": "salt_pans",
+              "near": "zamath",
+              "text": "Zamath salt pans. Industrial brine, not Sorel's edible salts.",
+              "confidence": "high"
+            },
+            {
+              "id": "neth_embassy",
+              "near": "zamath",
+              "text": "Red mud-brick Neth embassy under a hide awning.",
+              "confidence": "high"
+            },
+            {
+              "id": "speaking_terraces",
+              "near": "zamath",
+              "text": "Stone speaking terraces. Trees here are sentient.",
+              "confidence": "high"
+            },
+            {
+              "id": "pomegranate_tree",
+              "near": "zamath",
+              "text": "A pomegranate tree at the city. Sweet Bliss origin.",
+              "confidence": "high"
+            }
+          ],
+          "near": "zamath"
+        }
+      ]
+    },
+    {
+      "id": "zamath-southmark",
+      "chartIndex": 6,
+      "from": "zamath",
+      "to": "southmark",
+      "fromName": "Zamath",
+      "toName": "Southmark",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 12.52,
+      "graphFrom": "zamath",
+      "graphTo": "southmark",
+      "directionMatchesGraph": true,
+      "rescueRegion": "zamath_coast",
+      "routeTags": [
+        "zamath",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 100,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "elder_trees",
+              "near": "zamath",
+              "text": "Eyed elder trees around the unwalled shore city. Do not describe palms.",
+              "confidence": "high"
+            },
+            {
+              "id": "salt_pans",
+              "near": "zamath",
+              "text": "Zamath salt pans. Industrial brine, not Sorel's edible salts.",
+              "confidence": "high"
+            },
+            {
+              "id": "neth_embassy",
+              "near": "zamath",
+              "text": "Red mud-brick Neth embassy under a hide awning.",
+              "confidence": "high"
+            },
+            {
+              "id": "speaking_terraces",
+              "near": "zamath",
+              "text": "Stone speaking terraces. Trees here are sentient.",
+              "confidence": "high"
+            },
+            {
+              "id": "pomegranate_tree",
+              "near": "zamath",
+              "text": "A pomegranate tree at the city. Sweet Bliss origin.",
+              "confidence": "high"
+            },
+            {
+              "id": "southmark_post",
+              "near": "southmark",
+              "text": "Road post. Water-scarce. Shared post architecture. Not a sea-water shore.",
+              "confidence": "high"
+            }
+          ],
+          "near": "zamath"
+        }
+      ]
+    },
+    {
+      "id": "brineford-torvern",
+      "chartIndex": 7,
+      "from": "brineford",
+      "to": "torvern",
+      "fromName": "Brineford",
+      "toName": "Torvern",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 16.01,
+      "graphFrom": "brineford",
+      "graphTo": "torvern",
+      "directionMatchesGraph": true,
+      "rescueRegion": "northeast",
+      "routeTags": [
+        "wilderness-mountain",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 30,
+          "terrain": "Badlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "brineford_post",
+              "near": "brineford",
+              "text": "Road post. Draws sea water. Shared post architecture.",
+              "confidence": "high"
+            }
+          ],
+          "near": "brineford"
+        },
+        {
+          "index": 1,
+          "sharePercent": 70,
+          "terrain": "Highlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "pincer_beast_pens",
+              "near": "torvern",
+              "text": "Pincer-beast pens and sheds. No live beasts.",
+              "confidence": "high"
+            },
+            {
+              "id": "kelkris_racks",
+              "near": "torvern",
+              "text": "Kelkris underfeather racks and leavings. Feathered rodents, not birds. No live animals in the settlement view.",
+              "confidence": "high"
+            }
+          ],
+          "near": "torvern"
+        }
+      ]
+    },
+    {
+      "id": "torvern-thalor",
+      "chartIndex": 8,
+      "from": "torvern",
+      "to": "thalor",
+      "fromName": "Torvern",
+      "toName": "Thalor",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 16.7,
+      "graphFrom": "torvern",
+      "graphTo": "thalor",
+      "directionMatchesGraph": true,
+      "rescueRegion": "northeast",
+      "routeTags": [
+        "wilderness-mountain",
+        "thalor",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 100,
+          "terrain": "Highlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "pincer_beast_pens",
+              "near": "torvern",
+              "text": "Pincer-beast pens and sheds. No live beasts.",
+              "confidence": "high"
+            },
+            {
+              "id": "kelkris_racks",
+              "near": "torvern",
+              "text": "Kelkris underfeather racks and leavings. Feathered rodents, not birds. No live animals in the settlement view.",
+              "confidence": "high"
+            },
+            {
+              "id": "shimmersteel_mine",
+              "near": "thalor",
+              "text": "Shimmersteel mine as a separate feature: bone scaffold, sand-bronze crystal ore. Mined only here.",
+              "confidence": "high"
+            },
+            {
+              "id": "ishka_nomad_camp",
+              "near": "thalor",
+              "text": "Bone-framed hide domes, drying racks, drums. Ishka camps along the northern border. Thalor is the door for Ishka goods. No live people or beasts.",
+              "confidence": "high"
+            },
+            {
+              "id": "duzhu_fin_trophies",
+              "near": "thalor",
+              "text": "Two Giant Duzhu fin plates flank the gate as trophies, not living beasts.",
+              "confidence": "high"
+            },
+            {
+              "id": "thalor_walls",
+              "near": "thalor",
+              "text": "Sprawling ochre mud-brick city, irregular wall, central hall.",
+              "confidence": "high"
+            }
+          ],
+          "near": "torvern"
+        }
+      ]
+    },
+    {
+      "id": "torvern-ridgewatch",
+      "chartIndex": 9,
+      "from": "torvern",
+      "to": "ridgewatch",
+      "fromName": "Torvern",
+      "toName": "Ridgewatch",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 11.93,
+      "graphFrom": "torvern",
+      "graphTo": "ridgewatch",
+      "directionMatchesGraph": true,
+      "rescueRegion": "northeast",
+      "routeTags": [
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 100,
+          "terrain": "Highlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "pincer_beast_pens",
+              "near": "torvern",
+              "text": "Pincer-beast pens and sheds. No live beasts.",
+              "confidence": "high"
+            },
+            {
+              "id": "kelkris_racks",
+              "near": "torvern",
+              "text": "Kelkris underfeather racks and leavings. Feathered rodents, not birds. No live animals in the settlement view.",
+              "confidence": "high"
+            },
+            {
+              "id": "ridgewatch_post",
+              "near": "ridgewatch",
+              "text": "Road post in mountain country. Shared post architecture. Food scarce.",
+              "confidence": "high"
+            }
+          ],
+          "near": "torvern"
+        }
+      ]
+    },
+    {
+      "id": "ridgewatch-ashar",
+      "chartIndex": 10,
+      "from": "ridgewatch",
+      "to": "ashar",
+      "fromName": "Ridgewatch",
+      "toName": "Ashar",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 9.28,
+      "graphFrom": "ridgewatch",
+      "graphTo": "ashar",
+      "directionMatchesGraph": true,
+      "rescueRegion": "northeast",
+      "routeTags": [
+        "wilderness-mountain",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 30,
+          "terrain": "Badlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "ridgewatch_post",
+              "near": "ridgewatch",
+              "text": "Road post in mountain country. Shared post architecture. Food scarce.",
+              "confidence": "high"
+            }
+          ],
+          "near": "ridgewatch"
+        },
+        {
+          "index": 1,
+          "sharePercent": 70,
+          "terrain": "Highlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "palestone_houses",
+              "near": "ashar",
+              "text": "Fieldstone houses climbing a rock spur. Palestone is pale, glassy-edged, light as wood.",
+              "confidence": "high"
+            },
+            {
+              "id": "terrorshriek_remains",
+              "near": "ashar",
+              "text": "Terrorshriek remains in the ranges (talons). Oversized birds of prey. No live birds.",
+              "confidence": "high"
+            }
+          ],
+          "near": "ashar"
+        }
+      ]
+    },
+    {
+      "id": "draven-highmark",
+      "chartIndex": 11,
+      "from": "draven",
+      "to": "highmark",
+      "fromName": "Draven",
+      "toName": "Highmark",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 8.38,
+      "graphFrom": "draven",
+      "graphTo": "highmark",
+      "directionMatchesGraph": true,
+      "rescueRegion": "highlands",
+      "routeTags": [
+        "wilderness-mountain",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 100,
+          "terrain": "Highlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "frost_patches",
+              "near": "draven",
+              "text": "Frost spreads from the ore. Prop feature, not a biome.",
+              "confidence": "high"
+            },
+            {
+              "id": "frost_iron_mine",
+              "near": "draven",
+              "text": "Small frost-iron mine in the range. Not the shimmersteel seat.",
+              "confidence": "high"
+            },
+            {
+              "id": "draven_caves",
+              "near": "draven",
+              "text": "Caves around the highland village; finger fungus is cut there.",
+              "confidence": "high"
+            },
+            {
+              "id": "highmark_post",
+              "near": "highmark",
+              "text": "Road post. Water-scarce. Shared post architecture.",
+              "confidence": "high"
+            },
+            {
+              "id": "ishka_nomad_camp",
+              "near": "highmark",
+              "text": "Ishka come to Highmark for Draven fungus; the post does not produce Ishka goods. Camps are bone-framed hide domes, drying racks, drums. No live people or beasts.",
+              "confidence": "high"
+            }
+          ],
+          "near": "draven"
+        }
+      ]
+    },
+    {
+      "id": "westmark-kethra",
+      "chartIndex": 12,
+      "from": "westmark",
+      "to": "kethra",
+      "fromName": "Westmark",
+      "toName": "Kethra",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 8.53,
+      "graphFrom": "westmark",
+      "graphTo": "kethra",
+      "directionMatchesGraph": true,
+      "rescueRegion": "westmark",
+      "routeTags": [
+        "wilderness-mountain",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 40,
+          "terrain": "Badlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "westmark_post",
+              "near": "westmark",
+              "text": "Road post. Draws sea water. Shared post architecture. Sea opening to Rukh.",
+              "confidence": "high"
+            }
+          ],
+          "near": "westmark"
+        },
+        {
+          "index": 1,
+          "sharePercent": 60,
+          "terrain": "Highlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "clack_fiend_sheds",
+              "near": "kethra",
+              "text": "Pale, translucent, pearly molt sheds on the scree. Kethrans drag them down in the season. Not a kill hide.",
+              "confidence": "high"
+            },
+            {
+              "id": "shed_carapace_hall",
+              "near": "kethra",
+              "text": "Shed carapace used as a hall.",
+              "confidence": "high"
+            },
+            {
+              "id": "kethra_scree",
+              "near": "kethra",
+              "text": "Foothill scree around the village is clack-fiend country.",
+              "confidence": "high"
+            }
+          ],
+          "near": "kethra"
+        }
+      ]
+    },
+    {
+      "id": "brineford-moraq",
+      "chartIndex": 13,
+      "from": "brineford",
+      "to": "moraq",
+      "fromName": "Brineford",
+      "toName": "Moraq",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 10.67,
+      "graphFrom": "brineford",
+      "graphTo": "moraq",
+      "directionMatchesGraph": true,
+      "rescueRegion": "east",
+      "routeTags": [
+        "wilderness-mountain",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 100,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "brineford_post",
+              "near": "brineford",
+              "text": "Road post. Draws sea water. Shared post architecture.",
+              "confidence": "high"
+            },
+            {
+              "id": "dune_mollusk_husks",
+              "near": "moraq",
+              "text": "Alien gourd-like mollusk husks in the dunes: striped shells, tube chimneys, knotted crowns. Desert shells, not sea oysters. Harvest only, no live mollusks.",
+              "confidence": "high"
+            }
+          ],
+          "near": "brineford"
+        }
+      ]
+    },
+    {
+      "id": "moraq-ghorath",
+      "chartIndex": 14,
+      "from": "moraq",
+      "to": "ghorath",
+      "fromName": "Moraq",
+      "toName": "Ghorath",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 13.17,
+      "graphFrom": "moraq",
+      "graphTo": "ghorath",
+      "directionMatchesGraph": true,
+      "rescueRegion": "east",
+      "routeTags": [
+        "ghorath",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 75,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "dune_mollusk_husks",
+              "near": "moraq",
+              "text": "Alien gourd-like mollusk husks in the dunes: striped shells, tube chimneys, knotted crowns. Desert shells, not sea oysters. Harvest only, no live mollusks.",
+              "confidence": "high"
+            }
+          ],
+          "near": "moraq"
+        },
+        {
+          "index": 1,
+          "sharePercent": 25,
+          "terrain": "Dry Scrub",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "lotus_pool",
+              "near": "ghorath",
+              "text": "Turquoise pool with pale glowing violet dream lotus.",
+              "confidence": "high"
+            },
+            {
+              "id": "mor_root_bog",
+              "near": "ghorath",
+              "text": "Dark olive Mor Root bog beside the fortress.",
+              "confidence": "high"
+            },
+            {
+              "id": "oasis_fortress",
+              "near": "ghorath",
+              "text": "Oasis fortress. Named plants are the export.",
+              "confidence": "high"
+            }
+          ],
+          "near": "ghorath"
+        }
+      ]
+    },
+    {
+      "id": "ghorath-veythar",
+      "chartIndex": 15,
+      "from": "ghorath",
+      "to": "veythar",
+      "fromName": "Ghorath",
+      "toName": "Veythar",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 21.39,
+      "graphFrom": "ghorath",
+      "graphTo": "veythar",
+      "directionMatchesGraph": true,
+      "rescueRegion": "east",
+      "routeTags": [
+        "wilderness-mountain",
+        "ghorath",
+        "veythar",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 20,
+          "terrain": "Dry Scrub",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "lotus_pool",
+              "near": "ghorath",
+              "text": "Turquoise pool with pale glowing violet dream lotus.",
+              "confidence": "high"
+            },
+            {
+              "id": "mor_root_bog",
+              "near": "ghorath",
+              "text": "Dark olive Mor Root bog beside the fortress.",
+              "confidence": "high"
+            },
+            {
+              "id": "oasis_fortress",
+              "near": "ghorath",
+              "text": "Oasis fortress. Named plants are the export.",
+              "confidence": "high"
+            }
+          ],
+          "near": "ghorath"
+        },
+        {
+          "index": 1,
+          "sharePercent": 50,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": []
+        },
+        {
+          "index": 2,
+          "sharePercent": 30,
+          "terrain": "Badlands",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "terraced_spring_farms",
+              "near": "veythar",
+              "text": "Terraced spring farms as independent features beside the city, not baked into the walls.",
+              "confidence": "high"
+            },
+            {
+              "id": "veythar_rock_city",
+              "near": "veythar",
+              "text": "Rock-built city. Isolationist, militant, agrarian.",
+              "confidence": "high"
+            }
+          ],
+          "near": "veythar"
+        }
+      ]
+    },
+    {
+      "id": "southmark-ghul",
+      "chartIndex": 16,
+      "from": "southmark",
+      "to": "ghul",
+      "fromName": "Southmark",
+      "toName": "Ghûl",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 10.19,
+      "graphFrom": "southmark",
+      "graphTo": "ghul",
+      "directionMatchesGraph": true,
+      "rescueRegion": "south",
+      "routeTags": [
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 100,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "southmark_post",
+              "near": "southmark",
+              "text": "Road post. Water-scarce. Shared post architecture. Not a sea-water shore.",
+              "confidence": "high"
+            },
+            {
+              "id": "hulv_ribcage_tent",
+              "near": "ghul",
+              "text": "Long hide tent stretched over a Hulv ribcage and spine. The bones are the frame.",
+              "confidence": "high"
+            },
+            {
+              "id": "zar_kun_carcass",
+              "near": "ghul",
+              "text": "Raw Zar'Kun tentacle carcass. Larval, non-sentient. Harvest, not a live beast.",
+              "confidence": "high"
+            },
+            {
+              "id": "sinew_rack",
+              "near": "ghul",
+              "text": "Sinew rack and a clay soak basin.",
+              "confidence": "high"
+            }
+          ],
+          "near": "southmark"
+        }
+      ]
+    },
+    {
+      "id": "ghul-ghorath",
+      "chartIndex": 17,
+      "from": "ghul",
+      "to": "ghorath",
+      "fromName": "Ghûl",
+      "toName": "Ghorath",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 24.09,
+      "graphFrom": "ghul",
+      "graphTo": "ghorath",
+      "directionMatchesGraph": true,
+      "rescueRegion": "south",
+      "routeTags": [
+        "wildlife-sea",
+        "ghorath",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 40,
+          "terrain": "Coast",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "hulv_ribcage_tent",
+              "near": "ghul",
+              "text": "Long hide tent stretched over a Hulv ribcage and spine. The bones are the frame.",
+              "confidence": "high"
+            },
+            {
+              "id": "zar_kun_carcass",
+              "near": "ghul",
+              "text": "Raw Zar'Kun tentacle carcass. Larval, non-sentient. Harvest, not a live beast.",
+              "confidence": "high"
+            },
+            {
+              "id": "sinew_rack",
+              "near": "ghul",
+              "text": "Sinew rack and a clay soak basin.",
+              "confidence": "high"
+            }
+          ],
+          "near": "ghul"
+        },
+        {
+          "index": 1,
+          "sharePercent": 45,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": []
+        },
+        {
+          "index": 2,
+          "sharePercent": 15,
+          "terrain": "Dry Scrub",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "lotus_pool",
+              "near": "ghorath",
+              "text": "Turquoise pool with pale glowing violet dream lotus.",
+              "confidence": "high"
+            },
+            {
+              "id": "mor_root_bog",
+              "near": "ghorath",
+              "text": "Dark olive Mor Root bog beside the fortress.",
+              "confidence": "high"
+            },
+            {
+              "id": "oasis_fortress",
+              "near": "ghorath",
+              "text": "Oasis fortress. Named plants are the export.",
+              "confidence": "high"
+            }
+          ],
+          "near": "ghorath"
+        }
+      ]
+    },
+    {
+      "id": "southmark-sorel",
+      "chartIndex": 18,
+      "from": "southmark",
+      "to": "sorel",
+      "fromName": "Southmark",
+      "toName": "Sorel",
+      "kind": "road",
+      "travelScene": true,
+      "hoursClearSteady": 12.33,
+      "graphFrom": "southmark",
+      "graphTo": "sorel",
+      "directionMatchesGraph": true,
+      "rescueRegion": "south",
+      "routeTags": [
+        "wildlife-sea",
+        "wildlife-desert",
+        "bandits",
+        "catchall"
+      ],
+      "segments": [
+        {
+          "index": 0,
+          "sharePercent": 55,
+          "terrain": "Dune Sea",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "southmark_post",
+              "near": "southmark",
+              "text": "Road post. Water-scarce. Shared post architecture. Not a sea-water shore.",
+              "confidence": "high"
+            }
+          ],
+          "near": "southmark"
+        },
+        {
+          "index": 1,
+          "sharePercent": 45,
+          "terrain": "Salt Flats",
+          "confidence": "high",
+          "props": [
+            {
+              "id": "salt_cones",
+              "near": "sorel",
+              "text": "Red, gold, and cream salt cones. Both Fire Salt and Sweetrock are edible salts, not Zamath's Brine Scrub.",
+              "confidence": "high"
+            },
+            {
+              "id": "evaporation_pans",
+              "near": "sorel",
+              "text": "Evaporation pans and cake racks. Cracked clay belongs in this set.",
+              "confidence": "high"
+            },
+            {
+              "id": "salt_block_huts",
+              "near": "sorel",
+              "text": "Salt-block huts. Sorel draws sea water.",
+              "confidence": "high"
+            }
+          ],
+          "near": "sorel"
+        }
+      ]
+    },
+    {
+      "id": "zamath-neth",
+      "chartIndex": null,
+      "from": "zamath",
+      "to": "neth",
+      "fromName": "Zamath",
+      "toName": "Neth",
+      "kind": "sea",
+      "travelScene": false,
+      "hoursClearSteady": 0.0,
+      "graphFrom": "zamath",
+      "graphTo": "neth",
+      "directionMatchesGraph": true,
+      "rescueRegion": null,
+      "routeTags": [
+        "sea-opening"
+      ],
+      "segments": [],
+      "placeProps": [
+        {
+          "id": "elder_trees",
+          "near": "zamath",
+          "text": "Eyed elder trees around the unwalled shore city. Do not describe palms.",
+          "confidence": "high"
+        },
+        {
+          "id": "salt_pans",
+          "near": "zamath",
+          "text": "Zamath salt pans. Industrial brine, not Sorel's edible salts.",
+          "confidence": "high"
+        },
+        {
+          "id": "neth_embassy",
+          "near": "zamath",
+          "text": "Red mud-brick Neth embassy under a hide awning.",
+          "confidence": "high"
+        },
+        {
+          "id": "speaking_terraces",
+          "near": "zamath",
+          "text": "Stone speaking terraces. Trees here are sentient.",
+          "confidence": "high"
+        },
+        {
+          "id": "pomegranate_tree",
+          "near": "zamath",
+          "text": "A pomegranate tree at the city. Sweet Bliss origin.",
+          "confidence": "high"
+        },
+        {
+          "id": "neth_shore",
+          "near": "neth",
+          "text": "Sea village opened from Zamath with no hop. Cult, Arkhul, Reth, and Neth's built look are not locked. Do not invent them.",
+          "confidence": "low"
+        }
+      ],
+      "note": "Sea opening: in the road graph, 0 hours, no kit, no encounter. No travel scene and no segments. Landmark props for the two places are listed under placeProps only."
+    },
+    {
+      "id": "westmark-rukh",
+      "chartIndex": null,
+      "from": "westmark",
+      "to": "rukh",
+      "fromName": "Westmark",
+      "toName": "Rukh",
+      "kind": "sea",
+      "travelScene": false,
+      "hoursClearSteady": 0.0,
+      "graphFrom": "westmark",
+      "graphTo": "rukh",
+      "directionMatchesGraph": true,
+      "rescueRegion": null,
+      "routeTags": [
+        "sea-opening"
+      ],
+      "segments": [],
+      "placeProps": [
+        {
+          "id": "westmark_post",
+          "near": "westmark",
+          "text": "Road post. Draws sea water. Shared post architecture. Sea opening to Rukh.",
+          "confidence": "high"
+        },
+        {
+          "id": "jawbone_gate",
+          "near": "rukh",
+          "text": "Sarn's Bane jawbone gate. The rest of the beast's body is not locked.",
+          "confidence": "high"
+        },
+        {
+          "id": "eel_racks",
+          "near": "rukh",
+          "text": "Kel-eel racks.",
+          "confidence": "high"
+        },
+        {
+          "id": "rendering_vat",
+          "near": "rukh",
+          "text": "Rendering vat and hide-sealed clay oil jars. No wooden barrels.",
+          "confidence": "high"
+        },
+        {
+          "id": "rukh_longhouse",
+          "near": "rukh",
+          "text": "A longhouse and a round watch-hut.",
+          "confidence": "high"
+        }
+      ],
+      "note": "Sea opening: in the road graph, 0 hours, no kit, no encounter. No travel scene and no segments. Landmark props for the two places are listed under placeProps only."
+    }
+  ],
+  "endgameJourneys": [
+    {
+      "id": "westmark-sarns_rest",
+      "from": "westmark",
+      "to": "sarns_rest",
+      "fromName": "Westmark",
+      "toName": "Sarn's Rest",
+      "kind": "gateTravel",
+      "travelScene": false,
+      "inRoadGraph": false,
+      "hoursClearSteady": 12,
+      "segments": [],
+      "note": "There is no Westmark–Sarn's Rest travel. It is a conceptual journey with no travel scene and no segments. Hours (12 clear Steady) are metadata only."
+    },
+    {
+      "id": "final_run",
+      "from": "sarns_rest",
+      "to": null,
+      "fromName": "Sarn's Rest",
+      "toName": "story end",
+      "kind": "finalRun",
+      "travelScene": false,
+      "inRoadGraph": false,
+      "hoursClearSteady": 18,
+      "return": false,
+      "segments": [],
+      "note": "Leaving Sarn's Rest fades straight to the story end and credits. The final run has no travel scene and no segments. Hours (18 clear Steady) are metadata only."
+    }
+  ]
+}

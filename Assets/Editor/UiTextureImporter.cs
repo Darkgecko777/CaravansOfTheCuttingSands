@@ -20,6 +20,7 @@ public class UiTextureImporter : AssetPostprocessor
         "Assets/Resources/FrontDoor/",
         "Assets/Resources/Goods/",
         "Assets/Resources/MapMarkers/",
+        "Assets/Resources/Travel/",
     };
 
     void OnPreprocessTexture()
