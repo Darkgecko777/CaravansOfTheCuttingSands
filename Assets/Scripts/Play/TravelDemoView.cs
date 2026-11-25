@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Caravans.Play
 {
-    // Side-on layers. The strip is duplicated so a slower layer can loop without a pop.
+    // Side-on layers. Each layer is filled past the right edge before it can scroll into view.
     public sealed class TravelDemoView : MonoBehaviour
     {
         public const float Horizon = -1.35f;
@@ -12,7 +12,6 @@ namespace Caravans.Play
         const float FarParallax = 0.24f;
         const float MidParallax = 0.58f;
         const float NearParallax = 1.18f;
-        const float Period = 40f;
         const int FarOrder = 0;
         const int MidOrder = 10;
         const int GroundOrder = 20;
@@ -29,12 +28,10 @@ namespace Caravans.Play
         Transform hazeRoot;
         SpriteRenderer hazeRenderer;
         readonly List<GroundStrip> grounds = new List<GroundStrip>();
-        readonly List<Band> bands = new List<Band>();
+        readonly List<LayerStream> streams = new List<LayerStream>();
         readonly List<SpriteRenderer> props = new List<SpriteRenderer>();
         readonly List<float> propRouteX = new List<float>();
-        string bandA = "";
-        string bandB = "";
-        int bandSeed = int.MinValue;
+        int layoutKey = int.MinValue;
         int propKey = int.MinValue;
 
         class GroundStrip
@@ -42,16 +39,36 @@ namespace Caravans.Play
             public string terrain;
             public Transform root;
             public SpriteRenderer renderer;
+            public float tile;
         }
 
-        class Band
+        class Piece
+        {
+            public Transform root;
+            public SpriteRenderer renderer;
+            public float stripX;
+            public float halfWidth;
+            public float y;
+        }
+
+        class LayerStream
         {
             public string terrain;
             public int layer;
             public float parallax;
-            public Transform root;
-            public readonly List<SpriteRenderer> renderers = new List<SpriteRenderer>();
-            public readonly List<Color> lifts = new List<Color>();
+            public int order;
+            public Color lift;
+            public float y;
+            public float minGap;
+            public float maxGap;
+            public float minScale;
+            public float maxScale;
+            public float widest;
+            public float cursor;
+            public bool started;
+            public System.Random rng;
+            public string[] paths;
+            public readonly List<Piece> pieces = new List<Piece>();
         }
 
         public void Build(Camera camera)
@@ -203,23 +220,26 @@ namespace Caravans.Play
 
         void ShowGround(TravelDemoChart chart, TravelDemoChart.Mix mix, float distance, Color day)
         {
-            float viewW = ViewWidth() + 4f;
-            PlaceGround(chart, mix.a, viewW);
+            PlaceGround(chart, mix.a);
             if (mix.b != mix.a)
-                PlaceGround(chart, mix.b, viewW);
-            float shift = Mathf.Repeat(distance, 4f);
+                PlaceGround(chart, mix.b);
+            float viewW = ViewWidth();
             for (int i = 0; i < grounds.Count; i++)
             {
                 GroundStrip strip = grounds[i];
                 float alpha = Weight(mix, strip.terrain);
                 strip.root.gameObject.SetActive(alpha > 0.01f);
+                float tile = strip.tile > 0.25f ? strip.tile : 4f;
+                float shift = Mathf.Repeat(distance, tile);
+                // The shift walks a full tile. Four extra tiles keep one spare tile past each edge.
+                float width = viewW + tile * 4f;
                 strip.root.position = new Vector3(-shift, Horizon - 2.15f, 0f);
-                strip.renderer.size = new Vector2(viewW, 4.4f);
+                strip.renderer.size = new Vector2(width, 4.4f);
                 strip.renderer.color = new Color(day.r, day.g, day.b, alpha);
             }
         }
 
-        void PlaceGround(TravelDemoChart chart, string terrain, float width)
+        void PlaceGround(TravelDemoChart chart, string terrain)
         {
             for (int i = 0; i < grounds.Count; i++)
             {
@@ -230,88 +250,195 @@ namespace Caravans.Play
             var host = new GameObject("Ground " + terrain);
             host.transform.SetParent(transform, false);
             var renderer = host.AddComponent<SpriteRenderer>();
-            TravelKitsFile.Terrain kit = chart.Kits.Find(terrain);
+            TravelKitsFile.Terrain kit = chart.Kits != null ? chart.Kits.Find(terrain) : null;
             Sprite sprite = kit != null ? TravelDemoSprites.LoadOrNull(kit.ground) : null;
             if (sprite == null)
                 sprite = TravelDemoSprites.Ground(terrain);
             renderer.sprite = sprite;
             renderer.drawMode = SpriteDrawMode.Tiled;
-            renderer.size = new Vector2(width, 4.4f);
             renderer.sortingOrder = GroundOrder;
             var strip = new GroundStrip();
             strip.terrain = terrain;
             strip.root = host.transform;
             strip.renderer = renderer;
+            strip.tile = sprite != null ? sprite.bounds.size.x : 4f;
             grounds.Add(strip);
         }
 
         void ShowBands(TravelDemoChart chart, TravelDemoChart.Mix mix, float distance, Color day)
         {
-            if (bandSeed != chart.Seed || bandA != mix.a || bandB != mix.b)
+            int key = LayoutKey(chart);
+            if (layoutKey != key)
             {
-                ClearBands();
-                BuildBand(chart, mix.a, 0, FarParallax, FarOrder, new Color(0.78f, 0.84f, 0.96f, 1f));
-                BuildBand(chart, mix.a, 1, MidParallax, MidOrder, new Color(0.94f, 0.90f, 0.84f, 1f));
-                BuildBand(chart, mix.a, 2, NearParallax, NearOrder, Color.white);
-                if (mix.b != mix.a)
-                {
-                    BuildBand(chart, mix.b, 0, FarParallax, FarOrder, new Color(0.78f, 0.84f, 0.96f, 1f));
-                    BuildBand(chart, mix.b, 1, MidParallax, MidOrder, new Color(0.94f, 0.90f, 0.84f, 1f));
-                    BuildBand(chart, mix.b, 2, NearParallax, NearOrder, Color.white);
-                }
-
-                bandA = mix.a;
-                bandB = mix.b;
-                bandSeed = chart.Seed;
+                ClearStreams();
+                layoutKey = key;
             }
 
-            for (int i = 0; i < bands.Count; i++)
+            EnsureTrio(chart, mix.a);
+            if (mix.b != mix.a)
+                EnsureTrio(chart, mix.b);
+            DropStreams(mix);
+
+            float half = ViewWidth() * 0.5f;
+            for (int i = 0; i < streams.Count; i++)
             {
-                Band band = bands[i];
-                float alpha = Weight(mix, band.terrain);
-                float offset = Mathf.Repeat(distance * band.parallax, Period);
-                band.root.localPosition = new Vector3(-offset, 0f, 0f);
-                for (int p = 0; p < band.renderers.Count; p++)
-                {
-                    Color lift = band.lifts[p];
-                    band.renderers[p].color = new Color(lift.r * day.r, lift.g * day.g, lift.b * day.b, alpha);
-                }
+                LayerStream stream = streams[i];
+                FillStream(stream, distance, half);
+                PlaceStream(stream, distance, half, day, Weight(mix, stream.terrain));
             }
         }
 
-        void BuildBand(TravelDemoChart chart, string terrain, int layer, float parallax, int order, Color lift)
+        static int LayoutKey(TravelDemoChart chart)
         {
-            var root = new GameObject("Band " + terrain + " " + layer);
-            root.transform.SetParent(transform, false);
-            var band = new Band();
-            band.terrain = terrain;
-            band.layer = layer;
-            band.parallax = parallax;
-            band.root = root.transform;
-            TravelKitsFile.Terrain kit = chart.Kits.Find(terrain);
-            string[] paths = layer == 0 ? kit != null ? kit.far : null : layer == 1 ? kit != null ? kit.mid : null : kit != null ? kit.near : null;
-            var rng = new System.Random(MixSeed(chart.Seed, terrain, layer));
-            float minGap = layer == 0 ? 7.5f : layer == 1 ? 4.2f : 5.5f;
-            float maxGap = layer == 0 ? 12f : layer == 1 ? 7f : 9f;
-            float y = layer == 0 ? Horizon + 1.35f : layer == 1 ? Horizon + 0.05f : Horizon - 1.05f;
-            float x = 1.5f;
-            int guard = 0;
-            while (x < Period && guard < 24)
+            unchecked
             {
-                guard++;
-                float gap = Mathf.Lerp(minGap, maxGap, (float)rng.NextDouble());
-                x += gap;
-                if (x >= Period)
-                    break;
-                int variant = rng.Next(0, 6);
-                Sprite sprite = SpriteAt(paths, variant, terrain, layer);
-                float scale = Mathf.Lerp(layer == 0 ? 1.7f : 1.05f, layer == 0 ? 2.5f : 1.7f, (float)rng.NextDouble());
-                bool flip = rng.NextDouble() > 0.5;
-                float jitter = ((float)rng.NextDouble() * 2f - 1f) * 0.12f;
-                PlaceCopies(band, sprite, x, y + jitter, scale, flip, order, lift);
+                int hash = chart.Seed == 0 ? 1 : chart.Seed;
+                hash = hash * 397 ^ (chart.RouteIndex + 1) * 17;
+                hash = hash * 397 ^ (chart.Forward ? 17 : 31);
+                return hash;
+            }
+        }
+
+        void EnsureTrio(TravelDemoChart chart, string terrain)
+        {
+            EnsureStream(chart, terrain, 0, FarParallax, FarOrder, new Color(0.78f, 0.84f, 0.96f, 1f));
+            EnsureStream(chart, terrain, 1, MidParallax, MidOrder, new Color(0.94f, 0.90f, 0.84f, 1f));
+            EnsureStream(chart, terrain, 2, NearParallax, NearOrder, Color.white);
+        }
+
+        void EnsureStream(TravelDemoChart chart, string terrain, int layer, float parallax, int order, Color lift)
+        {
+            for (int i = 0; i < streams.Count; i++)
+            {
+                if (streams[i].terrain == terrain && streams[i].layer == layer)
+                    return;
             }
 
-            bands.Add(band);
+            var stream = new LayerStream();
+            stream.terrain = terrain;
+            stream.layer = layer;
+            stream.parallax = parallax;
+            stream.order = order;
+            stream.lift = lift;
+            stream.y = layer == 0 ? Horizon + 1.35f : layer == 1 ? Horizon + 0.05f : Horizon - 1.05f;
+            stream.minGap = layer == 0 ? 7.5f : layer == 1 ? 4.2f : 5.5f;
+            stream.maxGap = layer == 0 ? 12f : layer == 1 ? 7f : 9f;
+            stream.minScale = layer == 0 ? 1.7f : 1.05f;
+            stream.maxScale = layer == 0 ? 2.5f : 1.7f;
+            TravelKitsFile.Terrain kit = chart.Kits != null ? chart.Kits.Find(terrain) : null;
+            if (layer == 0)
+                stream.paths = kit != null ? kit.far : null;
+            else if (layer == 1)
+                stream.paths = kit != null ? kit.mid : null;
+            else
+                stream.paths = kit != null ? kit.near : null;
+            stream.widest = Widest(stream);
+            stream.rng = new System.Random(MixSeed(chart.Seed, terrain, layer));
+            streams.Add(stream);
+        }
+
+        static float Widest(LayerStream stream)
+        {
+            float width = 0f;
+            if (stream.paths != null)
+            {
+                for (int i = 0; i < stream.paths.Length; i++)
+                {
+                    Sprite sprite = TravelDemoSprites.LoadOrNull(stream.paths[i]);
+                    if (sprite != null)
+                        width = Mathf.Max(width, sprite.bounds.size.x);
+                }
+            }
+
+            if (width <= 0.01f)
+            {
+                Sprite sprite = TravelDemoSprites.Feature(stream.terrain, stream.layer, 0);
+                if (sprite != null)
+                    width = sprite.bounds.size.x;
+            }
+
+            if (width <= 0.01f)
+                width = 3f;
+            return width * stream.maxScale;
+        }
+
+        void FillStream(LayerStream stream, float distance, float half)
+        {
+            float travel = distance * stream.parallax;
+            // Ahead of the camera's right edge by one screen plus the widest sprite.
+            // Distance already carries the pace, and travel scales it by this layer's parallax.
+            float lead = half + half * 2f + stream.widest;
+            if (!stream.started)
+            {
+                stream.cursor = -half + travel - stream.maxGap - stream.widest;
+                stream.started = true;
+            }
+
+            int guard = 0;
+            while (stream.cursor - travel < lead && guard < 64)
+            {
+                guard++;
+                float gap = Mathf.Lerp(stream.minGap, stream.maxGap, (float)stream.rng.NextDouble());
+                stream.cursor += gap;
+                Spawn(stream);
+            }
+        }
+
+        void Spawn(LayerStream stream)
+        {
+            int variant = stream.rng.Next(0, 6);
+            float scale = Mathf.Lerp(stream.minScale, stream.maxScale, (float)stream.rng.NextDouble());
+            bool flip = stream.rng.NextDouble() > 0.5f;
+            float jitter = ((float)stream.rng.NextDouble() * 2f - 1f) * 0.12f;
+            Sprite sprite = SpriteAt(stream.paths, variant, stream.terrain, stream.layer);
+            var host = new GameObject("Feature");
+            host.transform.SetParent(transform, false);
+            float signed = flip ? -scale : scale;
+            host.transform.localScale = new Vector3(signed, scale, 1f);
+            var renderer = host.AddComponent<SpriteRenderer>();
+            renderer.sprite = sprite;
+            renderer.sortingOrder = stream.order;
+            var piece = new Piece();
+            piece.root = host.transform;
+            piece.renderer = renderer;
+            piece.stripX = stream.cursor;
+            float spriteWidth = sprite != null ? sprite.bounds.size.x : 3f;
+            piece.halfWidth = spriteWidth * scale * 0.5f;
+            piece.y = stream.y + jitter;
+            stream.pieces.Add(piece);
+        }
+
+        void PlaceStream(LayerStream stream, float distance, float half, Color day, float alpha)
+        {
+            float travel = distance * stream.parallax;
+            for (int i = stream.pieces.Count - 1; i >= 0; i--)
+            {
+                Piece piece = stream.pieces[i];
+                float worldX = piece.stripX - travel;
+                if (worldX + piece.halfWidth < -half)
+                {
+                    if (piece.root != null)
+                        Destroy(piece.root.gameObject);
+                    stream.pieces.RemoveAt(i);
+                    continue;
+                }
+
+                piece.root.position = new Vector3(worldX, piece.y, 0f);
+                Color lift = stream.lift;
+                piece.renderer.color = new Color(lift.r * day.r, lift.g * day.g, lift.b * day.b, alpha);
+            }
+        }
+
+        void DropStreams(TravelDemoChart.Mix mix)
+        {
+            for (int i = streams.Count - 1; i >= 0; i--)
+            {
+                string terrain = streams[i].terrain;
+                if (terrain == mix.a || terrain == mix.b)
+                    continue;
+                ClearPieces(streams[i]);
+                streams.RemoveAt(i);
+            }
         }
 
         static Sprite SpriteAt(string[] paths, int variant, string terrain, int layer)
@@ -324,27 +451,6 @@ namespace Caravans.Play
             }
 
             return TravelDemoSprites.Feature(terrain, layer, variant);
-        }
-
-        void PlaceCopies(Band band, Sprite sprite, float x, float y, float scale, bool flip, int order, Color lift)
-        {
-            PlaceOne(band, sprite, x, y, scale, flip, order, lift);
-            PlaceOne(band, sprite, x - Period, y, scale, flip, order, lift);
-            PlaceOne(band, sprite, x + Period, y, scale, flip, order, lift);
-        }
-
-        void PlaceOne(Band band, Sprite sprite, float x, float y, float scale, bool flip, int order, Color lift)
-        {
-            var host = new GameObject("Feature");
-            host.transform.SetParent(band.root, false);
-            host.transform.localPosition = new Vector3(x, y, 0f);
-            float signed = flip ? -scale : scale;
-            host.transform.localScale = new Vector3(signed, scale, 1f);
-            var renderer = host.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            renderer.sortingOrder = order;
-            band.renderers.Add(renderer);
-            band.lifts.Add(lift);
         }
 
         void ShowProps(TravelDemoChart chart, float distance, Color day)
@@ -447,15 +553,23 @@ namespace Caravans.Play
             }
         }
 
-        void ClearBands()
+        void ClearStreams()
         {
-            for (int i = 0; i < bands.Count; i++)
+            for (int i = 0; i < streams.Count; i++)
+                ClearPieces(streams[i]);
+            streams.Clear();
+        }
+
+        void ClearPieces(LayerStream stream)
+        {
+            for (int i = 0; i < stream.pieces.Count; i++)
             {
-                if (bands[i].root != null)
-                    Destroy(bands[i].root.gameObject);
+                Piece piece = stream.pieces[i];
+                if (piece.root != null)
+                    Destroy(piece.root.gameObject);
             }
 
-            bands.Clear();
+            stream.pieces.Clear();
         }
 
         void ClearProps()
