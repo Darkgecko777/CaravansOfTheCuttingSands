@@ -134,6 +134,65 @@ namespace Caravans.Play
             });
         }
 
+        // Feathered ellipse. The body stays opaque and the top fades, so a sunk base disappears under it.
+        // White, so a renderer tint colours it.
+        public static Sprite SandLip()
+        {
+            return Cached("sand-lip", delegate
+            {
+                var sheet = new Sheet(96, 48);
+                float cx = 47.5f;
+                float cy = 23.5f;
+                float rx = 44f;
+                float ry = 20f;
+                for (int y = 0; y < sheet.Height; y++)
+                {
+                    for (int x = 0; x < sheet.Width; x++)
+                    {
+                        float nx = (x - cx) / rx;
+                        float ny = (y - cy) / ry;
+                        float r = Mathf.Sqrt(nx * nx + ny * ny);
+                        if (r >= 1f)
+                            continue;
+                        float rim = Mathf.Clamp01((1f - r) / 0.22f);
+                        rim = rim * rim * (3f - 2f * rim);
+                        // ny is -1 at the bottom of the sprite and +1 at the top. The body stays solid; only the top feathers.
+                        float topFade = Mathf.Clamp01((0.95f - ny) / 0.85f);
+                        topFade = topFade * topFade * (3f - 2f * topFade);
+                        sheet.Set(x, y, new Color(1f, 1f, 1f, rim * topFade));
+                    }
+                }
+
+                return sheet.ToSprite(new Vector2(0.5f, 0.5f), 48f, false);
+            });
+        }
+
+        // Soft white ellipse. The renderer supplies the warm brown.
+        public static Sprite ContactShadow()
+        {
+            return Cached("contact-shadow", delegate
+            {
+                var sheet = new Sheet(64, 32);
+                float cx = 31.5f;
+                float cy = 15.5f;
+                for (int y = 0; y < sheet.Height; y++)
+                {
+                    for (int x = 0; x < sheet.Width; x++)
+                    {
+                        float nx = (x - cx) / 30f;
+                        float ny = (y - cy) / 12f;
+                        float r = Mathf.Sqrt(nx * nx + ny * ny);
+                        if (r >= 1f)
+                            continue;
+                        float rim = Mathf.Clamp01((1f - r) / 0.45f);
+                        sheet.Set(x, y, new Color(1f, 1f, 1f, rim * rim));
+                    }
+                }
+
+                return sheet.ToSprite(new Vector2(0.5f, 0.5f), 32f, false);
+            });
+        }
+
         public static Sprite Haze()
         {
             return Cached("haze", delegate
