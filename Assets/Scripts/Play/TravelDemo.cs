@@ -91,7 +91,7 @@ namespace Caravans.Play
                 return;
             float delta = Time.deltaTime;
             hour = Mathf.Repeat(hour + clockSpeed * delta, 24f);
-            distance += ScrollSpeed() * delta;
+            distance += ScrollSpeed() * Time.smoothDeltaTime;
             if (distance < 0f)
                 distance = 0f;
             food = Mathf.Max(0f, food - FoodRate() * delta);
@@ -274,7 +274,7 @@ namespace Caravans.Play
         {
             if (supply == null || cam == null || canvas == null)
                 return;
-            Vector3 screen = cam.WorldToScreenPoint(new Vector3(TravelDemoView.CaravanX, TravelDemoView.WalkLane, 0f));
+            Vector3 screen = cam.WorldToScreenPoint(new Vector3(TravelDemoView.CaravanX, TravelDemoView.SandTop, 0f));
             Vector2 local;
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas, screen, null, out local))
                 return;

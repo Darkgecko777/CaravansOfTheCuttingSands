@@ -7,10 +7,12 @@ namespace Caravans.Play
     public sealed class TravelDemoView : MonoBehaviour
     {
         public const float Horizon = -1.35f;
-        // Solid sand under the near crest. The walk lane sits just above it.
+        // Anchor for the near strips. Their texture top sits above the opaque sand.
         public const float GroundLine = -1.55f;
-        // About ten screen pixels under the crest peaks, so peaks cover the toes and troughs show them.
-        public const float WalkLane = GroundLine + 0.60f;
+        // Inked crest of the near sand. The strip's first opaque pixels are higher; this is the line the feet and the props sit under.
+        public const float SandTop = GroundLine + 0.20f;
+        // Feet sit 12% of the mount height under that crest. PlantCaravan sets this from the sprite.
+        public static float WalkLane = SandTop - 0.31f;
         public const float CaravanX = -3.55f;
 
         const float FarParallax = 0.24f;
@@ -22,8 +24,10 @@ namespace Caravans.Play
         const float NearOverlapPx = 1f;
         // Painted crest above the solid sand, in sprite units before the near scale.
         const float NearCrest = 0.19f;
-        // Mid-lane feet sit just under that crest top, on the far side of the near strip.
-        const float MidFeet = GroundLine + 0.66f;
+        // Prop bases sit in the near sand, under the crest, with a small seeded jitter.
+        const float PropBandTop = 0.1f;
+        const float PropBandBottom = 1.6f;
+        const float PropBandJitter = 0.06f;
         // Clear padding plus the bottom fade, in sprite units at scale 1.
         const float FeatureFade = 0.36f;
         const float FarContact = -0.90f;
@@ -45,8 +49,6 @@ namespace Caravans.Play
         const int MidOrder = 10;
         const int PlainOrder = 12;
         const int PropOrder = 16;
-        const int MidPropOrder = 22;
-        const int ShadowOrder = 30;
         const int CaravanOrder = 40;
         const int GroundOrder = 50;
         const int NearOrder = 56;
@@ -59,7 +61,7 @@ namespace Caravans.Play
         Texture2D skyTexture;
         Sprite proceduralSky;
         Transform caravan;
-        Transform shadow;
+        float mountY;
         Transform hazeRoot;
         SpriteRenderer hazeRenderer;
         Transform sandRoot;
@@ -75,8 +77,10 @@ namespace Caravans.Play
         readonly List<float> propRouteX = new List<float>();
         int layoutKey = int.MinValue;
         int propKey = int.MinValue;
+        float anchoredDistance = float.NaN;
         bool opened;
         bool fillWindow;
+        bool refill;
 
         class GroundStrip
         {
@@ -143,7 +147,6 @@ namespace Caravans.Play
             public string terrain;
             public string[] paths;
             public float speed;
-            public float feet;
             public float scaleMin;
             public float scaleMax;
             public float depth;
@@ -200,17 +203,6 @@ namespace Caravans.Play
             UseSprite(caravanRenderer);
             PlantCaravan();
 
-            var shadowObject = new GameObject("ContactShadow");
-            shadowObject.transform.SetParent(transform, false);
-            shadow = shadowObject.transform;
-            var shadowRenderer = shadowObject.AddComponent<SpriteRenderer>();
-            shadowRenderer.sprite = TravelDemoSprites.Shadow();
-            shadowRenderer.sortingOrder = ShadowOrder;
-            UseSprite(shadowRenderer);
-            Vector2 shadowSize = shadowRenderer.sprite != null ? shadowRenderer.sprite.bounds.size : new Vector2(2f, 1f);
-            shadow.localScale = new Vector3(1.5f / Mathf.Max(0.01f, shadowSize.x), 0.25f / Mathf.Max(0.01f, shadowSize.y), 1f);
-            shadow.position = new Vector3(CaravanX, WalkLane, 0f);
-
             var hazeObject = new GameObject("Haze");
             hazeObject.transform.SetParent(transform, false);
             hazeRoot = hazeObject.transform;
@@ -235,6 +227,9 @@ namespace Caravans.Play
         {
             if (chart == null)
                 return;
+            // A discontinuous move, such as the still, fills again. Scroll gaps do not.
+            refill = !float.IsNaN(anchoredDistance) && Mathf.Abs(distance - anchoredDistance) > ViewWidth();
+            anchoredDistance = distance;
             float length = chart.WorldLength;
             float progress = length <= 0f ? 0f : Mathf.Repeat(distance / length, 1f);
             TravelDemoChart.Mix mix = chart.MixAt(progress);
@@ -529,7 +524,13 @@ namespace Caravans.Play
         void ShowBands(TravelDemoChart chart, TravelDemoChart.Mix mix, float distance, Color day)
         {
             int key = LayoutKey(chart);
-            fillWindow = !opened;
+            fillWindow = !opened || refill;
+            if (refill)
+            {
+                for (int i = 0; i < streams.Count; i++)
+                    streams[i].started = false;
+            }
+
             if (layoutKey != key)
             {
                 ClearStreams();
@@ -754,7 +755,8 @@ namespace Caravans.Play
 
         void FillFeatures(LayerStream stream, float travel, float half, bool placeOnScreen)
         {
-            bool cover = placeOnScreen || stream.cursor - travel < -half;
+            // On-screen backfill only on the first fill. A lagging cursor jumps past the right edge.
+            bool cover = placeOnScreen;
             int skipGuard = 0;
             int spawnGuard = 0;
             while (spawnGuard < 64)
@@ -991,6 +993,8 @@ namespace Caravans.Play
             for (int i = 0; i < propLanes.Count; i++)
             {
                 PropLane lane = propLanes[i];
+                if (refill)
+                    lane.started = false;
                 FillLane(lane, distance, half, fillWindow);
                 PlaceProps(lane, distance, half, day, sky, Weight(mix, lane.terrain));
             }
@@ -1007,22 +1011,19 @@ namespace Caravans.Play
             TravelKitsFile.Terrain kit = chart.Kits != null ? chart.Kits.Find(terrain) : null;
             if (kit == null || kit.props == null || kit.props.Length == 0)
                 return;
-            float mid = kit.midSpeed > 0.001f ? kit.midSpeed : MidParallax;
             float near = kit.nearSpeed > 0.001f ? kit.nearSpeed : NearParallax;
             float widest = NativeWidth(kit.props);
             if (widest < 0.5f)
                 widest = 1.5f;
-            AddLane(terrain, kit.props, mid, MidFeet, 0.6f, 0.8f, 0f, MidPropOrder, widest * 0.8f, MixSeed(chart.Seed, terrain, 9));
-            AddLane(terrain, kit.props, near, WalkLane, 0.95f, 1.2f, 1f, NearPropOrder, widest * 1.2f, MixSeed(chart.Seed, terrain, 11));
+            AddLane(terrain, kit.props, near, 0.95f, 1.2f, 1f, NearPropOrder, widest * 1.2f, MixSeed(chart.Seed, terrain, 11));
         }
 
-        void AddLane(string terrain, string[] paths, float speed, float feet, float scaleMin, float scaleMax, float depth, int order, float widest, int seed)
+        void AddLane(string terrain, string[] paths, float speed, float scaleMin, float scaleMax, float depth, int order, float widest, int seed)
         {
             var lane = new PropLane();
             lane.terrain = terrain;
             lane.paths = paths;
             lane.speed = speed;
-            lane.feet = feet;
             lane.scaleMin = scaleMin;
             lane.scaleMax = scaleMax;
             lane.depth = depth;
@@ -1055,7 +1056,8 @@ namespace Caravans.Play
                 skip++;
             }
 
-            bool cover = placeOnScreen || lane.cursor - travel < -half;
+            // On-screen backfill only on the first fill. A lagging cursor jumps past the right edge.
+            bool cover = placeOnScreen;
             int spawn = 0;
             while (spawn < 96)
             {
@@ -1067,7 +1069,7 @@ namespace Caravans.Play
                     left = minLeft;
                 if (left - travel > half + SpawnMargin)
                     break;
-                SpawnProp(lane, lane.nextIndex, left, width);
+                SpawnProp(lane, lane.nextIndex, left, width, travel);
                 lane.cursor = left + width;
                 lane.nextIndex++;
                 spawn++;
@@ -1103,16 +1105,25 @@ namespace Caravans.Play
             return Mathf.Max(0.2f, spriteWidth * scale);
         }
 
+        static float PropDrop(PropLane lane, int index)
+        {
+            float along = Hash01(lane.seed, index * 5 + 1);
+            float jitter = (Hash01(lane.seed, index * 5 + 4) * 2f - 1f) * PropBandJitter;
+            float drop = Mathf.Lerp(PropBandTop, PropBandBottom, along) + jitter;
+            return Mathf.Clamp(drop, PropBandTop, PropBandBottom + PropBandJitter);
+        }
+
         static void PickProp(PropLane lane, int index, out float scale, out int variant, out bool flip)
         {
-            scale = Mathf.Lerp(lane.scaleMin, lane.scaleMax, Hash01(lane.seed, index * 5 + 1));
+            float depth = Mathf.InverseLerp(PropBandTop, PropBandBottom, PropDrop(lane, index));
+            scale = Mathf.Lerp(lane.scaleMin, lane.scaleMax, depth);
             flip = Hash01(lane.seed, index * 5 + 3) > 0.5f;
             variant = 0;
             if (lane.paths != null && lane.paths.Length > 0)
                 variant = Mathf.FloorToInt(Hash01(lane.seed, index * 5 + 2) * lane.paths.Length) % lane.paths.Length;
         }
 
-        void SpawnProp(PropLane lane, int index, float left, float width)
+        void SpawnProp(PropLane lane, int index, float left, float width, float travel)
         {
             float scale;
             int variant;
@@ -1127,9 +1138,28 @@ namespace Caravans.Play
             piece.halfWidth = width * 0.5f;
             piece.depth = lane.depth;
             float sink = sprite != null ? sprite.bounds.min.y : 0f;
-            piece.y = lane.feet - sink * scale;
-            piece.order = lane.order;
+            float feet = SandTop - PropDrop(lane, index);
+            piece.y = feet - sink * scale;
+            // A ledge in front of the mount reads as the ground it stands on. Draw that piece behind the mount. The near sand stays in front and still hides the feet.
+            float spriteHeight = sprite != null ? sprite.bounds.size.y * scale : 0f;
+            bool shelvesMount = feet + spriteHeight > SandTop && CoversMount(left, width, travel);
+            piece.order = shelvesMount ? CaravanOrder - 2 : lane.order;
             piece.renderer.sortingOrder = piece.order;
+        }
+
+        bool CoversMount(float left, float width, float travel)
+        {
+            float propLeft = left - travel;
+            float propRight = propLeft + width;
+            float mountHalf = 1.2f;
+            if (caravan != null)
+            {
+                var renderer = caravan.GetComponent<SpriteRenderer>();
+                if (renderer != null && renderer.sprite != null)
+                    mountHalf = renderer.sprite.bounds.extents.x;
+            }
+
+            return propRight > CaravanX - mountHalf && propLeft < CaravanX + mountHalf;
         }
 
         PropPiece TakeProp(PropLane lane)
@@ -1231,7 +1261,12 @@ namespace Caravans.Play
         {
             if (caravan == null)
                 return;
-            caravan.position = new Vector3(CaravanX, WalkLane, 0f);
+            var renderer = caravan.GetComponent<SpriteRenderer>();
+            Sprite sprite = renderer != null ? renderer.sprite : null;
+            float height = sprite != null ? sprite.bounds.size.y : 2.58f;
+            WalkLane = SandTop - 0.12f * height;
+            mountY = WalkLane;
+            caravan.position = new Vector3(CaravanX, mountY, 0f);
         }
 
         void TintCaravan(Color day, float distance, float scroll)
@@ -1239,9 +1274,7 @@ namespace Caravans.Play
             if (caravan == null)
                 return;
             float bob = scroll > 0.01f ? Mathf.Sin(distance * BobRate) * BobHeight : 0f;
-            caravan.position = new Vector3(CaravanX, WalkLane + bob, 0f);
-            if (shadow != null)
-                shadow.position = new Vector3(CaravanX, WalkLane, 0f);
+            caravan.position = new Vector3(CaravanX, mountY + bob, 0f);
             var renderer = caravan.GetComponent<SpriteRenderer>();
             if (renderer != null)
                 renderer.color = day;
