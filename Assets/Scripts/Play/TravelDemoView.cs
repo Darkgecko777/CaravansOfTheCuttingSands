@@ -7,8 +7,10 @@ namespace Caravans.Play
     public sealed class TravelDemoView : MonoBehaviour
     {
         public const float Horizon = -1.35f;
-        // Top of the near sand. Near strips, the placeholder, and props share this line.
+        // Solid sand under the near crest. The walk lane sits just above it.
         public const float GroundLine = -1.55f;
+        // About ten screen pixels under the crest peaks, so peaks cover the toes and troughs show them.
+        public const float WalkLane = GroundLine + 0.60f;
         public const float CaravanX = -3.55f;
 
         const float FarParallax = 0.24f;
@@ -16,36 +18,40 @@ namespace Caravans.Play
         const float NearParallax = 1.18f;
         // Same scale on both axes. The old pair stretched the strips and left a hard seam.
         const float NearScale = 4.65f;
-        // Source pixels of overlap. The right-hand tile fades across this strip.
-        const float NearOverlapPx = 56f;
+        // Source pixels of overlap on a butt join. The strips already loop.
+        const float NearOverlapPx = 1f;
         // Painted crest above the solid sand, in sprite units before the near scale.
         const float NearCrest = 0.19f;
+        // Mid-lane feet sit just under that crest top, on the far side of the near strip.
+        const float MidFeet = GroundLine + 0.66f;
         // Clear padding plus the bottom fade, in sprite units at scale 1.
         const float FeatureFade = 0.36f;
         const float FarContact = -0.90f;
         const float FillTop = 0.35f;
         const float FillBottom = -6.15f;
-        const float PropPad = 0.12f;
-        const float CaravanFoot = 0.08f;
         // Distant land sits near 40% down a 5.4 view when the camera rests here.
         const float CameraY = -0.48f;
         const float SpawnMargin = 0.8f;
-        const float PropMinGap = 7f;
-        const float PropGapExtra = 9f;
-        const float PropClusterGap = 3.4f;
-        const float PropClusterExtra = 1.7f;
-        const float DepthApart = 0.30f;
+        const float PropMinGap = 0.6f;
+        const float PropGapExtra = 1.9f;
+        const float PropClusterGap = 0.15f;
+        const float PropClusterExtra = 0.2f;
         // A couple of pixels at 100 px per world unit, one bob cycle about twice a second at Steady.
         const float BobHeight = 0.025f;
         const float BobRate = 4.5f;
+        // sky is -100 and the back plain is -30, both below these.
+        const int FillOrder = -20;
         const int FarOrder = 0;
         const int MidOrder = 10;
-        const int FillOrder = -15;
-        const int GroundOrder = 20;
-        const int PropOrder = 30;
+        const int PlainOrder = 12;
+        const int PropOrder = 16;
+        const int MidPropOrder = 22;
+        const int ShadowOrder = 30;
         const int CaravanOrder = 40;
-        const int NearOrder = 50;
-        const int HazeOrder = 70;
+        const int GroundOrder = 50;
+        const int NearOrder = 56;
+        const int NearPropOrder = 64;
+        const int HazeOrder = 80;
 
         Camera cam;
         Transform sky;
@@ -64,11 +70,13 @@ namespace Caravans.Play
         readonly List<GroundStrip> grounds = new List<GroundStrip>();
         readonly List<GroundStrip> backs = new List<GroundStrip>();
         readonly List<LayerStream> streams = new List<LayerStream>();
-        readonly List<PropLayer> propLayers = new List<PropLayer>();
+        readonly List<PropLane> propLanes = new List<PropLane>();
         readonly List<SpriteRenderer> props = new List<SpriteRenderer>();
         readonly List<float> propRouteX = new List<float>();
         int layoutKey = int.MinValue;
         int propKey = int.MinValue;
+        bool opened;
+        bool fillWindow;
 
         class GroundStrip
         {
@@ -112,38 +120,38 @@ namespace Caravans.Play
             public float scaleY;
             public bool tiles;
             public bool planted;
-            public int tileSerial;
-            public int lastTile = -1;
-            public bool primed;
+            public int tileVariant;
+            public float tileWidth;
+            public float tileStep;
             public readonly List<Piece> pieces = new List<Piece>();
             public readonly List<Piece> pool = new List<Piece>();
         }
 
         class PropPiece
         {
-            public int index;
             public Transform root;
             public SpriteRenderer renderer;
-            public float routeX;
+            public float stripX;
             public float halfWidth;
             public float depth;
-            public float speed;
             public float y;
             public int order;
         }
 
-        class PropLayer
+        class PropLane
         {
             public string terrain;
             public string[] paths;
-            public float speedMin;
-            public float speedMax;
+            public float speed;
+            public float feet;
+            public float scaleMin;
+            public float scaleMax;
+            public float depth;
+            public int order;
             public float widest;
             public int seed;
             public int nextIndex;
-            public float nextEntry;
-            public int depthIndex = -1;
-            public float lastDepth = -1f;
+            public float cursor;
             public bool started;
             public readonly List<PropPiece> pieces = new List<PropPiece>();
             public readonly List<PropPiece> pool = new List<PropPiece>();
@@ -183,7 +191,9 @@ namespace Caravans.Play
             caravanObject.transform.SetParent(transform, false);
             caravan = caravanObject.transform;
             var caravanRenderer = caravanObject.AddComponent<SpriteRenderer>();
-            caravanRenderer.sprite = TravelDemoSprites.LoadOrNull("Travel/caravan");
+            caravanRenderer.sprite = TravelDemoSprites.LoadOrNull("Art/Travel/Avatar/avatar_t1_bird_01");
+            if (caravanRenderer.sprite == null)
+                caravanRenderer.sprite = TravelDemoSprites.LoadOrNull("Travel/caravan");
             if (caravanRenderer.sprite == null)
                 caravanRenderer.sprite = TravelDemoSprites.Caravan();
             caravanRenderer.sortingOrder = CaravanOrder;
@@ -195,10 +205,11 @@ namespace Caravans.Play
             shadow = shadowObject.transform;
             var shadowRenderer = shadowObject.AddComponent<SpriteRenderer>();
             shadowRenderer.sprite = TravelDemoSprites.Shadow();
-            shadowRenderer.sortingOrder = CaravanOrder - 1;
+            shadowRenderer.sortingOrder = ShadowOrder;
             UseSprite(shadowRenderer);
-            shadow.localScale = new Vector3(0.85f, 0.22f, 1f);
-            shadow.position = new Vector3(CaravanX, GroundLine, 0f);
+            Vector2 shadowSize = shadowRenderer.sprite != null ? shadowRenderer.sprite.bounds.size : new Vector2(2f, 1f);
+            shadow.localScale = new Vector3(1.5f / Mathf.Max(0.01f, shadowSize.x), 0.25f / Mathf.Max(0.01f, shadowSize.y), 1f);
+            shadow.position = new Vector3(CaravanX, WalkLane, 0f);
 
             var hazeObject = new GameObject("Haze");
             hazeObject.transform.SetParent(transform, false);
@@ -241,6 +252,7 @@ namespace Caravans.Play
             ShowHaze(distance, day);
             TintCaravan(day, distance, scroll);
             FitSky();
+            opened = true;
         }
 
         Material SpriteMaterial()
@@ -504,7 +516,7 @@ namespace Caravans.Play
                 sprite = TravelDemoSprites.Ground(terrain);
             renderer.sprite = sprite;
             renderer.drawMode = SpriteDrawMode.Tiled;
-            renderer.sortingOrder = GroundOrder;
+            renderer.sortingOrder = PlainOrder;
             UseSprite(renderer);
             var strip = new GroundStrip();
             strip.terrain = terrain;
@@ -517,10 +529,12 @@ namespace Caravans.Play
         void ShowBands(TravelDemoChart chart, TravelDemoChart.Mix mix, float distance, Color day)
         {
             int key = LayoutKey(chart);
+            fillWindow = !opened;
             if (layoutKey != key)
             {
                 ClearStreams();
                 layoutKey = key;
+                fillWindow = true;
             }
 
             EnsureTrio(chart, mix.a);
@@ -532,7 +546,7 @@ namespace Caravans.Play
             for (int i = 0; i < streams.Count; i++)
             {
                 LayerStream stream = streams[i];
-                FillStream(stream, distance, half);
+                FillStream(stream, distance, half, fillWindow);
                 PlaceStream(stream, distance, half, day, Weight(mix, stream.terrain));
             }
         }
@@ -599,8 +613,7 @@ namespace Caravans.Play
                 stream.maxGap = stream.minGap;
                 stream.y = GroundLine;
                 stream.lift = Color.white;
-                stream.tileSerial = stream.rng.Next(0, Mathf.Max(1, stream.paths.Length));
-                stream.widest = native * stream.minScale;
+                CacheTile(stream);
             }
             else if (painted && layer == 0)
             {
@@ -672,70 +685,130 @@ namespace Caravans.Play
             return width * stream.maxScale;
         }
 
-        void FillStream(LayerStream stream, float distance, float half)
+        void CacheTile(LayerStream stream)
+        {
+            int count = stream.paths != null && stream.paths.Length > 0 ? stream.paths.Length : 1;
+            stream.tileVariant = stream.rng.Next(0, count);
+            Sprite sprite = SpriteAt(stream.paths, stream.tileVariant, stream.terrain, stream.layer);
+            float scale = stream.minScale;
+            float spriteWidth = sprite != null ? sprite.bounds.size.x : 4f;
+            float ppu = sprite != null && sprite.pixelsPerUnit > 0.01f ? sprite.pixelsPerUnit : 100f;
+            float overlap = NearOverlapPx / ppu * scale;
+            float width = Mathf.Max(0.5f, spriteWidth * scale);
+            if (overlap > width * 0.25f)
+                overlap = width * 0.25f;
+            stream.tileWidth = width;
+            stream.tileStep = Mathf.Max(0.25f, width - overlap);
+            stream.widest = width;
+        }
+
+        static float TileStart(LayerStream stream, float travel, float half, bool placeOnScreen)
+        {
+            float step = Mathf.Max(0.25f, stream.tileStep);
+            float lead = placeOnScreen ? -half - step : half + SpawnMargin;
+            float minLeft = travel + lead;
+            int n = placeOnScreen
+                ? Mathf.FloorToInt(minLeft / step)
+                : Mathf.CeilToInt(minLeft / step - 0.0001f);
+            return n * step;
+        }
+
+        void FillStream(LayerStream stream, float distance, float half, bool placeOnScreen)
         {
             float travel = distance * stream.parallax;
-            bool backfill = !stream.primed;
             if (!stream.started)
             {
-                stream.cursor = -half + travel - stream.maxGap - stream.widest;
                 stream.started = true;
+                if (stream.tiles)
+                    stream.cursor = TileStart(stream, travel, half, placeOnScreen);
+                else if (placeOnScreen)
+                    stream.cursor = travel - half - stream.widest;
+                else
+                    stream.cursor = travel + half + SpawnMargin;
             }
 
-            int guard = 0;
-            while (guard < 64)
+            if (stream.tiles)
+                FillTiles(stream, travel, half);
+            else
+                FillFeatures(stream, travel, half, placeOnScreen);
+        }
+
+        void FillTiles(LayerStream stream, float travel, float half)
+        {
+            float step = Mathf.Max(0.25f, stream.tileStep);
+            float width = stream.tileWidth > 0.01f ? stream.tileWidth : step;
+            int skip = 0;
+            while (skip < 64 && stream.cursor + width - travel < -half)
             {
-                guard++;
+                stream.cursor += step;
+                skip++;
+            }
+
+            int spawn = 0;
+            while (spawn < 64 && stream.cursor - travel <= half + SpawnMargin)
+            {
+                SpawnTile(stream);
+                spawn++;
+            }
+        }
+
+        void FillFeatures(LayerStream stream, float travel, float half, bool placeOnScreen)
+        {
+            bool cover = placeOnScreen || stream.cursor - travel < -half;
+            int skipGuard = 0;
+            int spawnGuard = 0;
+            while (spawnGuard < 64)
+            {
                 if (stream.cursor - travel > half + SpawnMargin + stream.widest)
                     break;
-                if (stream.tiles)
+                float gap = Mathf.Lerp(stream.minGap, stream.maxGap, (float)stream.rng.NextDouble());
+                stream.cursor += gap;
+                Spawn(stream, travel, half, cover);
+                int last = stream.pieces.Count - 1;
+                if (last < 0)
+                    break;
+                Piece piece = stream.pieces[last];
+                if (piece.stripX + piece.halfWidth - travel < -half)
                 {
-                    SpawnTile(stream);
+                    ReleasePiece(stream, last);
+                    skipGuard++;
+                    if (skipGuard >= 64)
+                        break;
                     continue;
                 }
 
-                float gap = Mathf.Lerp(stream.minGap, stream.maxGap, (float)stream.rng.NextDouble());
-                stream.cursor += gap;
-                Spawn(stream, travel, half, backfill);
+                spawnGuard++;
+                if (!cover && piece.stripX - piece.halfWidth - travel >= half + SpawnMargin - 0.02f)
+                    break;
             }
-
-            stream.primed = true;
         }
 
         void SpawnTile(LayerStream stream)
         {
-            int count = stream.paths != null && stream.paths.Length > 0 ? stream.paths.Length : 1;
-            int variant = stream.rng.Next(0, count);
-            if (count > 1 && variant == stream.lastTile)
-                variant = (variant + 1 + stream.rng.Next(0, count - 1)) % count;
-            stream.lastTile = variant;
-            stream.tileSerial++;
-            Sprite sprite = SpriteAt(stream.paths, variant, stream.terrain, stream.layer);
+            Sprite sprite = SpriteAt(stream.paths, stream.tileVariant, stream.terrain, stream.layer);
             float scale = stream.minScale;
             float scaleY = stream.scaleY > 0.01f ? stream.scaleY : scale;
-            float spriteWidth = sprite != null ? sprite.bounds.size.x : 4f;
             float spriteHeight = sprite != null ? sprite.bounds.size.y : 1.15f;
-            float width = Mathf.Max(0.5f, spriteWidth * scale);
-            float ppu = sprite != null && sprite.pixelsPerUnit > 0.01f ? sprite.pixelsPerUnit : 100f;
-            float overlap = NearOverlapPx / ppu * scale;
-            if (overlap > width * 0.45f)
-                overlap = width * 0.45f;
-            float edgeUv = sprite != null ? NearOverlapPx / Mathf.Max(1f, sprite.rect.width) : 0.05f;
+            float width = stream.tileWidth > 0.01f ? stream.tileWidth : Mathf.Max(0.5f, (sprite != null ? sprite.bounds.size.x : 4f) * scale);
+            float step = stream.tileStep > 0.01f ? stream.tileStep : width;
             Piece piece = TakePiece(stream, "GroundStrip");
             piece.root.localScale = new Vector3(scale, scaleY, 1f);
             piece.renderer.sprite = sprite;
-            piece.renderer.sharedMaterial = EdgeMaterial();
-            ApplyEdge(piece.renderer, edgeUv);
+            // The strip's two ends do not match. A mirrored copy meets each end with itself.
+            int tileIndex = Mathf.FloorToInt(stream.cursor / Mathf.Max(0.25f, step));
+            piece.renderer.flipX = (tileIndex & 1) != 0;
+            piece.renderer.sharedMaterial = SpriteMaterial();
+            piece.renderer.SetPropertyBlock(null);
             piece.renderer.sortingOrder = stream.order;
             piece.halfWidth = width * 0.5f;
             piece.stripX = stream.cursor + piece.halfWidth;
             // Centre pivot. The crest line, not the texture top, is the ground.
             float top = GroundLine + NearCrest * scaleY;
             piece.y = top - spriteHeight * scaleY * 0.5f;
-            stream.cursor += width - overlap;
+            stream.cursor += step;
         }
 
-        void Spawn(LayerStream stream, float travel, float half, bool backfill)
+        void Spawn(LayerStream stream, float travel, float half, bool cover)
         {
             int variant = stream.rng.Next(0, 6);
             float scale = Mathf.Lerp(stream.minScale, stream.maxScale, (float)stream.rng.NextDouble());
@@ -745,7 +818,7 @@ namespace Caravans.Play
             float spriteWidth = sprite != null ? sprite.bounds.size.x : 3f;
             float halfWidth = spriteWidth * scale * 0.5f;
             // Later spawns stay fully past the right edge. Travel already includes this layer's speed.
-            if (!backfill)
+            if (!cover)
             {
                 float minCenter = travel + half + SpawnMargin + halfWidth;
                 if (stream.cursor < minCenter)
@@ -859,7 +932,8 @@ namespace Caravans.Play
             if (propKey != key)
             {
                 ClearProps();
-                ClearPropLayers();
+                ClearPropLanes();
+                fillWindow = true;
                 string folder = chart.Kits != null ? chart.Kits.propFolder : null;
                 IReadOnlyList<TravelDemoChart.PlacedProp> marks = chart.Props;
                 for (int i = 0; i < marks.Count; i++)
@@ -909,153 +983,163 @@ namespace Caravans.Play
 
         void ShowArtProps(TravelDemoChart chart, TravelDemoChart.Mix mix, float distance, Color day, Color sky)
         {
-            EnsurePropLayer(chart, mix.a);
+            EnsurePropLanes(chart, mix.a);
             if (mix.b != mix.a)
-                EnsurePropLayer(chart, mix.b);
-            DropPropLayers(mix);
+                EnsurePropLanes(chart, mix.b);
+            DropPropLanes(mix);
             float half = ViewWidth() * 0.5f;
-            for (int i = 0; i < propLayers.Count; i++)
+            for (int i = 0; i < propLanes.Count; i++)
             {
-                PropLayer layer = propLayers[i];
-                FillProps(layer, distance, half);
-                PlaceProps(layer, distance, half, day, sky, Weight(mix, layer.terrain));
+                PropLane lane = propLanes[i];
+                FillLane(lane, distance, half, fillWindow);
+                PlaceProps(lane, distance, half, day, sky, Weight(mix, lane.terrain));
             }
         }
 
-        void EnsurePropLayer(TravelDemoChart chart, string terrain)
+        void EnsurePropLanes(TravelDemoChart chart, string terrain)
         {
-            for (int i = 0; i < propLayers.Count; i++)
+            for (int i = 0; i < propLanes.Count; i++)
             {
-                if (propLayers[i].terrain == terrain)
+                if (propLanes[i].terrain == terrain)
                     return;
             }
 
             TravelKitsFile.Terrain kit = chart.Kits != null ? chart.Kits.Find(terrain) : null;
             if (kit == null || kit.props == null || kit.props.Length == 0)
                 return;
-            var layer = new PropLayer();
-            layer.terrain = terrain;
-            layer.paths = kit.props;
-            // Far props keep mid-dune pace. Near props run slightly ahead of the ground.
+            float mid = kit.midSpeed > 0.001f ? kit.midSpeed : MidParallax;
             float near = kit.nearSpeed > 0.001f ? kit.nearSpeed : NearParallax;
-            layer.speedMin = near * 0.50f;
-            layer.speedMax = near * 1.05f;
-            layer.seed = MixSeed(chart.Seed, terrain, 9);
-            layer.widest = NativeWidth(layer.paths) * 1.2f;
-            if (layer.widest < 1f)
-                layer.widest = 2f;
-            propLayers.Add(layer);
+            float widest = NativeWidth(kit.props);
+            if (widest < 0.5f)
+                widest = 1.5f;
+            AddLane(terrain, kit.props, mid, MidFeet, 0.6f, 0.8f, 0f, MidPropOrder, widest * 0.8f, MixSeed(chart.Seed, terrain, 9));
+            AddLane(terrain, kit.props, near, WalkLane, 0.95f, 1.2f, 1f, NearPropOrder, widest * 1.2f, MixSeed(chart.Seed, terrain, 11));
         }
 
-        void FillProps(PropLayer layer, float distance, float half)
+        void AddLane(string terrain, string[] paths, float speed, float feet, float scaleMin, float scaleMax, float depth, int order, float widest, int seed)
         {
-            float slow = Mathf.Max(0.25f, layer.speedMin);
-            float reach = (half * 2f + SpawnMargin + layer.widest) / slow;
-            float lead = (half + SpawnMargin + layer.widest) / slow;
-            if (!layer.started)
+            var lane = new PropLane();
+            lane.terrain = terrain;
+            lane.paths = paths;
+            lane.speed = speed;
+            lane.feet = feet;
+            lane.scaleMin = scaleMin;
+            lane.scaleMax = scaleMax;
+            lane.depth = depth;
+            lane.order = order;
+            lane.widest = Mathf.Max(1f, widest);
+            lane.seed = seed;
+            propLanes.Add(lane);
+        }
+
+        void FillLane(PropLane lane, float distance, float half, bool placeOnScreen)
+        {
+            float travel = distance * lane.speed;
+            if (!lane.started)
             {
-                layer.nextIndex = 0;
-                layer.nextEntry = 0f;
-                layer.started = true;
+                lane.started = true;
+                lane.nextIndex = 0;
+                lane.cursor = placeOnScreen ? travel - half - lane.widest : travel + half + SpawnMargin;
             }
 
-            int guard = 0;
-            float window = distance - reach;
-            while (layer.nextEntry < window && guard < 96)
+            int skip = 0;
+            while (skip < 96)
             {
-                guard++;
-                layer.nextIndex++;
-                layer.nextEntry += GapBefore(layer, layer.nextIndex);
+                float gap = GapAt(lane, lane.nextIndex);
+                float width = WidthAt(lane, lane.nextIndex);
+                float right = lane.cursor + gap + width;
+                if (right - travel >= -half)
+                    break;
+                lane.cursor = right;
+                lane.nextIndex++;
+                skip++;
             }
 
-            while (layer.nextEntry < distance + lead && guard < 96)
+            bool cover = placeOnScreen || lane.cursor - travel < -half;
+            int spawn = 0;
+            while (spawn < 96)
             {
-                guard++;
-                SpawnProp(layer, layer.nextIndex, layer.nextEntry, half);
-                layer.nextIndex++;
-                layer.nextEntry += GapBefore(layer, layer.nextIndex);
+                float gap = GapAt(lane, lane.nextIndex);
+                float width = WidthAt(lane, lane.nextIndex);
+                float left = lane.cursor + gap;
+                float minLeft = travel + half + SpawnMargin;
+                if (!cover && left < minLeft)
+                    left = minLeft;
+                if (left - travel > half + SpawnMargin)
+                    break;
+                SpawnProp(lane, lane.nextIndex, left, width);
+                lane.cursor = left + width;
+                lane.nextIndex++;
+                spawn++;
+                if (!cover)
+                    break;
             }
         }
 
-        static float GapBefore(PropLayer layer, int index)
+        static float GapAt(PropLane lane, int index)
         {
             if (index <= 0)
                 return PropMinGap;
             int group = index / 3;
             int place = index % 3;
-            if (Hash01(layer.seed, group * 13 + 7) < 0.18f)
+            if (Hash01(lane.seed, group * 13 + 7) < 0.18f)
             {
-                int size = Hash01(layer.seed, group * 13 + 8) < 0.5f ? 2 : 3;
+                int size = Hash01(lane.seed, group * 13 + 8) < 0.5f ? 2 : 3;
                 if (place > 0 && place < size)
-                    return PropClusterGap + Hash01(layer.seed, index * 5 + 2) * PropClusterExtra;
+                    return PropClusterGap + Hash01(lane.seed, index * 5 + 6) * PropClusterExtra;
             }
 
-            return PropMinGap + Hash01(layer.seed, index * 5) * PropGapExtra;
+            return PropMinGap + Hash01(lane.seed, index * 5) * PropGapExtra;
         }
 
-        float DepthAt(PropLayer layer, int index)
+        float WidthAt(PropLane lane, int index)
         {
-            if (index == layer.depthIndex)
-                return layer.lastDepth;
-            int from = layer.depthIndex + 1;
-            if (index < layer.depthIndex)
-            {
-                from = 0;
-                layer.lastDepth = -1f;
-            }
-
-            float depth = layer.lastDepth;
-            for (int i = from; i <= index; i++)
-            {
-                float raw = Hash01(layer.seed, i * 5 + 1);
-                if (depth >= 0f && Mathf.Abs(raw - depth) < DepthApart)
-                    raw = Mathf.Repeat(depth + 0.42f + Hash01(layer.seed, i * 5 + 4) * 0.22f, 1f);
-                depth = raw;
-            }
-
-            layer.lastDepth = depth;
-            layer.depthIndex = index;
-            return depth;
-        }
-
-        void SpawnProp(PropLayer layer, int index, float entry, float half)
-        {
-            float depth = DepthAt(layer, index);
-            float speed = Mathf.Lerp(layer.speedMin, layer.speedMax, depth);
-            float scale = Mathf.Lerp(0.6f, 1.2f, depth);
-            bool flip = Hash01(layer.seed, index * 5 + 3) > 0.5f;
-            int variant = 0;
-            if (layer.paths != null && layer.paths.Length > 0)
-                variant = Mathf.FloorToInt(Hash01(layer.seed, index * 5 + 2) * layer.paths.Length) % layer.paths.Length;
-            Sprite sprite = SpriteAt(layer.paths, variant, layer.terrain, 3);
+            float scale;
+            int variant;
+            bool flip;
+            PickProp(lane, index, out scale, out variant, out flip);
+            Sprite sprite = SpriteAt(lane.paths, variant, lane.terrain, 3);
             float spriteWidth = sprite != null ? sprite.bounds.size.x : 1.5f;
-            float halfWidth = spriteWidth * scale * 0.5f;
-            // Born with its left edge past the right of the frame. Its own speed carries it in.
-            float entryX = half + SpawnMargin + halfWidth;
-            PropPiece piece = TakeProp(layer);
+            return Mathf.Max(0.2f, spriteWidth * scale);
+        }
+
+        static void PickProp(PropLane lane, int index, out float scale, out int variant, out bool flip)
+        {
+            scale = Mathf.Lerp(lane.scaleMin, lane.scaleMax, Hash01(lane.seed, index * 5 + 1));
+            flip = Hash01(lane.seed, index * 5 + 3) > 0.5f;
+            variant = 0;
+            if (lane.paths != null && lane.paths.Length > 0)
+                variant = Mathf.FloorToInt(Hash01(lane.seed, index * 5 + 2) * lane.paths.Length) % lane.paths.Length;
+        }
+
+        void SpawnProp(PropLane lane, int index, float left, float width)
+        {
+            float scale;
+            int variant;
+            bool flip;
+            PickProp(lane, index, out scale, out variant, out flip);
+            Sprite sprite = SpriteAt(lane.paths, variant, lane.terrain, 3);
+            PropPiece piece = TakeProp(lane);
             float signed = flip ? -scale : scale;
             piece.root.localScale = new Vector3(signed, scale, 1f);
             piece.renderer.sprite = sprite;
-            piece.index = index;
-            piece.routeX = entryX + entry * speed;
-            piece.halfWidth = halfWidth;
-            piece.depth = depth;
-            piece.speed = speed;
-            // Depth 0 is far: higher, smaller, slower. Feet stay on the near sand.
-            float feet = Mathf.Lerp(GroundLine - 0.06f, GroundLine - 1.45f, depth);
-            piece.y = feet - PropPad * scale;
-            piece.order = 24 + Mathf.RoundToInt(depth * 14f);
+            piece.stripX = left + width * 0.5f;
+            piece.halfWidth = width * 0.5f;
+            piece.depth = lane.depth;
+            float sink = sprite != null ? sprite.bounds.min.y : 0f;
+            piece.y = lane.feet - sink * scale;
+            piece.order = lane.order;
             piece.renderer.sortingOrder = piece.order;
         }
 
-        PropPiece TakeProp(PropLayer layer)
+        PropPiece TakeProp(PropLane lane)
         {
             PropPiece piece;
-            int last = layer.pool.Count - 1;
+            int last = lane.pool.Count - 1;
             if (last >= 0)
             {
-                piece = layer.pool[last];
-                layer.pool.RemoveAt(last);
+                piece = lane.pool[last];
+                lane.pool.RemoveAt(last);
                 piece.root.gameObject.SetActive(true);
             }
             else
@@ -1068,19 +1152,20 @@ namespace Caravans.Play
                 UseSprite(piece.renderer);
             }
 
-            layer.pieces.Add(piece);
+            lane.pieces.Add(piece);
             return piece;
         }
 
-        void PlaceProps(PropLayer layer, float distance, float half, Color day, Color sky, float alpha)
+        void PlaceProps(PropLane lane, float distance, float half, Color day, Color sky, float alpha)
         {
-            for (int i = layer.pieces.Count - 1; i >= 0; i--)
+            float travel = distance * lane.speed;
+            for (int i = lane.pieces.Count - 1; i >= 0; i--)
             {
-                PropPiece piece = layer.pieces[i];
-                float worldX = piece.routeX - distance * piece.speed;
+                PropPiece piece = lane.pieces[i];
+                float worldX = piece.stripX - travel;
                 if (worldX + piece.halfWidth < -half)
                 {
-                    ReleaseProp(layer, i);
+                    ReleaseProp(lane, i);
                     continue;
                 }
 
@@ -1146,7 +1231,7 @@ namespace Caravans.Play
         {
             if (caravan == null)
                 return;
-            caravan.position = new Vector3(CaravanX, GroundLine - CaravanFoot, 0f);
+            caravan.position = new Vector3(CaravanX, WalkLane, 0f);
         }
 
         void TintCaravan(Color day, float distance, float scroll)
@@ -1154,9 +1239,9 @@ namespace Caravans.Play
             if (caravan == null)
                 return;
             float bob = scroll > 0.01f ? Mathf.Sin(distance * BobRate) * BobHeight : 0f;
-            caravan.position = new Vector3(CaravanX, GroundLine - CaravanFoot + bob, 0f);
+            caravan.position = new Vector3(CaravanX, WalkLane + bob, 0f);
             if (shadow != null)
-                shadow.position = new Vector3(CaravanX, GroundLine, 0f);
+                shadow.position = new Vector3(CaravanX, WalkLane, 0f);
             var renderer = caravan.GetComponent<SpriteRenderer>();
             if (renderer != null)
                 renderer.color = day;
@@ -1199,15 +1284,15 @@ namespace Caravans.Play
             }
         }
 
-        void DropPropLayers(TravelDemoChart.Mix mix)
+        void DropPropLanes(TravelDemoChart.Mix mix)
         {
-            for (int i = propLayers.Count - 1; i >= 0; i--)
+            for (int i = propLanes.Count - 1; i >= 0; i--)
             {
-                string terrain = propLayers[i].terrain;
+                string terrain = propLanes[i].terrain;
                 if (terrain == mix.a || terrain == mix.b)
                     continue;
-                ClearPropPieces(propLayers[i]);
-                propLayers.RemoveAt(i);
+                ClearPropPieces(propLanes[i]);
+                propLanes.RemoveAt(i);
             }
         }
 
@@ -1216,14 +1301,14 @@ namespace Caravans.Play
             for (int i = 0; i < streams.Count; i++)
                 ClearPieces(streams[i]);
             streams.Clear();
-            ClearPropLayers();
+            ClearPropLanes();
         }
 
-        void ClearPropLayers()
+        void ClearPropLanes()
         {
-            for (int i = 0; i < propLayers.Count; i++)
-                ClearPropPieces(propLayers[i]);
-            propLayers.Clear();
+            for (int i = 0; i < propLanes.Count; i++)
+                ClearPropPieces(propLanes[i]);
+            propLanes.Clear();
         }
 
         void ReleasePiece(LayerStream stream, int index)
@@ -1236,34 +1321,34 @@ namespace Caravans.Play
             stream.pool.Add(piece);
         }
 
-        void ReleaseProp(PropLayer layer, int index)
+        void ReleaseProp(PropLane lane, int index)
         {
-            PropPiece piece = layer.pieces[index];
-            layer.pieces.RemoveAt(index);
+            PropPiece piece = lane.pieces[index];
+            lane.pieces.RemoveAt(index);
             if (piece.root == null)
                 return;
             piece.root.gameObject.SetActive(false);
-            layer.pool.Add(piece);
+            lane.pool.Add(piece);
         }
 
-        void ClearPropPieces(PropLayer layer)
+        void ClearPropPieces(PropLane lane)
         {
-            for (int i = 0; i < layer.pieces.Count; i++)
+            for (int i = 0; i < lane.pieces.Count; i++)
             {
-                PropPiece piece = layer.pieces[i];
+                PropPiece piece = lane.pieces[i];
                 if (piece.root != null)
                     Destroy(piece.root.gameObject);
             }
 
-            for (int i = 0; i < layer.pool.Count; i++)
+            for (int i = 0; i < lane.pool.Count; i++)
             {
-                PropPiece piece = layer.pool[i];
+                PropPiece piece = lane.pool[i];
                 if (piece.root != null)
                     Destroy(piece.root.gameObject);
             }
 
-            layer.pieces.Clear();
-            layer.pool.Clear();
+            lane.pieces.Clear();
+            lane.pool.Clear();
         }
 
         void ClearPieces(LayerStream stream)

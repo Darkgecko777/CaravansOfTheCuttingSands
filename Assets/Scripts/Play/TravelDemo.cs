@@ -274,11 +274,27 @@ namespace Caravans.Play
         {
             if (supply == null || cam == null || canvas == null)
                 return;
-            Vector3 screen = cam.WorldToScreenPoint(new Vector3(TravelDemoView.CaravanX, TravelDemoView.GroundLine, 0f));
+            Vector3 screen = cam.WorldToScreenPoint(new Vector3(TravelDemoView.CaravanX, TravelDemoView.WalkLane, 0f));
             Vector2 local;
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas, screen, null, out local))
                 return;
-            supply.anchoredPosition = local + new Vector2(0f, -28f);
+            float height = LayoutUtility.GetPreferredHeight(supply);
+            if (height < 1f)
+                height = supply.rect.height;
+            float top = local.y - 40f;
+            if (top - height < canvas.rect.yMin)
+            {
+                supply.anchorMin = Vector2.zero;
+                supply.anchorMax = Vector2.zero;
+                supply.pivot = Vector2.zero;
+                supply.anchoredPosition = new Vector2(24f, 24f);
+                return;
+            }
+
+            supply.anchorMin = new Vector2(0.5f, 0.5f);
+            supply.anchorMax = new Vector2(0.5f, 0.5f);
+            supply.pivot = new Vector2(0.5f, 1f);
+            supply.anchoredPosition = new Vector2(local.x, top);
         }
 
         Image Bar(RectTransform parent, string caption, Color fill)

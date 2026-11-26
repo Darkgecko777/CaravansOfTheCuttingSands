@@ -137,6 +137,13 @@ public class UiTextureImporter : AssetPostprocessor
         return path.Replace('\\', '/').StartsWith("Assets/Art/Travel/");
     }
 
+    static bool TravelAvatar(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return false;
+        return path.Replace('\\', '/').EndsWith("Assets/Art/Travel/Avatar/avatar_t1_bird_01.png");
+    }
+
     static bool TravelFeet(string path)
     {
         string slash = path.Replace('\\', '/');
@@ -204,7 +211,22 @@ public class UiTextureImporter : AssetPostprocessor
             importer.SetTextureSettings(settings);
         }
 
-        if (TravelArt(importer.assetPath))
+        if (TravelAvatar(importer.assetPath))
+        {
+            importer.mipmapEnabled = false;
+            importer.filterMode = FilterMode.Bilinear;
+            settings.mipmapEnabled = false;
+            settings.filterMode = FilterMode.Bilinear;
+            settings.spriteMeshType = SpriteMeshType.FullRect;
+            settings.spritePixelsPerUnit = 195f;
+            settings.spriteAlignment = (int)SpriteAlignment.Custom;
+            settings.spritePivot = new Vector2(0.468f, 0.02f);
+            settings.wrapMode = TextureWrapMode.Clamp;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.spritePixelsPerUnit = 195f;
+            importer.SetTextureSettings(settings);
+        }
+        else if (TravelArt(importer.assetPath))
         {
             settings.spriteMeshType = SpriteMeshType.FullRect;
             settings.spritePixelsPerUnit = 100f;
@@ -242,7 +264,7 @@ public class UiTextureImporter : AssetPostprocessor
             return false;
         if (importer.spriteImportMode != SpriteImportMode.Single)
             return false;
-        if (!importer.mipmapEnabled || importer.filterMode != FilterMode.Trilinear)
+        if (!TravelAvatar(importer.assetPath) && (!importer.mipmapEnabled || importer.filterMode != FilterMode.Trilinear))
             return false;
         if (importer.wrapMode != TextureWrapMode.Clamp)
         {
@@ -283,7 +305,22 @@ public class UiTextureImporter : AssetPostprocessor
                 return false;
         }
 
-        if (TravelArt(importer.assetPath))
+        if (TravelAvatar(importer.assetPath))
+        {
+            if (importer.mipmapEnabled || importer.filterMode != FilterMode.Bilinear)
+                return false;
+            var avatar = new TextureImporterSettings();
+            importer.ReadTextureSettings(avatar);
+            if (avatar.mipmapEnabled || avatar.filterMode != FilterMode.Bilinear)
+                return false;
+            if (Mathf.Abs(avatar.spritePixelsPerUnit - 195f) > 0.01f)
+                return false;
+            if (avatar.spriteAlignment != (int)SpriteAlignment.Custom)
+                return false;
+            if (Mathf.Abs(avatar.spritePivot.x - 0.468f) > 0.0001f || Mathf.Abs(avatar.spritePivot.y - 0.02f) > 0.0001f)
+                return false;
+        }
+        else if (TravelArt(importer.assetPath))
         {
             var have = new TextureImporterSettings();
             importer.ReadTextureSettings(have);

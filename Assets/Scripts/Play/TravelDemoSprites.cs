@@ -323,7 +323,6 @@ namespace Caravans.Play
             Color dark = new Color(0.42f, 0.28f, 0.16f, 1f);
             Color cloth = new Color(0.45f, 0.22f, 0.16f, 1f);
             Color pack = new Color(0.62f, 0.48f, 0.28f, 1f);
-            sheet.Ellipse(118, 10, 46, 8, new Color(0f, 0f, 0f, 0.28f));
             sheet.Ellipse(132, 36, 52, 28, hide);
             sheet.Ellipse(78, 58, 16, 28, hide);
             sheet.Ellipse(52, 78, 22, 12, dark);
