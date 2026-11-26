@@ -150,6 +150,21 @@ public class UiTextureImporter : AssetPostprocessor
         return slash.Contains("/props/") || slash.Contains("/far/") || slash.Contains("/mid/");
     }
 
+    // The v2 props are larger canvases than the v1 cuts. These pixels per unit keep the old on-screen size.
+    static float TravelPropPpu(string path)
+    {
+        string slash = string.IsNullOrEmpty(path) ? "" : path.Replace('\\', '/');
+        if (slash.EndsWith("/prop_dry_scrub_01.png"))
+            return 280f;
+        if (slash.EndsWith("/prop_reed_tuft_01.png"))
+            return 230f;
+        if (slash.EndsWith("/prop_rock_cluster_01.png"))
+            return 330f;
+        if (slash.EndsWith("/prop_sandstone_outcrop_01.png"))
+            return 210f;
+        return 100f;
+    }
+
     static bool TravelRepeat(string path)
     {
         string slash = path.Replace('\\', '/');
@@ -229,7 +244,8 @@ public class UiTextureImporter : AssetPostprocessor
         else if (TravelArt(importer.assetPath))
         {
             settings.spriteMeshType = SpriteMeshType.FullRect;
-            settings.spritePixelsPerUnit = 100f;
+            float ppu = TravelPropPpu(importer.assetPath);
+            settings.spritePixelsPerUnit = ppu;
             settings.wrapMode = TravelRepeat(importer.assetPath) ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
             if (TravelFeet(importer.assetPath))
             {
@@ -238,6 +254,7 @@ public class UiTextureImporter : AssetPostprocessor
             }
 
             importer.wrapMode = settings.wrapMode;
+            importer.spritePixelsPerUnit = ppu;
             importer.SetTextureSettings(settings);
         }
 
@@ -324,7 +341,7 @@ public class UiTextureImporter : AssetPostprocessor
         {
             var have = new TextureImporterSettings();
             importer.ReadTextureSettings(have);
-            if (Mathf.Abs(have.spritePixelsPerUnit - 100f) > 0.01f)
+            if (Mathf.Abs(have.spritePixelsPerUnit - TravelPropPpu(importer.assetPath)) > 0.01f)
                 return false;
             TextureWrapMode wrap = TravelRepeat(importer.assetPath) ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
             if (importer.wrapMode != wrap || have.wrapMode != wrap)

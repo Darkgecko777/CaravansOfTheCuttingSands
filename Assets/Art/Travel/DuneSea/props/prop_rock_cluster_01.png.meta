@@ -51,7 +51,7 @@ TextureImporter:
   spriteMeshType: 0
   alignment: 9
   spritePivot: {x: 0.5, y: 0}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 330
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -105,12 +105,12 @@ TextureImporter:
       name: prop_rock_cluster_01_0
       rect:
         serializedVersion: 2
-        x: 9
-        y: 9
-        width: 726
-        height: 117
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 0
+        width: 1375
+        height: 549
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
