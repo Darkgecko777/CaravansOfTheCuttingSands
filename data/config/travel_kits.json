@@ -45,6 +45,8 @@
       "pieceSpacing": false,
       "midPropMin": 0.25,
       "midPropMax": 0.4,
+      "midMinDepth": 0.1,
+      "backMinDepth": 0.08,
       "nearFill": { "r": 212, "g": 155, "b": 85 },
       "props": [
         "Art/Travel/DuneSea/props/prop_dry_scrub_01",
@@ -99,6 +101,8 @@
       "pieceSpacing": true,
       "midPropMin": 1,
       "midPropMax": 1,
+      "midMinDepth": 0.1,
+      "backMinDepth": 0.08,
       "nearFill": { "r": 208, "g": 194, "b": 180 },
       "backFill": { "r": 223, "g": 213, "b": 199 },
       "props": [
@@ -156,6 +160,8 @@
       "pieceSpacing": true,
       "midPropMin": 1,
       "midPropMax": 1,
+      "midMinDepth": 0.1,
+      "backMinDepth": 0.08,
       "nearFill": { "r": 155, "g": 85, "b": 42 },
       "backFill": { "r": 201, "g": 120, "b": 60 },
       "props": [
@@ -212,6 +218,8 @@
       "pieceSpacing": true,
       "midPropMin": 1,
       "midPropMax": 1,
+      "midMinDepth": 0.1,
+      "backMinDepth": 0.08,
       "nearFill": { "r": 180, "g": 150, "b": 120 },
       "backFill": { "r": 207, "g": 175, "b": 138 },
       "props": [
@@ -267,6 +275,8 @@
       "pieceSpacing": true,
       "midPropMin": 1,
       "midPropMax": 1,
+      "midMinDepth": 0.1,
+      "backMinDepth": 0.08,
       "oncePerScreen": ["mid_foothill_04"],
       "nearFill": { "r": 97, "g": 80, "b": 65 },
       "backFill": { "r": 154, "g": 118, "b": 89 },
@@ -324,6 +334,8 @@
       "pieceSpacing": true,
       "midPropMin": 1,
       "midPropMax": 1,
+      "midMinDepth": 0.1,
+      "backMinDepth": 0.08,
       "oncePerScreen": ["mid_shore_04"],
       "nearFill": { "r": 221, "g": 189, "b": 148 },
       "backFill": { "r": 96, "g": 121, "b": 131 },

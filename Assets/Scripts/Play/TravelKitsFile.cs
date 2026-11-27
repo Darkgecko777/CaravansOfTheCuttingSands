@@ -63,6 +63,8 @@ namespace Caravans.Play
             public bool pieceSpacing;
             public float midPropMin;
             public float midPropMax;
+            public float midMinDepth;
+            public float backMinDepth;
             public Rgb nearFill;
             public Rgb backFill;
             public string[] oncePerScreen;

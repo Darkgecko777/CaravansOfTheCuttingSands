@@ -9,6 +9,11 @@ namespace Caravans.Play.Tests
         {
             TravelKitsFile file = GameConfig.ReadFile<TravelKitsFile>("travel_kits.json", "terrains");
             Assert.AreEqual(6, file.terrains.Length);
+            for (int i = 0; i < file.terrains.Length; i++)
+            {
+                Assert.AreEqual(0.10f, file.terrains[i].midMinDepth, 0.001f, file.terrains[i].name);
+                Assert.AreEqual(0.08f, file.terrains[i].backMinDepth, 0.001f, file.terrains[i].name);
+            }
 
             TravelKitsFile.Terrain dune = file.Find("Dune Sea");
             Assert.IsTrue(dune.nearTiles);
