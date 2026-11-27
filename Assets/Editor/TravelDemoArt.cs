@@ -2,7 +2,7 @@ using Caravans.Play;
 using UnityEditor;
 using UnityEngine;
 
-// The travel sandbox loads Dune Sea art from Assets/Art. Those files are not in Resources.
+// The travel sandbox loads biome art from Assets/Art. Those files are not in Resources.
 [InitializeOnLoad]
 public static class TravelDemoArt
 {

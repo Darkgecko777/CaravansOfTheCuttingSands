@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Caravans.Play;
 using UnityEditor;
 using UnityEngine;
 
@@ -103,11 +104,18 @@ public class UiTextureImporter : AssetPostprocessor
             return true;
         if (name.StartsWith("resin-seal"))
             return true;
-        // Dune profiles read the crest once. Props, sky, and the back plain stay packed.
+        return TravelProfile(path);
+    }
+
+    // Crest profiles read near, mid, and far once. Props, sky, and the back plain stay packed.
+    static bool TravelProfile(string path)
+    {
         string slash = string.IsNullOrEmpty(path) ? "" : path.Replace('\\', '/');
-        return slash.Contains("/Art/Travel/DuneSea/near/")
-            || slash.Contains("/Art/Travel/DuneSea/mid/")
-            || slash.Contains("/Art/Travel/DuneSea/far/");
+        if (!slash.Contains("/Art/Travel/"))
+            return false;
+        if (slash.Contains("/_reference/") || slash.Contains("/_Source/"))
+            return false;
+        return slash.Contains("/near/") || slash.Contains("/mid/") || slash.Contains("/far/");
     }
 
     static bool MenuBorder(string path, out Vector4 border)
@@ -156,19 +164,48 @@ public class UiTextureImporter : AssetPostprocessor
         return slash.Contains("/props/") || slash.Contains("/far/") || slash.Contains("/mid/");
     }
 
-    // The v2 props are larger canvases than the v1 cuts. These pixels per unit keep the old on-screen size.
+    // Prop pixels per unit live in travel_kits.json. Landscape art stays at 100.
+    static TravelKitsFile kitFile;
+    static System.DateTime kitTime;
+
     static float TravelPropPpu(string path)
     {
         string slash = string.IsNullOrEmpty(path) ? "" : path.Replace('\\', '/');
-        if (slash.EndsWith("/prop_dry_scrub_01.png"))
-            return 280f;
-        if (slash.EndsWith("/prop_reed_tuft_01.png"))
-            return 230f;
-        if (slash.EndsWith("/prop_rock_cluster_01.png"))
-            return 330f;
-        if (slash.EndsWith("/prop_sandstone_outcrop_01.png"))
-            return 210f;
+        TravelKitsFile file = Kits();
+        if (file == null || file.terrains == null)
+            return 100f;
+        for (int t = 0; t < file.terrains.Length; t++)
+        {
+            TravelKitsFile.Terrain terrain = file.terrains[t];
+            if (terrain == null || terrain.propSpecs == null)
+                continue;
+            for (int i = 0; i < terrain.propSpecs.Length; i++)
+            {
+                TravelKitsFile.PropSpec spec = terrain.propSpecs[i];
+                if (spec == null || spec.ppu <= 1f || string.IsNullOrEmpty(spec.path))
+                    continue;
+                string name = Path.GetFileName(spec.path);
+                if (!name.EndsWith(".png"))
+                    name += ".png";
+                if (slash.EndsWith("/" + name))
+                    return spec.ppu;
+            }
+        }
+
         return 100f;
+    }
+
+    static TravelKitsFile Kits()
+    {
+        string path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "data", "config", "travel_kits.json"));
+        if (!File.Exists(path))
+            return null;
+        System.DateTime time = File.GetLastWriteTimeUtc(path);
+        if (kitFile != null && time == kitTime)
+            return kitFile;
+        kitTime = time;
+        kitFile = JsonUtility.FromJson<TravelKitsFile>(File.ReadAllText(path));
+        return kitFile;
     }
 
     static bool TravelRepeat(string path)

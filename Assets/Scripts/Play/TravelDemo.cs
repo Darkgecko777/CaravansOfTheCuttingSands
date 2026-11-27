@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Caravans.FrontDoor;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Caravans.Play
@@ -116,6 +117,8 @@ namespace Caravans.Play
                 dayLabel.text = WorldClock.DayPart(hour) + "  " + (minutes / 60).ToString("00") + ":" + (minutes % 60).ToString("00");
             }
 
+            PollBiomeKey();
+
             PlaceSupply();
         }
 
@@ -216,6 +219,7 @@ namespace Caravans.Play
             routeDrop = Dropdown(bar, "Route", 320f);
             directionDrop = Dropdown(bar, "Direction", 240f);
             terrainDrop = Dropdown(bar, "Terrain", 190f);
+            BiomeButton(bar);
             seedField = SeedBox(bar);
             dayLabel = Plain(bar, "DayPart", WorldClock.DayPart(hour), UiType.Hud, UiType.Cream, TextAlignmentOptions.MidlineLeft);
             var dayFit = dayLabel.rectTransform.gameObject.AddComponent<LayoutElement>();
@@ -400,6 +404,59 @@ namespace Caravans.Play
         void OnTerrain(int index)
         {
             chart.SetOverride(index <= 0 ? null : TerrainNames[index - 1]);
+        }
+
+        void PollBiomeKey()
+        {
+            if (chart == null || (seedField != null && seedField.isFocused))
+                return;
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+                return;
+            if (keyboard.bKey.wasPressedThisFrame || keyboard.rightBracketKey.wasPressedThisFrame)
+                CycleBiome(1);
+            else if (keyboard.leftBracketKey.wasPressedThisFrame)
+                CycleBiome(-1);
+        }
+
+        void CycleBiome(int direction)
+        {
+            if (chart == null)
+                return;
+            int current = -1;
+            for (int i = 0; i < TerrainNames.Length; i++)
+            {
+                if (TerrainNames[i] == chart.TerrainOverride)
+                    current = i;
+            }
+
+            int count = TerrainNames.Length;
+            int next = current < 0 ? 0 : current + direction;
+            if (next >= count)
+                next = 0;
+            if (next < 0)
+                next = count - 1;
+            chart.SetOverride(TerrainNames[next]);
+            if (terrainDrop == null)
+                return;
+            terrainDrop.SetValueWithoutNotify(next + 1);
+            terrainDrop.RefreshShownValue();
+        }
+
+        void BiomeButton(RectTransform parent)
+        {
+            var rect = FrontUi.Box(parent, "NextBiome", new Vector2(150f, 40f));
+            var fit = rect.gameObject.AddComponent<LayoutElement>();
+            fit.preferredWidth = 150f;
+            fit.preferredHeight = 40f;
+            var image = rect.gameObject.AddComponent<Image>();
+            image.color = new Color(0.16f, 0.11f, 0.07f, 1f);
+            var label = Plain(rect, "Text", "Next biome", UiType.Small, UiType.Cream, TextAlignmentOptions.Center);
+            Stretch(label.rectTransform);
+            var button = rect.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.transition = Selectable.Transition.None;
+            button.onClick.AddListener(delegate { CycleBiome(1); });
         }
 
         void OnSeed(string text)

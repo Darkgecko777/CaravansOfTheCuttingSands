@@ -31,49 +31,315 @@
       ],
       "nearSpeed": 0.92,
       "nearTiles": true,
+      "nearScale": 1,
+      "nearOverlapPx": 0,
+      "midScale": 0.78,
+      "midScaleMax": 1,
+      "midBottom": 647,
+      "farScale": 0.48,
+      "farScaleMax": 0.7,
+      "farBottom": 582,
+      "farFade": 36,
+      "farGapPx": 0,
+      "farOverlapPx": 0,
+      "pieceSpacing": false,
+      "midPropMin": 0.25,
+      "midPropMax": 0.4,
+      "nearFill": { "r": 212, "g": 155, "b": 85 },
       "props": [
         "Art/Travel/DuneSea/props/prop_dry_scrub_01",
         "Art/Travel/DuneSea/props/prop_sandstone_outcrop_01",
         "Art/Travel/DuneSea/props/prop_rock_cluster_01",
         "Art/Travel/DuneSea/props/prop_reed_tuft_01"
       ],
+      "propSpecs": [
+        { "path": "Art/Travel/DuneSea/props/prop_dry_scrub_01", "ppu": 280, "mid": false },
+        { "path": "Art/Travel/DuneSea/props/prop_reed_tuft_01", "ppu": 230, "mid": false },
+        { "path": "Art/Travel/DuneSea/props/prop_rock_cluster_01", "ppu": 330, "mid": false },
+        { "path": "Art/Travel/DuneSea/props/prop_sandstone_outcrop_01", "ppu": 210, "mid": false }
+      ],
       "propSpeedMin": 0.9,
       "propSpeedMax": 1.05
     },
     {
       "name": "Salt Flats",
-      "ground": "Travel/SaltFlats/ground",
-      "far": ["Travel/SaltFlats/far_a", "Travel/SaltFlats/far_b", "Travel/SaltFlats/far_c"],
-      "mid": ["Travel/SaltFlats/mid_a", "Travel/SaltFlats/mid_b", "Travel/SaltFlats/mid_c"],
-      "near": ["Travel/SaltFlats/near_a", "Travel/SaltFlats/near_b"]
+      "sky": "Art/Travel/DuneSea/sky/sky_gradient_01",
+      "skyStrip": "Art/Travel/DuneSea/sky/sky_gradient_01_strip",
+      "back": "Art/Travel/SaltFlats/back/back_plain_01",
+      "backSpeed": 0.08,
+      "far": [
+        "Art/Travel/SaltFlats/far/far_salt_01",
+        "Art/Travel/SaltFlats/far/far_salt_03",
+        "Art/Travel/SaltFlats/far/far_salt_04"
+      ],
+      "farSpeed": 0.18,
+      "mid": [
+        "Art/Travel/SaltFlats/mid/mid_salt_01",
+        "Art/Travel/SaltFlats/mid/mid_salt_02",
+        "Art/Travel/SaltFlats/mid/mid_salt_03",
+        "Art/Travel/SaltFlats/mid/mid_salt_04"
+      ],
+      "midSpeed": 0.48,
+      "near": [
+        "Art/Travel/SaltFlats/near/near_salt_01",
+        "Art/Travel/SaltFlats/near/near_salt_02",
+        "Art/Travel/SaltFlats/near/near_salt_04"
+      ],
+      "nearSpeed": 0.92,
+      "nearTiles": true,
+      "nearScale": 1,
+      "nearOverlapPx": 0,
+      "midScale": 0.62,
+      "midBottom": 625,
+      "farScale": 0.59,
+      "farBottom": 458,
+      "farFade": 10,
+      "farGapPx": 260,
+      "farOverlapPx": 0,
+      "pieceSpacing": true,
+      "midPropMin": 1,
+      "midPropMax": 1,
+      "nearFill": { "r": 208, "g": 194, "b": 180 },
+      "backFill": { "r": 223, "g": 213, "b": 199 },
+      "props": [
+        "Art/Travel/SaltFlats/props/prop_saltbush_01",
+        "Art/Travel/SaltFlats/props/prop_salt_rock_01",
+        "Art/Travel/SaltFlats/props/prop_salt_mound_01"
+      ],
+      "propSpecs": [
+        { "path": "Art/Travel/SaltFlats/props/prop_saltbush_01", "ppu": 358, "mid": false },
+        { "path": "Art/Travel/SaltFlats/props/prop_salt_rock_01", "ppu": 413, "mid": false },
+        { "path": "Art/Travel/SaltFlats/props/prop_salt_mound_01", "ppu": 384, "mid": false },
+        { "path": "Art/Travel/SaltFlats/props/prop_salt_spire_01", "ppu": 632, "mid": true }
+      ],
+      "propSpeedMin": 0.9,
+      "propSpeedMax": 1.05
     },
     {
       "name": "Badlands",
-      "ground": "Travel/Badlands/ground",
-      "far": ["Travel/Badlands/far_a", "Travel/Badlands/far_b", "Travel/Badlands/far_c"],
-      "mid": ["Travel/Badlands/mid_a", "Travel/Badlands/mid_b", "Travel/Badlands/mid_c"],
-      "near": ["Travel/Badlands/near_a", "Travel/Badlands/near_b"]
+      "sky": "Art/Travel/DuneSea/sky/sky_gradient_01",
+      "skyStrip": "Art/Travel/DuneSea/sky/sky_gradient_01_strip",
+      "back": "Art/Travel/Badlands/back/back_plain_01",
+      "backSpeed": 0.08,
+      "far": [
+        "Art/Travel/Badlands/far/far_mesas_01",
+        "Art/Travel/Badlands/far/far_mesas_02",
+        "Art/Travel/Badlands/far/far_mesas_03",
+        "Art/Travel/Badlands/far/far_mesas_04"
+      ],
+      "farSpeed": 0.18,
+      "mid": [
+        "Art/Travel/Badlands/mid/mid_ridge_01",
+        "Art/Travel/Badlands/mid/mid_ridge_02",
+        "Art/Travel/Badlands/mid/mid_ridge_03",
+        "Art/Travel/Badlands/mid/mid_ridge_04"
+      ],
+      "midSpeed": 0.48,
+      "near": [
+        "Art/Travel/Badlands/near/near_ground_01",
+        "Art/Travel/Badlands/near/near_ground_02",
+        "Art/Travel/Badlands/near/near_ground_03",
+        "Art/Travel/Badlands/near/near_ground_04"
+      ],
+      "nearSpeed": 0.92,
+      "nearTiles": true,
+      "nearScale": 1,
+      "nearOverlapPx": 0,
+      "midScale": 0.93,
+      "midBottom": 680,
+      "farScale": 0.59,
+      "farBottom": 603,
+      "farFade": 36,
+      "farGapPx": 0,
+      "farOverlapPx": 160,
+      "farOverlapBelowPx": 1150,
+      "pieceSpacing": true,
+      "midPropMin": 1,
+      "midPropMax": 1,
+      "nearFill": { "r": 155, "g": 85, "b": 42 },
+      "backFill": { "r": 201, "g": 120, "b": 60 },
+      "props": [
+        "Art/Travel/Badlands/props/prop_dry_brush_01",
+        "Art/Travel/Badlands/props/prop_boulder_cluster_01",
+        "Art/Travel/Badlands/props/prop_cracked_rock_01"
+      ],
+      "propSpecs": [
+        { "path": "Art/Travel/Badlands/props/prop_dry_brush_01", "ppu": 300, "mid": false },
+        { "path": "Art/Travel/Badlands/props/prop_boulder_cluster_01", "ppu": 360, "mid": false },
+        { "path": "Art/Travel/Badlands/props/prop_cracked_rock_01", "ppu": 360, "mid": false },
+        { "path": "Art/Travel/Badlands/props/prop_hoodoo_01", "ppu": 450, "mid": true }
+      ],
+      "propSpeedMin": 0.9,
+      "propSpeedMax": 1.05
     },
     {
       "name": "Dry Scrub",
-      "ground": "Travel/DryScrub/ground",
-      "far": ["Travel/DryScrub/far_a", "Travel/DryScrub/far_b", "Travel/DryScrub/far_c"],
-      "mid": ["Travel/DryScrub/mid_a", "Travel/DryScrub/mid_b", "Travel/DryScrub/mid_c"],
-      "near": ["Travel/DryScrub/near_a", "Travel/DryScrub/near_b"]
+      "sky": "Art/Travel/DuneSea/sky/sky_gradient_01",
+      "skyStrip": "Art/Travel/DuneSea/sky/sky_gradient_01_strip",
+      "back": "Art/Travel/DryScrub/back/back_plain_01",
+      "backSpeed": 0.08,
+      "far": [
+        "Art/Travel/DryScrub/far/far_hills_01",
+        "Art/Travel/DryScrub/far/far_hills_03",
+        "Art/Travel/DryScrub/far/far_hills_04"
+      ],
+      "farSpeed": 0.18,
+      "mid": [
+        "Art/Travel/DryScrub/mid/mid_scrub_01",
+        "Art/Travel/DryScrub/mid/mid_scrub_02",
+        "Art/Travel/DryScrub/mid/mid_scrub_03",
+        "Art/Travel/DryScrub/mid/mid_scrub_04"
+      ],
+      "midSpeed": 0.48,
+      "near": [
+        "Art/Travel/DryScrub/near/near_scrub_01",
+        "Art/Travel/DryScrub/near/near_scrub_02",
+        "Art/Travel/DryScrub/near/near_scrub_03",
+        "Art/Travel/DryScrub/near/near_scrub_04"
+      ],
+      "nearSpeed": 0.92,
+      "nearTiles": true,
+      "nearScale": 1,
+      "nearOverlapPx": 0,
+      "midScale": 0.93,
+      "midBottom": 680,
+      "farScale": 0.59,
+      "farBottom": 603,
+      "farFade": 36,
+      "farGapPx": 0,
+      "farOverlapPx": 240,
+      "farOverlapBelowPx": 1150,
+      "pieceSpacing": true,
+      "midPropMin": 1,
+      "midPropMax": 1,
+      "nearFill": { "r": 180, "g": 150, "b": 120 },
+      "backFill": { "r": 207, "g": 175, "b": 138 },
+      "props": [
+        "Art/Travel/DryScrub/props/prop_sage_bush_01",
+        "Art/Travel/DryScrub/props/prop_dry_grass_01",
+        "Art/Travel/DryScrub/props/prop_stone_scatter_01"
+      ],
+      "propSpecs": [
+        { "path": "Art/Travel/DryScrub/props/prop_sage_bush_01", "ppu": 300, "mid": false },
+        { "path": "Art/Travel/DryScrub/props/prop_dry_grass_01", "ppu": 315, "mid": false },
+        { "path": "Art/Travel/DryScrub/props/prop_stone_scatter_01", "ppu": 360, "mid": false },
+        { "path": "Art/Travel/DryScrub/props/prop_scrubstone_spires_01", "ppu": 450, "mid": true }
+      ],
+      "propSpeedMin": 0.9,
+      "propSpeedMax": 1.05
     },
     {
       "name": "Highlands",
-      "ground": "Travel/Highlands/ground",
-      "far": ["Travel/Highlands/far_a", "Travel/Highlands/far_b", "Travel/Highlands/far_c"],
-      "mid": ["Travel/Highlands/mid_a", "Travel/Highlands/mid_b", "Travel/Highlands/mid_c"],
-      "near": ["Travel/Highlands/near_a", "Travel/Highlands/near_b"]
+      "sky": "Art/Travel/DuneSea/sky/sky_gradient_01",
+      "skyStrip": "Art/Travel/DuneSea/sky/sky_gradient_01_strip",
+      "back": "Art/Travel/Highlands/back/back_plain_01",
+      "backSpeed": 0.08,
+      "far": [
+        "Art/Travel/Highlands/far/far_peaks_01",
+        "Art/Travel/Highlands/far/far_peaks_02",
+        "Art/Travel/Highlands/far/far_peaks_03",
+        "Art/Travel/Highlands/far/far_peaks_04"
+      ],
+      "farSpeed": 0.18,
+      "mid": [
+        "Art/Travel/Highlands/mid/mid_foothill_01",
+        "Art/Travel/Highlands/mid/mid_foothill_02",
+        "Art/Travel/Highlands/mid/mid_foothill_04"
+      ],
+      "midSpeed": 0.48,
+      "near": [
+        "Art/Travel/Highlands/near/near_rock_01",
+        "Art/Travel/Highlands/near/near_rock_02",
+        "Art/Travel/Highlands/near/near_rock_03",
+        "Art/Travel/Highlands/near/near_rock_04"
+      ],
+      "nearSpeed": 0.92,
+      "nearTiles": true,
+      "nearScale": 1,
+      "nearOverlapPx": 0,
+      "midScale": 0.62,
+      "midBottom": 680,
+      "farScale": 0.59,
+      "farBottom": 603,
+      "farFade": 36,
+      "farGapPx": 0,
+      "farOverlapPx": 0,
+      "pieceSpacing": true,
+      "midPropMin": 1,
+      "midPropMax": 1,
+      "oncePerScreen": ["mid_foothill_04"],
+      "nearFill": { "r": 97, "g": 80, "b": 65 },
+      "backFill": { "r": 154, "g": 118, "b": 89 },
+      "props": [
+        "Art/Travel/Highlands/props/prop_hardy_shrub_01",
+        "Art/Travel/Highlands/props/prop_frost_boulder_01",
+        "Art/Travel/Highlands/props/prop_scree_pile_01"
+      ],
+      "propSpecs": [
+        { "path": "Art/Travel/Highlands/props/prop_hardy_shrub_01", "ppu": 300, "mid": false },
+        { "path": "Art/Travel/Highlands/props/prop_frost_boulder_01", "ppu": 360, "mid": false },
+        { "path": "Art/Travel/Highlands/props/prop_scree_pile_01", "ppu": 415, "mid": false },
+        { "path": "Art/Travel/Highlands/props/prop_rock_spire_01", "ppu": 630, "mid": true }
+      ],
+      "propSpeedMin": 0.9,
+      "propSpeedMax": 1.05
     },
     {
       "name": "Coast",
-      "ground": "Travel/Coast/ground",
-      "far": ["Travel/Coast/far_a", "Travel/Coast/far_b", "Travel/Coast/far_c"],
-      "mid": ["Travel/Coast/mid_a", "Travel/Coast/mid_b", "Travel/Coast/mid_c"],
-      "near": ["Travel/Coast/near_a", "Travel/Coast/near_b"]
+      "sky": "Art/Travel/DuneSea/sky/sky_gradient_01",
+      "skyStrip": "Art/Travel/DuneSea/sky/sky_gradient_01_strip",
+      "back": "Art/Travel/Coast/back/back_plain_01",
+      "backSpeed": 0.08,
+      "far": [
+        "Art/Travel/Coast/far/far_sea_01",
+        "Art/Travel/Coast/far/far_sea_02",
+        "Art/Travel/Coast/far/far_sea_03",
+        "Art/Travel/Coast/far/far_sea_04"
+      ],
+      "farSpeed": 0.18,
+      "mid": [
+        "Art/Travel/Coast/mid/mid_shore_01",
+        "Art/Travel/Coast/mid/mid_shore_02",
+        "Art/Travel/Coast/mid/mid_shore_03",
+        "Art/Travel/Coast/mid/mid_shore_04"
+      ],
+      "midSpeed": 0.48,
+      "near": [
+        "Art/Travel/Coast/near/near_shore_01",
+        "Art/Travel/Coast/near/near_shore_02",
+        "Art/Travel/Coast/near/near_shore_03",
+        "Art/Travel/Coast/near/near_shore_04"
+      ],
+      "nearSpeed": 0.92,
+      "nearTiles": true,
+      "nearScale": 1,
+      "nearOverlapPx": 0,
+      "midScale": 0.62,
+      "midBottom": 680,
+      "farScale": 0.59,
+      "farBottom": 458,
+      "farFade": 6,
+      "farGapPx": 260,
+      "farOverlapPx": 0,
+      "pieceSpacing": true,
+      "midPropMin": 1,
+      "midPropMax": 1,
+      "oncePerScreen": ["mid_shore_04"],
+      "nearFill": { "r": 221, "g": 189, "b": 148 },
+      "backFill": { "r": 96, "g": 121, "b": 131 },
+      "props": [
+        "Art/Travel/Coast/props/prop_beach_grass_01",
+        "Art/Travel/Coast/props/prop_tide_rocks_01",
+        "Art/Travel/Coast/props/prop_driftwood_01"
+      ],
+      "propSpecs": [
+        { "path": "Art/Travel/Coast/props/prop_beach_grass_01", "ppu": 315, "mid": false },
+        { "path": "Art/Travel/Coast/props/prop_tide_rocks_01", "ppu": 360, "mid": false },
+        { "path": "Art/Travel/Coast/props/prop_driftwood_01", "ppu": 300, "mid": false },
+        { "path": "Art/Travel/Coast/props/prop_sea_stack_01", "ppu": 630, "mid": true }
+      ],
+      "propSpeedMin": 0.9,
+      "propSpeedMax": 1.05
     }
   ]
 }
