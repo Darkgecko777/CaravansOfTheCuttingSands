@@ -272,29 +272,41 @@ namespace Caravans.Play
 
         void PlaceSupply()
         {
-            if (supply == null || cam == null || canvas == null)
+            if (supply == null || cam == null || canvas == null || view == null)
                 return;
-            Vector3 screen = cam.WorldToScreenPoint(new Vector3(TravelDemoView.CaravanX, TravelDemoView.SandTop, 0f));
-            Vector2 local;
-            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas, screen, null, out local))
-                return;
+            Bounds mount = view.MountBounds();
+            float crest;
+            float ground = view.TryCrest(mount.center.x, out crest) ? crest : mount.min.y;
+            float width = LayoutUtility.GetPreferredWidth(supply);
+            if (width < 1f)
+                width = 440f;
             float height = LayoutUtility.GetPreferredHeight(supply);
             if (height < 1f)
                 height = supply.rect.height;
-            float top = local.y - 40f;
-            if (top - height < canvas.rect.yMin)
-            {
-                supply.anchorMin = Vector2.zero;
-                supply.anchorMax = Vector2.zero;
-                supply.pivot = Vector2.zero;
-                supply.anchoredPosition = new Vector2(24f, 24f);
+
+            // Beside the thrask, bottom on the crest, so the panel sits in the sky.
+            Vector3 world = new Vector3(mount.max.x + 0.2f, ground, 0f);
+            Vector3 screen = cam.WorldToScreenPoint(world);
+            Vector2 local;
+            if (screen.z < 0f || !RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas, screen, null, out local))
                 return;
+            bool onRight = local.x + width <= canvas.rect.xMax - 12f;
+            if (!onRight)
+            {
+                world = new Vector3(mount.min.x - 0.2f, ground, 0f);
+                screen = cam.WorldToScreenPoint(world);
+                if (screen.z < 0f || !RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas, screen, null, out local))
+                    return;
             }
 
+            if (local.y + height > canvas.rect.yMax - 12f)
+                local.y = canvas.rect.yMax - 12f - height;
+            if (local.y < canvas.rect.yMin + 12f)
+                local.y = canvas.rect.yMin + 12f;
             supply.anchorMin = new Vector2(0.5f, 0.5f);
             supply.anchorMax = new Vector2(0.5f, 0.5f);
-            supply.pivot = new Vector2(0.5f, 1f);
-            supply.anchoredPosition = new Vector2(local.x, top);
+            supply.pivot = onRight ? Vector2.zero : Vector2.right;
+            supply.anchoredPosition = local;
         }
 
         Image Bar(RectTransform parent, string caption, Color fill)

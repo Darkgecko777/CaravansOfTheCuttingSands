@@ -101,7 +101,13 @@ public class UiTextureImporter : AssetPostprocessor
         if (name == "parchment-plain.png" || name == "duzhu-hide-panel.png"
             || name == "banner.png" || name == "hide-header.png" || name == "bone-frame.png")
             return true;
-        return name.StartsWith("resin-seal");
+        if (name.StartsWith("resin-seal"))
+            return true;
+        // Dune profiles read the crest once. Props, sky, and the back plain stay packed.
+        string slash = string.IsNullOrEmpty(path) ? "" : path.Replace('\\', '/');
+        return slash.Contains("/Art/Travel/DuneSea/near/")
+            || slash.Contains("/Art/Travel/DuneSea/mid/")
+            || slash.Contains("/Art/Travel/DuneSea/far/");
     }
 
     static bool MenuBorder(string path, out Vector4 border)
